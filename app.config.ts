@@ -1,7 +1,10 @@
 import type { ExpoConfig, ConfigContext } from "expo/config";
 
 const DEFAULT_API_URL = "http://localhost:3000/v1";
-const DEFAULT_WS_URL = "ws://localhost:3001";
+// realtime-service runs on :3002 (see backend docker-compose.yml). The
+// earlier ":3001" default was wrong — that's the agent-worker's internal
+// port, which the mobile client never talks to directly.
+const DEFAULT_WS_URL = "ws://localhost:3002";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
