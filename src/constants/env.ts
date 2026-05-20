@@ -15,22 +15,22 @@ const extra = (Constants.expoConfig?.extra ?? {}) as Partial<AppExtra>;
  * the developer's laptop. Metro tells the bundle which machine served it
  * via `expoConfig.hostUri` (newer) / `expoGoConfig.debuggerHost` (older) —
  * typically `192.168.X.Y:8081`. We take that IP and assume the backend
- * runs on the same machine on the standard ports. Tunnels (`exp+...`)
- * give us nothing usable, so we fall back to the env value.
+ * runs on the same machine on the standard ports. Tunnels (`exp+…`,
+ * `*.exp.direct`) don't give us a usable LAN IP — we surface that loudly
+ * in the dev console so the developer can switch back to LAN mode.
  */
-function inferDevLanHost(): string | null {
+function inferDevLanHost(): { host: string; raw: string } | { host: null; raw: string | null } {
   const hostUri =
     Constants.expoConfig?.hostUri ??
     (Constants as unknown as { expoGoConfig?: { debuggerHost?: string } })
       .expoGoConfig?.debuggerHost ??
     null;
-  if (!hostUri || typeof hostUri !== "string") return null;
+  if (!hostUri || typeof hostUri !== "string") return { host: null, raw: hostUri };
   const host = hostUri.split(":")[0]?.trim();
-  if (!host) return null;
-  // Only accept a plain IPv4 — tunnel hosts (`exp+slug`, `*.exp.direct`)
-  // wouldn't reach a localhost-bound backend either way.
-  if (!/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/.test(host)) return null;
-  return host;
+  if (!host || !/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/.test(host)) {
+    return { host: null, raw: hostUri };
+  }
+  return { host, raw: hostUri };
 }
 
 /**
@@ -39,22 +39,17 @@ function inferDevLanHost(): string | null {
  * `localhost` for the Metro host IP so Expo Go on a real device reaches
  * the right machine. Production builds keep whatever is configured.
  */
-function resolveDevUrl(
-  envValue: string | undefined,
-  fallback: string,
-): string {
+function resolveDevUrl(envValue: string | undefined, fallback: string): string {
   const value = envValue ?? fallback;
-  // Only rewrite the dev defaults — if the developer pinned a real domain
-  // (e.g. https://api.mova.app/v1) we never touch it.
   const usesLocalhost =
     value.includes("//localhost") || value.includes("//127.0.0.1");
   if (!usesLocalhost) return value;
   if (!__DEV__) return value;
-  const lan = inferDevLanHost();
-  if (!lan) return value;
+  const { host } = inferDevLanHost();
+  if (!host) return value;
   return value
-    .replace("//localhost", `//${lan}`)
-    .replace("//127.0.0.1", `//${lan}`);
+    .replace("//localhost", `//${host}`)
+    .replace("//127.0.0.1", `//${host}`);
 }
 
 export const API_BASE_URL: string = resolveDevUrl(
@@ -69,3 +64,27 @@ export const WS_URL: string = resolveDevUrl(
 
 export const SENTRY_DSN: string | undefined =
   extra.sentryDsn && extra.sentryDsn.length > 0 ? extra.sentryDsn : undefined;
+
+// ─── Dev-only visibility ──────────────────────────────────────────────────
+// Surface the resolved URLs + Metro hostUri once on boot so it's obvious
+// which machine the bundle is targeting. Massively cuts "Server unreachable"
+// debugging time: if you see `localhost` here, Metro served the bundle in
+// tunnel mode and the auto-detect couldn't extract a LAN IP — restart
+// `expo start` without --tunnel.
+if (__DEV__) {
+  const probe = inferDevLanHost();
+  console.log(
+    "[mova/env] resolved URLs:",
+    JSON.stringify(
+      {
+        API_BASE_URL,
+        WS_URL,
+        metroHostUri: probe.raw,
+        detectedLanIp: probe.host,
+        usingLocalhost: API_BASE_URL.includes("localhost"),
+      },
+      null,
+      2,
+    ),
+  );
+}
