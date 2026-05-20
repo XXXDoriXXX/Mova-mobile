@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -29,6 +30,7 @@ export default function LiveCallScreen() {
     initialStyleId?: string;
   }>();
   const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
 
   const status = useCallStore((s) => s.status);
   const bubbles = useCallStore((s) => s.bubbles);
@@ -54,6 +56,16 @@ export default function LiveCallScreen() {
     const id = setTimeout(() => setToastError(null), 4000);
     return () => clearTimeout(id);
   }, [toastError, setToastError]);
+
+  // When the call ends (or fatal-errors out), invalidate the queries the
+  // History + Home screens read from so the new conversation appears + the
+  // free-seconds / balance figures reflect the just-finished session.
+  useEffect(() => {
+    if (!endInfo && !fatalError) return;
+    queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    queryClient.invalidateQueries({ queryKey: ["billing", "me"] });
+    queryClient.invalidateQueries({ queryKey: ["billing", "usage"] });
+  }, [endInfo, fatalError, queryClient]);
 
   function handleSend(text: string) {
     useCallStore.getState().pushUserTyped(text);
