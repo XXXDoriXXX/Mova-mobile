@@ -114,7 +114,15 @@
     "pushDeniedTitle": "Permission denied",
     "pushDeniedBody": "Enable notifications for Mova in your system settings.",
     "pushUnsupportedTitle": "Not supported",
-    "pushUnsupportedBody": "Push notifications aren't available on this device."
+    "pushUnsupportedBody": "Push notifications aren't available on this device.",
+    "sectionHelp": "Help",
+    "about": "About",
+    "aboutTitle": "About Mova",
+    "aboutTagline": "AI-powered phone-call assistant for deaf and hard-of-hearing users.",
+    "aboutVersion": "Version {{version}} ({{build}})",
+    "aboutSupport": "Support",
+    "aboutContactEmail": "Contact support",
+    "aboutBackendRepo": "Backend source code"
   },
   "stub": {
     "comingSoon": "Coming soon",

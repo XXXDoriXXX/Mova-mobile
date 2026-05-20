@@ -89,7 +89,10 @@ export default function HomeScreen() {
         {billingQuery.isLoading ? (
           <Spinner />
         ) : billingQuery.data ? (
-          <BalanceWidget summary={billingQuery.data} />
+          <BalanceWidget
+            summary={billingQuery.data}
+            onPress={() => router.push("/billing")}
+          />
         ) : null}
 
         <Button
