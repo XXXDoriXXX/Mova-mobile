@@ -8,11 +8,19 @@ type Props = {
   title: string;
   subtitle?: string;
   onPress?: () => void;
+  onLongPress?: () => void;
   trailing?: React.ReactNode;
   iconName?: keyof typeof Ionicons.glyphMap;
 };
 
-export function Row({ title, subtitle, onPress, trailing, iconName }: Props) {
+export function Row({
+  title,
+  subtitle,
+  onPress,
+  onLongPress,
+  trailing,
+  iconName,
+}: Props) {
   const theme = useTheme();
   const content = (
     <View
@@ -37,17 +45,23 @@ export function Row({ title, subtitle, onPress, trailing, iconName }: Props) {
           </Text>
         ) : null}
       </View>
-      {trailing ?? (onPress ? (
-        <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} />
-      ) : null)}
+      {trailing ??
+        (onPress ? (
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={theme.colors.textMuted}
+          />
+        ) : null)}
     </View>
   );
 
-  if (!onPress) return content;
+  if (!onPress && !onLongPress) return content;
   return (
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
+      onLongPress={onLongPress}
       style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
     >
       {content}

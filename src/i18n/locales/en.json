@@ -126,7 +126,9 @@
     "aboutVersion": "Version {{version}} ({{build}})",
     "aboutSupport": "Support",
     "aboutContactEmail": "Contact support",
-    "aboutBackendRepo": "Backend source code"
+    "aboutBackendRepo": "Backend source code",
+    "replayOnboardingTitle": "Replay the welcome tour?",
+    "replayOnboardingConfirm": "Replay"
   },
   "stub": {
     "comingSoon": "Coming soon",
@@ -210,8 +212,13 @@
     "topupReused": "This payment was already processed",
     "topupRange": "Amount must be between ₴{{min}} and ₴{{max}}",
     "topupEstimate": "≈ {{minutes}} min of talk added",
+    "topupRateLimited": "Too many attempts. Wait a minute and try again.",
     "quickAmounts": "Quick amounts",
-    "usageEmpty": "No usage yet"
+    "usageEmpty": "No usage yet",
+    "usageTotal": "Period total",
+    "usageSecondsShort": "s",
+    "usageSource_free": "free",
+    "usageSource_paid": "paid"
   },
   "preCall": {
     "title": "Call",

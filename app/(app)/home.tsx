@@ -15,6 +15,7 @@ import { getBillingSummary } from "@/api/billing";
 import { listConversations } from "@/api/conversations";
 import { getMe } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
+import { HomeSkeleton } from "@/features/home/HomeSkeleton";
 import { RecentCallsList } from "@/features/home/RecentCallsList";
 import { dayPartFor } from "@/utils/format";
 
@@ -52,6 +53,26 @@ export default function HomeScreen() {
     await Promise.all([billingQuery.refetch(), recentQuery.refetch()]);
     setRefreshing(false);
   }, [billingQuery, recentQuery]);
+
+  // Cold-start skeleton: only show the full placeholder while we have nothing
+  // yet. As soon as either billing or recent calls return, fall through to
+  // the real layout (with smaller spinners on still-loading sub-sections).
+  const coldStart =
+    !cachedUser && billingQuery.isPending && recentQuery.isPending;
+  if (coldStart) {
+    return (
+      <Screen>
+        <ScrollView
+          contentContainerStyle={{
+            gap: theme.spacing.lg,
+            paddingBottom: theme.spacing.xxl,
+          }}
+        >
+          <HomeSkeleton />
+        </ScrollView>
+      </Screen>
+    );
+  }
 
   return (
     <Screen>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { Alert, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
@@ -12,6 +12,7 @@ import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import { logout as logoutRequest } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
+import { useOnboardingStore } from "@/onboarding/store";
 import { ChangePasswordModal } from "@/features/settings/ChangePasswordModal";
 import { DeleteAccountModal } from "@/features/settings/DeleteAccountModal";
 import { EditProfileModal } from "@/features/settings/EditProfileModal";
@@ -30,6 +31,24 @@ export default function SettingsScreen() {
   const [changingPassword, setChangingPassword] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [editingAppearance, setEditingAppearance] = useState(false);
+  const onboardingStatus = useOnboardingStore((s) => s.status);
+
+  function handleReplayOnboarding() {
+    // Hidden action: long-press About to re-run the welcome wizard. Useful
+    // for QA + for users who want to revisit the slides + change their
+    // default style without diving into Styles → Set preferred.
+    if (onboardingStatus === "unknown") return;
+    Alert.alert(t("settings.replayOnboardingTitle"), undefined, [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("settings.replayOnboardingConfirm"),
+        onPress: () => {
+          useOnboardingStore.setState({ status: "needed" });
+          router.replace("/onboarding");
+        },
+      },
+    ]);
+  }
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -125,6 +144,7 @@ export default function SettingsScreen() {
             iconName="information-circle-outline"
             title={t("settings.about")}
             onPress={() => router.push("/settings/about")}
+            onLongPress={handleReplayOnboarding}
           />
         </View>
 

@@ -126,7 +126,9 @@
     "aboutVersion": "Версія {{version}} ({{build}})",
     "aboutSupport": "Підтримка",
     "aboutContactEmail": "Написати в підтримку",
-    "aboutBackendRepo": "Сорс-код бекенду"
+    "aboutBackendRepo": "Сорс-код бекенду",
+    "replayOnboardingTitle": "Запустити онбординг знову?",
+    "replayOnboardingConfirm": "Запустити"
   },
   "stub": {
     "comingSoon": "Незабаром",
@@ -210,8 +212,13 @@
     "topupReused": "Цей платіж уже був оброблений",
     "topupRange": "Введіть суму від ₴{{min}} до ₴{{max}}",
     "topupEstimate": "≈ {{minutes}} хв розмови додасться",
+    "topupRateLimited": "Забагато спроб поспіль. Зачекайте хвилину.",
     "quickAmounts": "Швидкі суми",
-    "usageEmpty": "Поки що немає списань"
+    "usageEmpty": "Поки що немає списань",
+    "usageTotal": "Усього за період",
+    "usageSecondsShort": "с",
+    "usageSource_free": "безкоштовно",
+    "usageSource_paid": "оплачено"
   },
   "preCall": {
     "title": "Дзвінок",
