@@ -38,6 +38,15 @@ export function useCallSocket(opts: {
     socket.io.on("reconnect_attempt", () => {
       const s = useCallStore.getState();
       if (s.status !== "ended") s.setStatus("reconnecting");
+      // Refresh handshake auth on every reconnect attempt so the server can
+      // replay events since `lastStreamId`. Without this, a reconnect
+      // re-sends the original (empty) cursor and drops the gap entirely.
+      const lastStreamId = s.lastStreamId ?? undefined;
+      socket.auth = {
+        token: opts.accessToken,
+        conversationId: opts.conversationId,
+        lastStreamId,
+      };
     });
 
     socket.on("disconnect", () => {

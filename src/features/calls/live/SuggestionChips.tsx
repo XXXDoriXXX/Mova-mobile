@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 import { Chip } from "@/components/Chip";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -22,8 +23,16 @@ export function SuggestionChips({ items, onPick }: Props) {
         padding: theme.spacing.sm,
       }}
     >
-      {items.map((s) => (
-        <Chip key={s.id} label={s.content} onPress={() => onPick(s)} />
+      {items.map((s, idx) => (
+        <Animated.View
+          key={s.id}
+          // Stagger each chip so the row "ripples" in rather than popping
+          // all three at once. 60ms apart matches a comfortable cadence.
+          entering={FadeIn.duration(160).delay(idx * 60)}
+          exiting={FadeOut.duration(120)}
+        >
+          <Chip label={s.content} onPress={() => onPick(s)} />
+        </Animated.View>
       ))}
     </View>
   );

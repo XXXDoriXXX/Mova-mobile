@@ -36,7 +36,10 @@ export default function PreCallScreen() {
   const [styleId, setStyleId] = useState<string | null>(preferredStyleId);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [insufficient, setInsufficient] = useState(false);
+  const [insufficient, setInsufficient] = useState<{
+    secondsNeeded?: number;
+    secondsRemaining?: number;
+  } | null>(null);
   const [pickingContact, setPickingContact] = useState(false);
 
   const templatesQuery = useQuery({
@@ -65,7 +68,7 @@ export default function PreCallScreen() {
     if (!phoneOk) return;
     setSubmitting(true);
     setError(null);
-    setInsufficient(false);
+    setInsufficient(null);
     try {
       const resp = await startCall({
         targetPhone: phone.trim(),
@@ -84,7 +87,10 @@ export default function PreCallScreen() {
     } catch (err) {
       const payload = extractErrorPayload(err);
       if (payload?.error === "INSUFFICIENT_BALANCE") {
-        setInsufficient(true);
+        setInsufficient({
+          secondsNeeded: payload.secondsNeeded,
+          secondsRemaining: payload.secondsRemaining,
+        });
       } else {
         setError(t("preCall.errorGeneric"));
       }
@@ -101,7 +107,14 @@ export default function PreCallScreen() {
       {insufficient ? (
         <Banner
           tone="danger"
-          message={t("preCall.insufficientBalance")}
+          message={
+            typeof insufficient.secondsNeeded === "number"
+              ? t("preCall.insufficientBalanceDetailed", {
+                  needed: insufficient.secondsNeeded,
+                  remaining: insufficient.secondsRemaining ?? 0,
+                })
+              : t("preCall.insufficientBalance")
+          }
           action={
             <Button
               label={t("preCall.topupCta")}
