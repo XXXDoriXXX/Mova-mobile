@@ -14,6 +14,8 @@ import type { Conversation } from "@/types/api";
 import { formatDuration, formatRelativeFromNow } from "@/utils/format";
 import { formatPhoneForDisplay } from "@/utils/phone";
 
+import { ConversationsSkeleton } from "./ConversationsSkeleton";
+
 const STATUS_ICON: Record<Conversation["status"], string> = {
   pending: "•",
   active: "●",
@@ -127,7 +129,7 @@ export function ConversationsList({ onOpen, status }: Props) {
     [onOpen, theme, t],
   );
 
-  if (query.isLoading) return <Spinner />;
+  if (query.isLoading) return <ConversationsSkeleton />;
   if (items.length === 0) {
     return (
       <Card>

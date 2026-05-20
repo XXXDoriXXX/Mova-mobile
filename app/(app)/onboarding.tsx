@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Pressable, View } from "react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -98,9 +99,15 @@ export default function OnboardingScreen() {
           </Pressable>
         </View>
 
-        {/* Slide body */}
+        {/* Slide body — keyed so Reanimated re-mounts on step change and
+            entering/exiting fire a smooth fade. */}
         {step < 3 ? (
-          <View style={{ alignItems: "center", gap: theme.spacing.lg }}>
+          <Animated.View
+            key={`slide-${step}`}
+            entering={FadeIn.duration(220)}
+            exiting={FadeOut.duration(120)}
+            style={{ alignItems: "center", gap: theme.spacing.lg }}
+          >
             <View
               style={{
                 width: 96,
@@ -128,16 +135,27 @@ export default function OnboardingScreen() {
             >
               {slides[step]!.body}
             </Text>
-          </View>
+          </Animated.View>
         ) : (
-          <View style={{ gap: theme.spacing.lg, alignItems: "stretch" }}>
+          <Animated.View
+            key="picker"
+            entering={FadeIn.duration(220)}
+            style={{ gap: theme.spacing.lg, alignItems: "stretch" }}
+          >
             <Text variant="title" align="center">
               {t("onboarding.stylePickerTitle")}
             </Text>
             {stylesQuery.isLoading || !stylesQuery.data ? (
               <Spinner />
             ) : (
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.sm, justifyContent: "center" }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  gap: theme.spacing.sm,
+                  justifyContent: "center",
+                }}
+              >
                 {stylesQuery.data.builtin.map((s) => (
                   <Chip
                     key={s.id}
@@ -148,7 +166,7 @@ export default function OnboardingScreen() {
                 ))}
               </View>
             )}
-          </View>
+          </Animated.View>
         )}
 
         {/* Footer */}

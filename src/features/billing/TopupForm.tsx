@@ -10,6 +10,7 @@ import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
 import { useTheme } from "@/theme/ThemeProvider";
 import { getBillingSummary, topup } from "@/api/billing";
+import { extractErrorPayload } from "@/api/client";
 import { newIdempotencyKey } from "@/utils/idempotency-key";
 
 type Props = {
@@ -69,8 +70,20 @@ export function TopupForm({ onSuccess }: Props) {
       });
       keyRef.current = null;
       onSuccess({ balanceCents: resp.balanceCents, reused: resp.reused });
-    } catch {
-      setError(t("auth.errorGeneric"));
+    } catch (err) {
+      const payload = extractErrorPayload(err);
+      // Map common 4xx codes to actionable messages instead of a generic
+      // "something went wrong". Server rate-limits topup at 5 req/min.
+      if (payload?.statusCode === 429) {
+        setError(t("billing.topupRateLimited"));
+      } else if (payload?.statusCode === 400) {
+        const msg = Array.isArray(payload.message)
+          ? payload.message.join(" ")
+          : payload.message;
+        setError(msg || t("billing.topupRange", { min: MIN_UAH, max: MAX_UAH }));
+      } else {
+        setError(t("auth.errorGeneric"));
+      }
     } finally {
       setSubmitting(false);
     }

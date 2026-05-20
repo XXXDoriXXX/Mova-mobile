@@ -5,6 +5,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+
 import { Banner } from "@/components/Banner";
 import { Screen } from "@/components/Screen";
 import { Spinner } from "@/components/Spinner";
@@ -182,7 +184,9 @@ export default function LiveCallScreen() {
       />
 
       {headerLine ? (
-        <View
+        <Animated.View
+          entering={FadeIn.duration(160)}
+          exiting={FadeOut.duration(160)}
           style={{
             backgroundColor: theme.colors.warning,
             paddingHorizontal: theme.spacing.lg,
@@ -192,13 +196,20 @@ export default function LiveCallScreen() {
           <Text variant="caption" style={{ color: theme.colors.primaryText }}>
             {headerLine}
           </Text>
-        </View>
+        </Animated.View>
       ) : null}
 
       {toastError ? (
-        <View style={{ paddingHorizontal: theme.spacing.lg, paddingVertical: theme.spacing.sm }}>
+        <Animated.View
+          entering={FadeIn.duration(160)}
+          exiting={FadeOut.duration(200)}
+          style={{
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: theme.spacing.sm,
+          }}
+        >
           <Banner tone="warning" message={toastError.message} />
-        </View>
+        </Animated.View>
       ) : null}
 
       {showConnectingState ? (

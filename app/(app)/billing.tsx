@@ -10,6 +10,7 @@ import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import { getBillingSummary, listPlans, listUsage, subscribe } from "@/api/billing";
 import { BillingOverview } from "@/features/billing/BillingOverview";
+import { BillingOverviewSkeleton } from "@/features/billing/BillingSkeleton";
 import { PlanPicker } from "@/features/billing/PlanPicker";
 import { TopupForm } from "@/features/billing/TopupForm";
 import { UsageList } from "@/features/billing/UsageList";
@@ -80,7 +81,7 @@ export default function BillingScreen() {
         >
           {tab === "overview" ? (
             summaryQuery.isLoading || !summaryQuery.data ? (
-              <Spinner />
+              <BillingOverviewSkeleton />
             ) : (
               <BillingOverview summary={summaryQuery.data} />
             )

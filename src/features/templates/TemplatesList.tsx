@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Card } from "@/components/Card";
@@ -54,10 +55,19 @@ export function TemplatesList({ items, onSelect }: Props) {
 
       {filtered.length === 0 ? (
         <Card>
-          <Text variant="subtitle">{t("templates.emptyTitle")}</Text>
-          <Text variant="caption" color="textMuted">
-            {t("templates.emptyBody")}
-          </Text>
+          <View style={{ alignItems: "center", gap: theme.spacing.sm, paddingVertical: theme.spacing.md }}>
+            <Ionicons
+              name="document-text-outline"
+              size={36}
+              color={theme.colors.textMuted}
+            />
+            <Text variant="subtitle" align="center">
+              {t("templates.emptyTitle")}
+            </Text>
+            <Text variant="caption" color="textMuted" align="center">
+              {t("templates.emptyBody")}
+            </Text>
+          </View>
         </Card>
       ) : (
         <View style={{ gap: theme.spacing.sm }}>
