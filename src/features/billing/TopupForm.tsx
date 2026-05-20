@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { View } from "react-native";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import { Banner } from "@/components/Banner";
@@ -8,7 +9,7 @@ import { Chip } from "@/components/Chip";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
 import { useTheme } from "@/theme/ThemeProvider";
-import { topup } from "@/api/billing";
+import { getBillingSummary, topup } from "@/api/billing";
 import { newIdempotencyKey } from "@/utils/idempotency-key";
 
 type Props = {
@@ -27,6 +28,13 @@ export function TopupForm({ onSuccess }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Pull the plan from the shared TanStack cache (already populated by the
+  // parent's overview tab) so we can estimate minutes from the entered amount.
+  const summary = useQuery({
+    queryKey: ["billing", "me"],
+    queryFn: getBillingSummary,
+  }).data;
+
   // Idempotency-Key is generated ONCE for the entire submit attempt, and is
   // reused across retries until the call succeeds. The next clean submit
   // mints a fresh key.
@@ -39,6 +47,15 @@ export function TopupForm({ onSuccess }: Props) {
     amount.length > 0 && !validRange
       ? t("billing.topupRange", { min: MIN_UAH, max: MAX_UAH })
       : undefined;
+
+  // Estimate minutes the user would get from this top-up. Only meaningful
+  // on the paid plan (per-second pricing). Free plan ignores balance.
+  const estimateMinutes = (() => {
+    if (!summary || summary.plan.code === "free") return null;
+    if (!validRange) return null;
+    const price = Math.max(summary.plan.pricePerSecondCents, 1);
+    return Math.floor((numeric * 100) / price / 60);
+  })();
 
   async function submit() {
     if (!validRange) return;
@@ -81,6 +98,11 @@ export function TopupForm({ onSuccess }: Props) {
         value={amount}
         onChangeText={(v) => setAmount(v.replace(/[^0-9.]/g, ""))}
         error={validationError}
+        helperText={
+          estimateMinutes !== null && !validationError
+            ? t("billing.topupEstimate", { minutes: estimateMinutes })
+            : undefined
+        }
       />
 
       <Button

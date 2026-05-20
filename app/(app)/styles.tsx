@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { RefreshControl, ScrollView, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -37,7 +37,8 @@ export default function StylesScreen() {
     enabled: !user,
   });
 
-  const preferredId = user?.preferredStyleId ?? meQuery.data?.preferredStyleId ?? null;
+  const preferredId =
+    user?.preferredStyleId ?? meQuery.data?.preferredStyleId ?? null;
 
   const setPreferredMut = useMutation({
     mutationFn: (styleId: string | null) => setPreferredStyle(styleId),
@@ -50,7 +51,18 @@ export default function StylesScreen() {
 
   return (
     <Screen>
-      <View style={{ gap: theme.spacing.lg }}>
+      <ScrollView
+        contentContainerStyle={{
+          gap: theme.spacing.lg,
+          paddingBottom: theme.spacing.xxl,
+        }}
+        refreshControl={
+          <RefreshControl
+            refreshing={stylesQuery.isRefetching}
+            onRefresh={() => stylesQuery.refetch()}
+          />
+        }
+      >
         <Text variant="title">{t("styles.title")}</Text>
 
         {stylesQuery.isLoading ? (
@@ -87,18 +99,24 @@ export default function StylesScreen() {
                 variant="secondary"
                 onPress={() => router.push("/style/new")}
               />
-              {(stylesQuery.data?.custom ?? []).map((s) => (
-                <Row
-                  key={s.id}
-                  title={s.name}
-                  subtitle={s.instructions.slice(0, 80)}
-                  onPress={() => router.push(`/style/${encodeURIComponent(s.id)}`)}
-                />
-              ))}
+              {(stylesQuery.data?.custom ?? []).map((s) => {
+                const isPreferred = preferredId === s.id;
+                return (
+                  <Row
+                    key={s.id}
+                    title={s.name}
+                    subtitle={
+                      (isPreferred ? `${t("templates.badgeDefault")} · ` : "") +
+                      s.instructions.slice(0, 80)
+                    }
+                    onPress={() => router.push(`/style/${encodeURIComponent(s.id)}`)}
+                  />
+                );
+              })}
             </View>
           </>
         )}
-      </View>
+      </ScrollView>
     </Screen>
   );
 }

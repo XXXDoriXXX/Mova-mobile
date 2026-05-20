@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -79,7 +79,16 @@ export default function LiveCallScreen() {
   }
 
   function handleEnd() {
-    send({ type: "user.end_call" });
+    // Confirm before terminating — the End button is at the screen edge and
+    // single-tap dismissals during a live call are unrecoverable.
+    Alert.alert(t("live.endCallConfirmTitle"), undefined, [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("live.endCall"),
+        style: "destructive",
+        onPress: () => send({ type: "user.end_call" }),
+      },
+    ]);
   }
 
   if (!params.conversationId || !accessToken) {

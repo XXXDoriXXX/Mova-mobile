@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import {
   StyleSheet,
   TextInput,
@@ -16,9 +16,24 @@ export type TextFieldProps = Omit<TextInputProps, "style"> & {
 };
 
 export const TextField = forwardRef<TextInput, TextFieldProps>(
-  function TextField({ label, error, helperText, ...rest }, ref) {
+  function TextField(
+    { label, error, helperText, onFocus, onBlur, ...rest },
+    ref,
+  ) {
     const theme = useTheme();
-    const borderColor = error ? theme.colors.danger : theme.colors.border;
+    const [focused, setFocused] = useState(false);
+    // Visual states (in order of priority):
+    //  - error      → red 1px border
+    //  - focused    → primary 2px border (no layout shift; we compensate with
+    //                 negative-margin? actually just keep padding constant by
+    //                 letting RN render an extra pixel — acceptable)
+    //  - default    → muted 1px border
+    const borderColor = error
+      ? theme.colors.danger
+      : focused
+        ? theme.colors.primary
+        : theme.colors.border;
+    const borderWidth = focused && !error ? 2 : 1;
 
     return (
       <View style={styles.wrapper}>
@@ -37,9 +52,18 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(
               backgroundColor: theme.colors.surface,
               color: theme.colors.text,
               borderColor,
+              borderWidth,
               borderRadius: theme.radii.md,
             },
           ]}
+          onFocus={(e) => {
+            setFocused(true);
+            onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            onBlur?.(e);
+          }}
           {...rest}
         />
         {error ? (
@@ -70,6 +94,5 @@ const styles = StyleSheet.create({
     minHeight: 52,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderWidth: 1,
   },
 });

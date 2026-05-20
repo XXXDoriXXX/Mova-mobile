@@ -17,6 +17,9 @@
   "welcome": {
     "title": "Mova",
     "subtitle": "Дзвонимо за вас.\nВи пишете — AI говорить.",
+    "featureCalls": "AI говорить замість вас по телефону",
+    "featureSuggestions": "Готові підказки після кожної фрази",
+    "featureStyle": "Власний стиль і голос AI",
     "login": "Увійти",
     "register": "Створити акаунт"
   },
@@ -50,7 +53,8 @@
     "balanceMinutes": "вистачить на ~{{minutes}} хв розмови",
     "startCallCta": "Почати дзвінок",
     "recentTitle": "Останні дзвінки",
-    "recentEmpty": "Поки що жодного дзвінка"
+    "recentEmpty": "Поки що жодного дзвінка",
+    "viewAll": "Усі →"
   },
   "tabs": {
     "home": "Головна",
@@ -205,6 +209,7 @@
     "topupSuccess": "Баланс поповнено",
     "topupReused": "Цей платіж уже був оброблений",
     "topupRange": "Введіть суму від ₴{{min}} до ₴{{max}}",
+    "topupEstimate": "≈ {{minutes}} хв розмови додасться",
     "quickAmounts": "Швидкі суми",
     "usageEmpty": "Поки що немає списань"
   },
@@ -217,6 +222,7 @@
     "styleLabel": "Стиль розмови",
     "noTemplate": "Без шаблону",
     "lowBalanceWarn": "Баланс майже вичерпано",
+    "lowBalanceWarnDetailed": "Залишилось приблизно {{seconds}}с. Радимо поповнити баланс заздалегідь.",
     "insufficientBalance": "Недостатньо балансу. Поповніть рахунок",
     "insufficientBalanceDetailed": "Бракує приблизно {{needed}}с — на рахунку {{remaining}}с. Поповніть баланс.",
     "topupCta": "Поповнити",
@@ -237,6 +243,7 @@
     "messagePlaceholder": "Напишіть…",
     "say": "Сказати",
     "endCall": "Завершити",
+    "endCallConfirmTitle": "Завершити дзвінок?",
     "balanceTick": "{{minutes}}:{{seconds}} · ₴ {{balance}}",
     "secondsLeft": "{{seconds}}с залишилось",
     "endingTitle": "Дзвінок завершено",
