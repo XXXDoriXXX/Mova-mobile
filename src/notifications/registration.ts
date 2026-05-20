@@ -1,13 +1,22 @@
 import { Platform } from "react-native";
-import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
 
 /**
- * Best-effort push registration. Returns the Expo push token on success.
+ * Best-effort push registration.
  *
- * NOTE: The backend has no endpoint to receive the token yet. Once a
- * `POST /v1/users/me/push-tokens` endpoint lands, wire the result here. For
- * now the token lives in-memory only — registration is harmless and we
- * verify the permission + token machinery works end-to-end.
+ * The backend has no `/users/me/push-tokens` endpoint yet, so we just verify
+ * the permission + token machinery end-to-end and keep the result in memory.
+ *
+ * Implementation notes:
+ *  - Web has no push surface.
+ *  - **Expo Go (SDK 53+) dropped support for remote push tokens entirely**;
+ *    even *importing* `expo-notifications` triggers a `.fx.js` side-effect
+ *    file that calls `addPushTokenListener`, which throws
+ *    "removed from Expo Go" → red-box on first render of Settings.
+ *  - We `require()` the module lazily (inside this function) so the
+ *    offending side-effect chain only loads in dev clients / standalone
+ *    builds, and we short-circuit Expo Go via `appOwnership` BEFORE the
+ *    require even fires.
  */
 export type PushRegistrationResult =
   | { status: "granted"; token: string }
@@ -15,10 +24,19 @@ export type PushRegistrationResult =
   | { status: "unsupported" };
 
 export async function registerForPush(): Promise<PushRegistrationResult> {
-  if (Platform.OS === "web") {
-    return { status: "unsupported" };
-  }
+  if (Platform.OS === "web") return { status: "unsupported" };
+  // appOwnership === "expo" → running inside Expo Go; "standalone" / "guest"
+  // → a real build or development client.
+  if (Constants.appOwnership === "expo") return { status: "unsupported" };
+
   try {
+    // Lazy require so the side-effect chain inside
+    // `expo-notifications/build/DevicePushTokenAutoRegistration.fx.js`
+    // never loads in environments that can't handle it.
+    const Notifications =
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require("expo-notifications") as typeof import("expo-notifications");
+
     const settings = await Notifications.getPermissionsAsync();
     let granted =
       settings.granted ||

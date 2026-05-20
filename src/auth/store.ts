@@ -3,7 +3,6 @@ import { create } from "zustand";
 import type { AuthTokens, User } from "@/types/api";
 
 import { clearTokens, loadTokens, saveTokens } from "./tokens";
-import { schedulePreemptiveRefresh } from "./refreshScheduler";
 
 export type AuthStatus = "unknown" | "authed" | "guest";
 
@@ -19,6 +18,11 @@ type AuthState = {
   setTokens: (tokens: AuthTokens) => Promise<void>;
   clear: () => Promise<void>;
 };
+
+// Pre-emptive refresh is driven by `auth/refreshScheduler.ts`, which
+// subscribes to this store. Keeping the dependency one-way (store →
+// scheduler is forbidden, scheduler → store is allowed) breaks the cycle
+// that Metro warned about.
 
 export const useAuthStore = create<AuthState>((set) => ({
   status: "unknown",
@@ -45,7 +49,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       refreshToken: tokens.refreshToken,
       refreshExpiresAt: tokens.refreshExpiresAt,
     });
-    schedulePreemptiveRefresh(tokens.refreshExpiresAt);
   },
 
   async setSession({ user, tokens }) {
@@ -57,7 +60,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       refreshToken: tokens.refreshToken,
       refreshExpiresAt: tokens.refreshExpiresAt,
     });
-    schedulePreemptiveRefresh(tokens.refreshExpiresAt);
   },
 
   setUser(user) {
@@ -71,12 +73,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       refreshToken: tokens.refreshToken,
       refreshExpiresAt: tokens.refreshExpiresAt,
     });
-    schedulePreemptiveRefresh(tokens.refreshExpiresAt);
   },
 
   async clear() {
     await clearTokens();
-    schedulePreemptiveRefresh(null);
     set({
       status: "guest",
       user: null,
