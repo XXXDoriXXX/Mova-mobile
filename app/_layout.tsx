@@ -7,6 +7,11 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AuthGate } from "@/auth/AuthGate";
 import { useAuthStore } from "@/auth/store";
+// Side-effect import: registers a store subscription that schedules a
+// pre-emptive refresh ~60s before the refresh-token expires. Doing it via
+// import-for-side-effect (instead of an import inside store.ts) avoids a
+// require cycle that Metro warned about.
+import "@/auth/refreshScheduler";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { QueryProvider } from "@/net/QueryProvider";
