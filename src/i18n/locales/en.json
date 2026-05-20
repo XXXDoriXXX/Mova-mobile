@@ -1,0 +1,188 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "create": "Create",
+    "delete": "Delete",
+    "edit": "Edit",
+    "duplicate": "Duplicate",
+    "back": "Back",
+    "error": "Error",
+    "offline": "Server unreachable, try again later",
+    "empty": "Nothing here yet"
+  },
+  "welcome": {
+    "title": "Mova",
+    "subtitle": "We make the call.\nYou type — the AI speaks.",
+    "login": "Log in",
+    "register": "Create account"
+  },
+  "auth": {
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "At least 8 characters",
+    "nameLabel": "Name",
+    "namePlaceholder": "How should we address you",
+    "languageLabel": "Language",
+    "languageUk": "Ukrainian",
+    "languageEn": "English",
+    "loginCta": "Log in",
+    "registerCta": "Create account",
+    "errorInvalidCredentials": "Invalid email or password",
+    "errorEmailTaken": "This email is already registered",
+    "errorWeakPassword": "Password is too weak or has been leaked",
+    "errorBlocked": "Your account has been blocked",
+    "errorGeneric": "Something went wrong. Please try again"
+  },
+  "home": {
+    "greeting": "Hi, {{name}}",
+    "balanceTitle": "Balance",
+    "balanceFreeQuota": "{{used}} / {{total}} free seconds this month",
+    "balanceAmount": "₴ {{amount}}",
+    "balanceMinutes": "enough for ~{{minutes}} min of talk",
+    "startCallCta": "Start a call",
+    "recentTitle": "Recent calls",
+    "recentEmpty": "No calls yet"
+  },
+  "tabs": {
+    "home": "Home",
+    "history": "History",
+    "settings": "Profile"
+  },
+  "settings": {
+    "title": "Profile",
+    "comingSoon": "Coming soon",
+    "logout": "Log out",
+    "sectionAccount": "Account",
+    "sectionContent": "Content",
+    "sectionBilling": "Billing",
+    "templates": "Conversation templates",
+    "styles": "Conversation styles",
+    "billing": "Balance & payments",
+    "language": "App language"
+  },
+  "stub": {
+    "comingSoon": "Coming soon",
+    "stubBody": "This screen will land in a later milestone per the frontend onboarding."
+  },
+  "conversation": {
+    "statusPending": "Pending",
+    "statusActive": "Active",
+    "statusEnded": "Ended",
+    "statusFailed": "Failed",
+    "duration": "{{minutes}}:{{seconds}}",
+    "endReasonUser": "You ended the call",
+    "endReasonInterlocutor": "The other party hung up",
+    "endReasonBalance": "Balance depleted",
+    "endReasonTimeout": "Time limit reached",
+    "endReasonFatal": "Technical failure",
+    "endReasonAdmin": "Ended by moderator",
+    "deleteConfirm": "Delete this call?",
+    "delete": "Delete"
+  },
+  "templates": {
+    "title": "Templates",
+    "newCta": "New template",
+    "emptyTitle": "No templates",
+    "emptyBody": "Create your own conversation scenario",
+    "badgeSystem": "System",
+    "badgeDefault": "Default",
+    "filterAll": "All",
+    "filterMine": "Mine",
+    "filterSystem": "System",
+    "form": {
+      "title": "Name",
+      "titlePlaceholder": "e.g. \"Doctor appointment\"",
+      "description": "Description",
+      "descriptionPlaceholder": "What this template is for",
+      "language": "Language",
+      "advanced": "Advanced (prompt)",
+      "systemPromptHint": "This shapes AI behavior. Use carefully.",
+      "systemPromptLabel": "System prompt",
+      "submitCreate": "Create template",
+      "submitUpdate": "Save changes",
+      "duplicateCta": "Duplicate to edit",
+      "setDefaultCta": "Make default",
+      "errorPromptInjection": "This prompt was rejected by safety filter",
+      "deleteConfirm": "Delete template?"
+    }
+  },
+  "styles": {
+    "title": "Conversation styles",
+    "builtinSection": "Built-in",
+    "customSection": "My styles",
+    "newCta": "Create style",
+    "preferredLabel": "Default style",
+    "preferredHint": "Used when a template does not specify one",
+    "form": {
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. \"Lviv dialect\"",
+      "instructionsLabel": "Instructions",
+      "instructionsHint": "In English — describe how the AI should speak",
+      "submitCreate": "Create",
+      "submitUpdate": "Save",
+      "deleteConfirm": "Delete this style?"
+    }
+  },
+  "billing": {
+    "title": "Balance & payments",
+    "tabs": {
+      "overview": "Overview",
+      "plan": "Plan",
+      "topup": "Top up",
+      "history": "History"
+    },
+    "currentPlan": "Current plan",
+    "balance": "Balance",
+    "freeQuota": "Free quota",
+    "renewsAt": "Resets on {{date}}",
+    "switchPlan": "Switch to this plan",
+    "topupLabel": "Top-up amount",
+    "topupCta": "Top up",
+    "topupSuccess": "Balance topped up",
+    "topupReused": "This payment was already processed",
+    "quickAmounts": "Quick amounts",
+    "usageEmpty": "No usage yet"
+  },
+  "preCall": {
+    "title": "Call",
+    "phoneLabel": "Phone number",
+    "phonePlaceholder": "+380...",
+    "phoneError": "Use international format +380...",
+    "templateLabel": "Scenario",
+    "styleLabel": "Conversation style",
+    "noTemplate": "No template",
+    "lowBalanceWarn": "Balance is almost out",
+    "insufficientBalance": "Insufficient balance. Top up your account",
+    "topupCta": "Top up",
+    "startCta": "Call",
+    "errorGeneric": "Could not start the call"
+  },
+  "live": {
+    "connecting": "Calling…",
+    "reconnecting": "Reconnecting…",
+    "transcript": "Transcript",
+    "suggestionsLabel": "Suggestions",
+    "messagePlaceholder": "Type a message…",
+    "say": "Say",
+    "endCall": "End",
+    "balanceTick": "{{minutes}}:{{seconds}} · ₴ {{balance}}",
+    "endingTitle": "Call ended",
+    "endingNewCall": "New call",
+    "endingGoHistory": "Go to history",
+    "aiThinking": "AI is typing…",
+    "errorRecoverable": "{{message}}",
+    "errorTerminal": "{{message}}"
+  },
+  "history": {
+    "title": "History",
+    "empty": "No calls yet",
+    "transcriptTab": "Transcript",
+    "metaTab": "Details",
+    "recall": "Call again",
+    "loading": "Loading transcript…"
+  }
+}

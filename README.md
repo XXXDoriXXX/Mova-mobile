@@ -1,50 +1,94 @@
-# Welcome to your Expo app 👋
+# Mova — Mobile Client
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+React Native (Expo) клієнт для **MOVA** — сервісу, який допомагає
+глухим/нечуючим людям робити звичайні телефонні дзвінки через AI.
 
-## Get started
+Бекенд: <https://github.com/XXXDoriXXX/MOVA> — детальна документація на
+гілці `docs/frontend-onboarding/docs`.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## Стек
 
-2. Start the app
+- **Expo SDK 54** + **Expo Router** (file-based)
+- **TypeScript** strict
+- **TanStack Query** v5 — серверний стан
+- **Zustand** — клієнтський стан (auth)
+- **axios** — HTTP клієнт (з auto-refresh interceptor)
+- **socket.io-client** — WebSocket під час дзвінка
+- **expo-secure-store** — токени (Keychain / EncryptedSharedPrefs)
+- **react-hook-form** + **zod** — форми
+- **i18next** + **expo-localization** — i18n (uk / en)
+- Власна тема (`src/theme`) + кастомні компоненти (`src/components`)
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## Запуск
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```sh
+npm install
+cp .env.example .env.local          # за потреби переоприділіть URL'и
+npm run start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Далі:
+- `i` — iOS симулятор (macOS only)
+- `a` — Android emulator / device
+- Сканування QR з Expo Go (Android) — найшвидший шлях
 
-## Learn more
+### Environment
 
-To learn more about developing your project with Expo, look at the following resources:
+| Змінна | За замовч. | Опис |
+|---|---|---|
+| `EXPO_PUBLIC_API_URL` | `http://localhost:3000/v1` | REST base URL — `api-gateway` |
+| `EXPO_PUBLIC_WS_URL` | `ws://localhost:3001` | Socket.IO URL — `realtime-service` |
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Для продакшну: `https://api.mova.app/v1` + `wss://realtime.mova.app`.
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## Що готово
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- ✅ Auth: register / login / logout / **automatic token refresh** (single-flight 401 retry)
+- ✅ Secure token storage (SecureStore)
+- ✅ Home shell: balance widget + recent calls list
+- ✅ Theme system (light / dark, large body font for a11y)
+- ✅ i18n (uk default, en fallback)
+- ✅ HTTP + WebSocket client modules (з типізованими events/commands)
+- 🟡 Stub routes for billing / templates / styles / history / pre-call / live-call
+
+---
+
+## Структура
+
+```
+app/                    Expo Router routes (file-based)
+  _layout.tsx           Root providers + AuthGate
+  index.tsx             Boot redirect
+  (auth)/               Public group: welcome / login / register
+  (app)/                Private group: home + tab nav + stubs
+src/
+  api/                  Axios client + per-resource modules
+  auth/                 Zustand store + SecureStore tokens + AuthGate
+  realtime/             socket.io factory + event/command types
+  theme/                Tokens + ThemeProvider
+  components/           Custom themed primitives
+  features/             Screen-level composition (forms, lists)
+  i18n/                 i18next setup + UA/EN dictionaries
+  types/                Domain types from backend docs
+  utils/                idempotency-key, phone, format, jwt
+  constants/            env (apiUrl, wsUrl)
+```
+
+---
+
+## Команди
+
+```sh
+npm run start           # Metro + dev menu
+npm run android         # запуск на Android
+npm run ios             # macOS only
+npm run web             # web (для перевірок)
+npm run lint            # ESLint (expo preset)
+npx tsc --noEmit        # type-check
+```

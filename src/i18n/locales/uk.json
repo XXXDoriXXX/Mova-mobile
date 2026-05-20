@@ -1,0 +1,188 @@
+{
+  "common": {
+    "loading": "Завантаження…",
+    "retry": "Спробувати ще раз",
+    "cancel": "Скасувати",
+    "save": "Зберегти",
+    "create": "Створити",
+    "delete": "Видалити",
+    "edit": "Редагувати",
+    "duplicate": "Дублювати",
+    "back": "Назад",
+    "error": "Помилка",
+    "offline": "Сервер недоступний, спробуйте пізніше",
+    "empty": "Нічого немає"
+  },
+  "welcome": {
+    "title": "Mova",
+    "subtitle": "Дзвонимо за вас.\nВи пишете — AI говорить.",
+    "login": "Увійти",
+    "register": "Створити акаунт"
+  },
+  "auth": {
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Пароль",
+    "passwordPlaceholder": "Мінімум 8 символів",
+    "nameLabel": "Імʼя",
+    "namePlaceholder": "Як до вас звертатись",
+    "languageLabel": "Мова",
+    "languageUk": "Українська",
+    "languageEn": "English",
+    "loginCta": "Увійти",
+    "registerCta": "Створити акаунт",
+    "errorInvalidCredentials": "Невірний email або пароль",
+    "errorEmailTaken": "Цей email вже зареєстровано",
+    "errorWeakPassword": "Пароль занадто слабкий або був скомпрометований",
+    "errorBlocked": "Ваш акаунт заблокований",
+    "errorGeneric": "Щось пішло не так. Спробуйте ще раз"
+  },
+  "home": {
+    "greeting": "Привіт, {{name}}",
+    "balanceTitle": "Баланс",
+    "balanceFreeQuota": "{{used}} / {{total}} безкоштовних секунд цього місяця",
+    "balanceAmount": "₴ {{amount}}",
+    "balanceMinutes": "вистачить на ~{{minutes}} хв розмови",
+    "startCallCta": "Почати дзвінок",
+    "recentTitle": "Останні дзвінки",
+    "recentEmpty": "Поки що жодного дзвінка"
+  },
+  "tabs": {
+    "home": "Головна",
+    "history": "Історія",
+    "settings": "Профіль"
+  },
+  "settings": {
+    "title": "Профіль",
+    "comingSoon": "Незабаром",
+    "logout": "Вийти",
+    "sectionAccount": "Акаунт",
+    "sectionContent": "Контент",
+    "sectionBilling": "Білінг",
+    "templates": "Шаблони розмов",
+    "styles": "Стилі розмови",
+    "billing": "Баланс та платежі",
+    "language": "Мова інтерфейсу"
+  },
+  "stub": {
+    "comingSoon": "Незабаром",
+    "stubBody": "Цей екран буде доданий у наступних релізах згідно з онбордингом фронту."
+  },
+  "conversation": {
+    "statusPending": "Очікування",
+    "statusActive": "Активний",
+    "statusEnded": "Завершено",
+    "statusFailed": "Помилка",
+    "duration": "{{minutes}}:{{seconds}}",
+    "endReasonUser": "Ви завершили",
+    "endReasonInterlocutor": "Абонент завершив",
+    "endReasonBalance": "Закінчився баланс",
+    "endReasonTimeout": "Час вичерпано",
+    "endReasonFatal": "Технічна помилка",
+    "endReasonAdmin": "Завершено модератором",
+    "deleteConfirm": "Видалити цей дзвінок?",
+    "delete": "Видалити"
+  },
+  "templates": {
+    "title": "Шаблони",
+    "newCta": "Новий шаблон",
+    "emptyTitle": "Немає шаблонів",
+    "emptyBody": "Створіть власний сценарій розмови",
+    "badgeSystem": "Системний",
+    "badgeDefault": "За замовчуванням",
+    "filterAll": "Усі",
+    "filterMine": "Мої",
+    "filterSystem": "Системні",
+    "form": {
+      "title": "Назва",
+      "titlePlaceholder": "Наприклад «Виклик до лікаря»",
+      "description": "Опис",
+      "descriptionPlaceholder": "Коротко, для чого цей шаблон",
+      "language": "Мова",
+      "advanced": "Розширені (промпт)",
+      "systemPromptHint": "Це впливає на поведінку AI. Будьте обережні з інструкціями.",
+      "systemPromptLabel": "Системний промпт",
+      "submitCreate": "Створити шаблон",
+      "submitUpdate": "Зберегти зміни",
+      "duplicateCta": "Дублювати для редагування",
+      "setDefaultCta": "Зробити основним",
+      "errorPromptInjection": "Цей системний промпт відхилено системою безпеки",
+      "deleteConfirm": "Видалити шаблон?"
+    }
+  },
+  "styles": {
+    "title": "Стилі розмови",
+    "builtinSection": "Вбудовані",
+    "customSection": "Мої стилі",
+    "newCta": "Створити стиль",
+    "preferredLabel": "Стиль за замовчуванням",
+    "preferredHint": "Використовуватиметься, якщо не задано в шаблоні",
+    "form": {
+      "nameLabel": "Назва",
+      "namePlaceholder": "Наприклад «Львівський»",
+      "instructionsLabel": "Інструкції",
+      "instructionsHint": "Англійською — опишіть, як саме має говорити AI",
+      "submitCreate": "Створити",
+      "submitUpdate": "Зберегти",
+      "deleteConfirm": "Видалити стиль?"
+    }
+  },
+  "billing": {
+    "title": "Баланс та платежі",
+    "tabs": {
+      "overview": "Огляд",
+      "plan": "Тариф",
+      "topup": "Поповнити",
+      "history": "Історія"
+    },
+    "currentPlan": "Поточний тариф",
+    "balance": "Баланс",
+    "freeQuota": "Безкоштовна квота",
+    "renewsAt": "Оновиться {{date}}",
+    "switchPlan": "Перейти на цей тариф",
+    "topupLabel": "Сума поповнення",
+    "topupCta": "Поповнити",
+    "topupSuccess": "Баланс поповнено",
+    "topupReused": "Цей платіж уже був оброблений",
+    "quickAmounts": "Швидкі суми",
+    "usageEmpty": "Поки що немає списань"
+  },
+  "preCall": {
+    "title": "Дзвінок",
+    "phoneLabel": "Номер телефону",
+    "phonePlaceholder": "+380...",
+    "phoneError": "Введіть номер у форматі +380...",
+    "templateLabel": "Сценарій",
+    "styleLabel": "Стиль розмови",
+    "noTemplate": "Без шаблону",
+    "lowBalanceWarn": "Баланс майже вичерпано",
+    "insufficientBalance": "Недостатньо балансу. Поповніть рахунок",
+    "topupCta": "Поповнити",
+    "startCta": "Дзвонити",
+    "errorGeneric": "Не вдалося розпочати дзвінок"
+  },
+  "live": {
+    "connecting": "Дзвонимо…",
+    "reconnecting": "Перепідключаємось…",
+    "transcript": "Транскрипт",
+    "suggestionsLabel": "Підказки",
+    "messagePlaceholder": "Напишіть…",
+    "say": "Сказати",
+    "endCall": "Завершити",
+    "balanceTick": "{{minutes}}:{{seconds}} · ₴ {{balance}}",
+    "endingTitle": "Дзвінок завершено",
+    "endingNewCall": "Новий дзвінок",
+    "endingGoHistory": "До історії",
+    "aiThinking": "AI друкує…",
+    "errorRecoverable": "{{message}}",
+    "errorTerminal": "{{message}}"
+  },
+  "history": {
+    "title": "Історія",
+    "empty": "Поки що жодного дзвінка",
+    "transcriptTab": "Транскрипт",
+    "metaTab": "Деталі",
+    "recall": "Повторити дзвінок",
+    "loading": "Завантаження транскрипту…"
+  }
+}
