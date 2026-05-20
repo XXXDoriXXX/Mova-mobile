@@ -28,6 +28,8 @@ const VOICE_OPTIONS = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"] as c
 const LLM_OPTIONS = [
   { provider: "openai", model: "gpt-4o-mini", label: "OpenAI · 4o-mini" },
   { provider: "openai", model: "gpt-4o", label: "OpenAI · 4o" },
+  { provider: "gemini", model: "gemini-2.5-flash", label: "Gemini · 2.5 Flash" },
+  { provider: "gemini", model: "gemini-2.5-pro", label: "Gemini · 2.5 Pro" },
   { provider: "anthropic", model: "claude-3-5-sonnet", label: "Anthropic · Sonnet" },
   { provider: "groq", model: "llama-3.1-70b-versatile", label: "Groq · Llama-70B" },
 ] as const;
