@@ -196,6 +196,7 @@
     "topupCta": "Поповнити",
     "topupSuccess": "Баланс поповнено",
     "topupReused": "Цей платіж уже був оброблений",
+    "topupRange": "Введіть суму від ₴{{min}} до ₴{{max}}",
     "quickAmounts": "Швидкі суми",
     "usageEmpty": "Поки що немає списань"
   },
@@ -209,6 +210,7 @@
     "noTemplate": "Без шаблону",
     "lowBalanceWarn": "Баланс майже вичерпано",
     "insufficientBalance": "Недостатньо балансу. Поповніть рахунок",
+    "insufficientBalanceDetailed": "Бракує приблизно {{needed}}с — на рахунку {{remaining}}с. Поповніть баланс.",
     "topupCta": "Поповнити",
     "startCta": "Дзвонити",
     "errorGeneric": "Не вдалося розпочати дзвінок",

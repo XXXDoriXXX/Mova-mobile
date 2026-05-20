@@ -15,7 +15,10 @@ type Props = {
   onSuccess: (info: { balanceCents: number; reused: boolean }) => void;
 };
 
+// Backend allows 100..100_000 cents — i.e. 1..1000 UAH per topup.
 const QUICK_AMOUNTS = [50, 100, 500];
+const MIN_UAH = 1;
+const MAX_UAH = 1000;
 
 export function TopupForm({ onSuccess }: Props) {
   const { t } = useTranslation();
@@ -29,9 +32,16 @@ export function TopupForm({ onSuccess }: Props) {
   // mints a fresh key.
   const keyRef = useRef<string | null>(null);
 
+  const numeric = Number(amount);
+  const validRange =
+    Number.isFinite(numeric) && numeric >= MIN_UAH && numeric <= MAX_UAH;
+  const validationError =
+    amount.length > 0 && !validRange
+      ? t("billing.topupRange", { min: MIN_UAH, max: MAX_UAH })
+      : undefined;
+
   async function submit() {
-    const numeric = Number(amount);
-    if (!Number.isFinite(numeric) || numeric < 1) return;
+    if (!validRange) return;
     setSubmitting(true);
     setError(null);
     if (!keyRef.current) keyRef.current = newIdempotencyKey();
@@ -70,9 +80,15 @@ export function TopupForm({ onSuccess }: Props) {
         keyboardType="numeric"
         value={amount}
         onChangeText={(v) => setAmount(v.replace(/[^0-9.]/g, ""))}
+        error={validationError}
       />
 
-      <Button label={t("billing.topupCta")} loading={submitting} onPress={submit} />
+      <Button
+        label={t("billing.topupCta")}
+        loading={submitting}
+        disabled={!validRange}
+        onPress={submit}
+      />
     </View>
   );
 }

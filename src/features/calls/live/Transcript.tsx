@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { ScrollView, View } from "react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -20,7 +21,10 @@ export function Transcript({ bubbles, aiThinking }: Props) {
     <ScrollView
       ref={scrollRef}
       style={{ flex: 1 }}
-      contentContainerStyle={{ gap: theme.spacing.sm, padding: theme.spacing.sm }}
+      contentContainerStyle={{
+        gap: theme.spacing.sm,
+        padding: theme.spacing.sm,
+      }}
     >
       {bubbles.map((b) => {
         const isUser = b.role === "user";
@@ -29,11 +33,15 @@ export function Transcript({ bubbles, aiThinking }: Props) {
 
         if (isSystem) {
           return (
-            <View key={b.id} style={{ alignSelf: "center" }}>
+            <Animated.View
+              key={b.id}
+              entering={FadeIn.duration(120)}
+              style={{ alignSelf: "center" }}
+            >
               <Text variant="caption" color="textMuted">
                 {b.content}
               </Text>
-            </View>
+            </Animated.View>
           );
         }
 
@@ -46,8 +54,9 @@ export function Transcript({ bubbles, aiThinking }: Props) {
         const fg = isUser ? theme.colors.primaryText : theme.colors.text;
 
         return (
-          <View
+          <Animated.View
             key={b.id}
+            entering={FadeIn.duration(160)}
             style={{
               alignSelf: align,
               maxWidth: "82%",
@@ -63,15 +72,37 @@ export function Transcript({ bubbles, aiThinking }: Props) {
             <Text variant="body" style={{ color: fg }}>
               {b.content}
             </Text>
-          </View>
+          </Animated.View>
         );
       })}
       {aiThinking ? (
-        <View style={{ alignSelf: "flex-start" }}>
-          <Text variant="caption" color="textMuted">
-            …
-          </Text>
-        </View>
+        <Animated.View
+          entering={FadeIn.duration(120)}
+          exiting={FadeOut.duration(120)}
+          style={{ alignSelf: "flex-start" }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: theme.spacing.xs,
+              paddingHorizontal: theme.spacing.md,
+              paddingVertical: theme.spacing.sm,
+              backgroundColor: theme.colors.surfaceMuted,
+              borderRadius: theme.radii.pill,
+            }}
+          >
+            <Text variant="caption" color="textMuted">
+              ●
+            </Text>
+            <Text variant="caption" color="textMuted">
+              ●
+            </Text>
+            <Text variant="caption" color="textMuted">
+              ●
+            </Text>
+          </View>
+        </Animated.View>
       ) : null}
     </ScrollView>
   );

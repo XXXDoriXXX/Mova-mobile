@@ -196,6 +196,7 @@
     "topupCta": "Top up",
     "topupSuccess": "Balance topped up",
     "topupReused": "This payment was already processed",
+    "topupRange": "Amount must be between ₴{{min}} and ₴{{max}}",
     "quickAmounts": "Quick amounts",
     "usageEmpty": "No usage yet"
   },
@@ -209,6 +210,7 @@
     "noTemplate": "No template",
     "lowBalanceWarn": "Balance is almost out",
     "insufficientBalance": "Insufficient balance. Top up your account",
+    "insufficientBalanceDetailed": "About {{needed}}s short — only {{remaining}}s left. Top up your balance.",
     "topupCta": "Top up",
     "startCta": "Call",
     "errorGeneric": "Could not start the call",
