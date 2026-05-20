@@ -57,6 +57,7 @@ export default function AppTabsLayout() {
       <Tabs.Screen name="call/pre" options={{ href: null }} />
       <Tabs.Screen name="call/live" options={{ href: null }} />
       <Tabs.Screen name="settings/style-profile" options={{ href: null }} />
+      <Tabs.Screen name="settings/about" options={{ href: null }} />
       <Tabs.Screen
         name="onboarding"
         options={{ href: null, tabBarStyle: { display: "none" } }}

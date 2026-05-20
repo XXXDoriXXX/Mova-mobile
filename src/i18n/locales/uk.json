@@ -114,7 +114,15 @@
     "pushDeniedTitle": "Дозвіл відхилено",
     "pushDeniedBody": "Увімкніть сповіщення для Mova в налаштуваннях системи.",
     "pushUnsupportedTitle": "Не підтримується",
-    "pushUnsupportedBody": "На цьому пристрої push недоступний."
+    "pushUnsupportedBody": "На цьому пристрої push недоступний.",
+    "sectionHelp": "Допомога",
+    "about": "Про застосунок",
+    "aboutTitle": "Про Mova",
+    "aboutTagline": "AI-асистент телефонних дзвінків для глухих та нечуючих.",
+    "aboutVersion": "Версія {{version}} ({{build}})",
+    "aboutSupport": "Підтримка",
+    "aboutContactEmail": "Написати в підтримку",
+    "aboutBackendRepo": "Сорс-код бекенду"
   },
   "stub": {
     "comingSoon": "Незабаром",

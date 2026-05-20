@@ -117,6 +117,17 @@ export default function SettingsScreen() {
           />
         </View>
 
+        <View style={{ gap: theme.spacing.sm }}>
+          <Text variant="label" color="textMuted">
+            {t("settings.sectionHelp")}
+          </Text>
+          <Row
+            iconName="information-circle-outline"
+            title={t("settings.about")}
+            onPress={() => router.push("/settings/about")}
+          />
+        </View>
+
         <Button
           label={t("settings.logout")}
           variant="danger"

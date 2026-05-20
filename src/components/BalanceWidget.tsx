@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { Card } from "./Card";
@@ -10,12 +10,25 @@ import {
   formatCentsAsUah,
 } from "@/utils/format";
 
-type Props = { summary: BillingSummary };
+type Props = { summary: BillingSummary; onPress?: () => void };
 
-export function BalanceWidget({ summary }: Props) {
+export function BalanceWidget({ summary, onPress }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
 
+  const inner = renderInner();
+  if (!onPress) return inner;
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={t("home.balanceTitle")}
+    >
+      {inner}
+    </Pressable>
+  );
+
+  function renderInner() {
   if (summary.plan.code === "free") {
     const total = summary.plan.freeSecondsPerMonth;
     const used = summary.freeSecondsUsed;
@@ -82,4 +95,5 @@ export function BalanceWidget({ summary }: Props) {
       </Text>
     </Card>
   );
+  }
 }
