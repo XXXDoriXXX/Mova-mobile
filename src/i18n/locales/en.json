@@ -17,6 +17,9 @@
   "welcome": {
     "title": "Mova",
     "subtitle": "We make the call.\nYou type — the AI speaks.",
+    "featureCalls": "AI speaks for you over real phone calls",
+    "featureSuggestions": "Smart replies after every sentence",
+    "featureStyle": "Pick your own AI voice and style",
     "login": "Log in",
     "register": "Create account"
   },
@@ -50,7 +53,8 @@
     "balanceMinutes": "enough for ~{{minutes}} min of talk",
     "startCallCta": "Start a call",
     "recentTitle": "Recent calls",
-    "recentEmpty": "No calls yet"
+    "recentEmpty": "No calls yet",
+    "viewAll": "View all →"
   },
   "tabs": {
     "home": "Home",
@@ -205,6 +209,7 @@
     "topupSuccess": "Balance topped up",
     "topupReused": "This payment was already processed",
     "topupRange": "Amount must be between ₴{{min}} and ₴{{max}}",
+    "topupEstimate": "≈ {{minutes}} min of talk added",
     "quickAmounts": "Quick amounts",
     "usageEmpty": "No usage yet"
   },
@@ -217,6 +222,7 @@
     "styleLabel": "Conversation style",
     "noTemplate": "No template",
     "lowBalanceWarn": "Balance is almost out",
+    "lowBalanceWarnDetailed": "Only about {{seconds}}s left. Top up before the call runs out.",
     "insufficientBalance": "Insufficient balance. Top up your account",
     "insufficientBalanceDetailed": "About {{needed}}s short — only {{remaining}}s left. Top up your balance.",
     "topupCta": "Top up",
@@ -237,6 +243,7 @@
     "messagePlaceholder": "Type a message…",
     "say": "Say",
     "endCall": "End",
+    "endCallConfirmTitle": "End the call?",
     "balanceTick": "{{minutes}}:{{seconds}} · ₴ {{balance}}",
     "secondsLeft": "{{seconds}}s left",
     "endingTitle": "Call ended",

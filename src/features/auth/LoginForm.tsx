@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { View } from "react-native";
+import { TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
@@ -21,6 +21,7 @@ export function LoginForm() {
   const mapError = useAuthErrorMapper();
   const [submitting, setSubmitting] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
+  const passwordRef = useRef<TextInput>(null);
 
   const {
     control,
@@ -68,9 +69,11 @@ export function LoginForm() {
             autoCapitalize="none"
             autoComplete="email"
             keyboardType="email-address"
+            returnKeyType="next"
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
+            onSubmitEditing={() => passwordRef.current?.focus()}
             error={errors.email?.message}
           />
         )}
@@ -80,14 +83,17 @@ export function LoginForm() {
         name="password"
         render={({ field: { onChange, onBlur, value } }) => (
           <TextField
+            ref={passwordRef}
             label={t("auth.passwordLabel")}
             placeholder={t("auth.passwordPlaceholder")}
             secureTextEntry
             autoCapitalize="none"
             autoComplete="password"
+            returnKeyType="done"
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
+            onSubmitEditing={handleSubmit(onSubmit)}
             error={errors.password?.message}
           />
         )}

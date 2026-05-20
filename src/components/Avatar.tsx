@@ -41,8 +41,9 @@ export function Avatar({ name, size = 40 }: Props) {
         variant="label"
         style={{
           color: theme.colors.primaryText,
-          fontSize: Math.max(12, size * 0.4),
-          lineHeight: Math.max(14, size * 0.45),
+          fontSize: Math.max(14, Math.round(size * 0.42)),
+          lineHeight: Math.max(16, Math.round(size * 0.48)),
+          fontWeight: "700",
         }}
       >
         {initials}

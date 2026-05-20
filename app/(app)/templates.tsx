@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { RefreshControl, ScrollView, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -23,7 +23,15 @@ export default function TemplatesScreen() {
 
   return (
     <Screen>
-      <View style={{ gap: theme.spacing.lg }}>
+      <ScrollView
+        contentContainerStyle={{ gap: theme.spacing.lg, paddingBottom: theme.spacing.xxl }}
+        refreshControl={
+          <RefreshControl
+            refreshing={query.isRefetching}
+            onRefresh={() => query.refetch()}
+          />
+        }
+      >
         <Text variant="title">{t("templates.title")}</Text>
 
         <Button
@@ -34,12 +42,14 @@ export default function TemplatesScreen() {
         {query.isLoading ? (
           <Spinner />
         ) : (
-          <TemplatesList
-            items={query.data ?? []}
-            onSelect={(tpl) => router.push(`/template/${tpl.id}`)}
-          />
+          <View>
+            <TemplatesList
+              items={query.data ?? []}
+              onSelect={(tpl) => router.push(`/template/${tpl.id}`)}
+            />
+          </View>
         )}
-      </View>
+      </ScrollView>
     </Screen>
   );
 }

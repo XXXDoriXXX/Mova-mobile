@@ -54,15 +54,17 @@ export default function PreCallScreen() {
 
   const phoneOk = isE164(phone);
 
-  const lowBalance = (() => {
+  // Compute remaining seconds the user has under their current plan. Free
+  // counts free-seconds left; paid converts balance to seconds. Returns null
+  // when billing isn't loaded yet so the UI can skip the warning entirely.
+  const secondsRemaining = (() => {
     const b = billingQuery.data;
-    if (!b) return false;
-    if (b.plan.code === "free") return b.freeSecondsRemaining < 30;
-    return (
-      b.balanceCents > 0 &&
-      b.balanceCents / Math.max(b.plan.pricePerSecondCents, 1) < 30
-    );
+    if (!b) return null;
+    if (b.plan.code === "free") return b.freeSecondsRemaining;
+    return Math.floor(b.balanceCents / Math.max(b.plan.pricePerSecondCents, 1));
   })();
+  const lowBalance =
+    secondsRemaining !== null && secondsRemaining > 0 && secondsRemaining < 30;
 
   async function onStart() {
     if (!phoneOk) return;
@@ -125,7 +127,12 @@ export default function PreCallScreen() {
         />
       ) : null}
       {lowBalance && !insufficient ? (
-        <Banner tone="warning" message={t("preCall.lowBalanceWarn")} />
+        <Banner
+          tone="warning"
+          message={t("preCall.lowBalanceWarnDetailed", {
+            seconds: secondsRemaining ?? 0,
+          })}
+        />
       ) : null}
 
       <View style={{ flexDirection: "row", alignItems: "flex-end", gap: theme.spacing.sm }}>

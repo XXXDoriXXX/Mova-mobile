@@ -118,6 +118,17 @@ export default function ConversationDetailScreen() {
                 {t(reasonKey)}
               </Text>
             ) : null}
+            {c.initialLlmProvider || c.initialTtsProvider || c.initialVoice ? (
+              <Text
+                variant="caption"
+                color="textMuted"
+                style={{ marginTop: theme.spacing.xs }}
+              >
+                {[c.initialLlmProvider, c.initialTtsProvider, c.initialVoice]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </Text>
+            ) : null}
           </View>
         </Card>
 

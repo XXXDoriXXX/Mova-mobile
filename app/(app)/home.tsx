@@ -101,7 +101,24 @@ export default function HomeScreen() {
         />
 
         <View style={{ gap: theme.spacing.md }}>
-          <Text variant="subtitle">{t("home.recentTitle")}</Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Text variant="subtitle">{t("home.recentTitle")}</Text>
+            {(recentQuery.data?.items.length ?? 0) > 0 ? (
+              <Text
+                variant="label"
+                color="primary"
+                onPress={() => router.push("/history")}
+              >
+                {t("home.viewAll")}
+              </Text>
+            ) : null}
+          </View>
           {recentQuery.isLoading ? (
             <Spinner size="small" />
           ) : (
