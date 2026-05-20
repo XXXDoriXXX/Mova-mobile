@@ -1,34 +1,42 @@
-// Domain types mirror docs/03-domain-model.md from the MOVA backend.
-// Optional / nullable shapes reflect what the REST API actually returns.
+// Domain types mirror the actual wire shape produced by the MOVA backend
+// (apps/api-gateway). Anything that isn't on the wire is NOT declared here.
 
 export type Language = "uk" | "en";
 export type UserRole = "user" | "admin";
 
+// Mirrors `PublicUser` produced by `AuthService.toPublic()` —
+// auth.service.ts. `preferredStyleId` is exposed by the matching backend
+// patch in this repo (see plan, Phase 7).
 export type User = {
   id: string;
   email: string;
   name: string;
-  phoneNumber?: string | null;
   role: UserRole;
-  isBlocked: boolean;
-  blockedReason?: string | null;
   language: Language;
-  preferredVoice?: string | null;
-  preferredLlmProvider?: string | null;
-  preferredLlmModel?: string | null;
-  preferredTtsProvider?: string | null;
-  preferredStyleId?: string | null;
+  phoneNumber: string | null;
+  preferredVoice: string | null;
+  preferredLlmProvider: string | null;
+  preferredLlmModel: string | null;
+  preferredTtsProvider: string | null;
+  preferredStyleId: string | null;
   createdAt: string;
-  updatedAt: string;
-  deletedAt?: string | null;
 };
 
 export type AuthTokens = {
   accessToken: string;
   refreshToken: string;
+  /** ISO timestamp — used for pre-emptive refresh before the token expires. */
+  refreshExpiresAt: string;
 };
 
-export type AuthResponse = AuthTokens & { user: User };
+// `POST /auth/register` and `POST /auth/login` return this exact shape.
+export type AuthResponse = {
+  user: User;
+  tokens: AuthTokens;
+};
+
+// `POST /auth/refresh` returns the tokens flat (no `user`).
+export type RefreshResponse = AuthTokens;
 
 export type Template = {
   id: string;

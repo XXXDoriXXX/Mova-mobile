@@ -1,0 +1,13 @@
+{
+  "type": "ai.text.final",
+  "id": "db8a9300-ba73-42b8-8c2b-3000bff97c01",
+  "timestamp": "2026-05-20T12:00:05.000Z",
+  "data": {
+    "messageId": "c7e27244-a882-4d5f-b57e-ccb9e0f13875",
+    "text": "Доброго дня",
+    "source": {
+      "provider": "openai",
+      "model": "gpt-4o-mini"
+    }
+  }
+}

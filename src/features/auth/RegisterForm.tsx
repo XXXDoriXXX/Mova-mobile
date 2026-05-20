@@ -5,10 +5,11 @@ import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
+import { Chip } from "@/components/Chip";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
 import { useTheme } from "@/theme/ThemeProvider";
-import { register as registerRequest } from "@/api/auth";
+import { persistLanguage, register as registerRequest } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
 
 import { registerSchema, type RegisterValues } from "./schemas";
@@ -36,14 +37,18 @@ export function RegisterForm() {
     setSubmitting(true);
     setBanner(null);
     try {
-      const resp = await registerRequest(values);
-      await setSession({
-        user: resp.user,
-        tokens: {
-          accessToken: resp.accessToken,
-          refreshToken: resp.refreshToken,
-        },
+      // Backend register only accepts {email, password, name}.
+      const resp = await registerRequest({
+        email: values.email,
+        password: values.password,
+        name: values.name,
       });
+      await setSession({ user: resp.user, tokens: resp.tokens });
+      // Persist non-default UI language to the user profile so it survives
+      // reinstalls. Best-effort — failure is silent.
+      if (values.language && values.language !== resp.user.language) {
+        void persistLanguage(values.language);
+      }
     } catch (err) {
       const mapped = mapError(err);
       if (mapped.emailError)
@@ -111,6 +116,28 @@ export function RegisterForm() {
             onBlur={onBlur}
             error={errors.name?.message}
           />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="language"
+        render={({ field: { onChange, value } }) => (
+          <View style={{ gap: theme.spacing.xs }}>
+            <Text variant="label">{t("auth.languageLabel")}</Text>
+            <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
+              <Chip
+                label={t("auth.languageUk")}
+                selected={value === "uk"}
+                onPress={() => onChange("uk")}
+              />
+              <Chip
+                label={t("auth.languageEn")}
+                selected={value === "en"}
+                onPress={() => onChange("en")}
+              />
+            </View>
+          </View>
         )}
       />
 

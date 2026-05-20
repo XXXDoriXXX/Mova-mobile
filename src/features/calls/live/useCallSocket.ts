@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 
-import { createCallSocket, type CallSocket } from "@/realtime/socket";
-import type { ClientCommand } from "@/realtime/commands";
-import type { ServerEvent } from "@/realtime/events";
+import { triggerHaptic } from "@/utils/haptics";
+import { createCallSocket, onServerEvent, type CallSocket } from "@/realtime/socket";
+import type { ClientCommand, ServerEvent } from "@/realtime/protocol";
 import { isRecoverable } from "@/realtime/error-codes";
 
 import { useCallStore } from "./callStore";
@@ -25,6 +25,7 @@ export function useCallSocket(opts: {
     const socket = createCallSocket({
       token: opts.accessToken,
       conversationId: opts.conversationId,
+      lastStreamId: useCallStore.getState().lastStreamId ?? undefined,
     });
     socketRef.current = socket;
     sendRef.current = (cmd: ClientCommand) => socket.sendCommand(cmd);
@@ -35,7 +36,8 @@ export function useCallSocket(opts: {
     });
 
     socket.io.on("reconnect_attempt", () => {
-      useCallStore.getState().setStatus("reconnecting");
+      const s = useCallStore.getState();
+      if (s.status !== "ended") s.setStatus("reconnecting");
     });
 
     socket.on("disconnect", () => {
@@ -43,18 +45,19 @@ export function useCallSocket(opts: {
       if (s.status !== "ended") s.setStatus("reconnecting");
     });
 
-    socket.on("event", (event: ServerEvent) => {
+    const unsubscribe = onServerEvent(socket, (event) => {
       const s = useCallStore.getState();
       s.setLastStreamId(event.id);
       routeEvent(event);
     });
 
     const pingTimer = setInterval(() => {
-      sendRef.current?.({ type: "ping", data: { sentAt: Date.now() } });
+      sendRef.current?.({ type: "ping" });
     }, PING_INTERVAL_MS);
 
     return () => {
       clearInterval(pingTimer);
+      unsubscribe();
       socket.removeAllListeners();
       socket.disconnect();
       socketRef.current = null;
@@ -64,12 +67,13 @@ export function useCallSocket(opts: {
 
   // Apply user-requested style mid-call once connected.
   useEffect(() => {
-    if (!opts.initialStyleId) return;
+    const styleId = opts.initialStyleId;
+    if (!styleId) return;
     const unsubscribe = useCallStore.subscribe((state, prev) => {
       if (state.status === "active" && prev.status !== "active") {
         sendRef.current?.({
           type: "user.change_style",
-          data: { styleId: opts.initialStyleId as string },
+          data: { styleId },
         });
       }
     });
@@ -86,40 +90,58 @@ function routeEvent(event: ServerEvent) {
   switch (event.type) {
     case "call.connected":
       store.setStatus("active");
+      triggerHaptic("success");
       break;
     case "call.ended":
       store.setEndInfo({
-        endReason: event.data.endReason,
+        reason: event.data.reason,
         durationSeconds: event.data.durationSeconds,
+        endedBy: event.data.endedBy,
       });
+      triggerHaptic("warning");
       break;
     case "transcript.partial":
-      store.setInterlocutorPartial(event.data.content);
+      store.setInterlocutorPartial(event.data.text);
       break;
     case "transcript.final":
-      store.commitInterlocutorFinal(event.data.messageId, event.data.content);
+      store.commitInterlocutorFinal(event.data.messageId, event.data.text);
       break;
     case "ai.thinking":
-      store.setAiThinking(event.data.active);
+      // Empty payload — presence of the event toggles the indicator. We clear
+      // it when the AI's next partial/final arrives (the partial setters do
+      // that themselves).
+      store.setAiThinking(true);
       break;
     case "ai.text.partial":
-      store.setAiPartial(event.data.content);
+      store.setAiPartial(event.data.text);
       break;
     case "ai.text.final":
-      store.commitAiFinal(event.data.messageId, event.data.content);
+      store.commitAiFinal(event.data.messageId, event.data.text);
       break;
     case "ai.tts.start":
+      // Server-side audio playback over SIP; UI gets the voice for context.
+      store.setActiveVoice(event.data.voice);
+      break;
     case "ai.tts.end":
-      // Audio playback is handled server-side over SIP; no UI work needed.
+      // No UI work here — audio plays on the phone side; final state is on
+      // the persisted `Message.ttsStatus`.
       break;
     case "suggestions.new":
-      store.setSuggestions(event.data.items);
+      store.setSuggestions(
+        event.data.items.map((it) => ({ id: it.id, content: it.text })),
+      );
+      triggerHaptic("selection");
       break;
     case "usage.tick":
-      store.setUsageTick(event.data);
+      store.setUsageTick({
+        secondsElapsed: event.data.secondsElapsed,
+        secondsRemaining: event.data.secondsRemaining,
+        planCode: event.data.planCode,
+      });
       break;
     case "call.config.changed":
       if (event.data.styleId) store.setActiveStyleId(event.data.styleId);
+      if (event.data.voice) store.setActiveVoice(event.data.voice);
       break;
     case "call.error": {
       const err = {
@@ -131,5 +153,9 @@ function routeEvent(event: ServerEvent) {
       else store.setFatalError(err);
       break;
     }
+    case "pong":
+      // Heartbeat acked — nothing else to do; useAppStateReconnect watches
+      // disconnects directly.
+      break;
   }
 }

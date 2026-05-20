@@ -1,0 +1,8 @@
+{
+  "type": "call.config.changed",
+  "id": "420713e7-641d-4fc2-bc85-da34166a9ecc",
+  "timestamp": "2026-05-20T12:00:20.000Z",
+  "data": {
+    "styleId": "builtin:friendly"
+  }
+}

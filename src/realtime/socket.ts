@@ -1,9 +1,9 @@
 import { io, type Socket } from "socket.io-client";
 
 import { WS_URL } from "@/constants/env";
+import { addBreadcrumb } from "@/observability/sentry";
 
-import type { ClientCommand } from "./commands";
-import type { ServerEvent } from "./events";
+import { parseServerEvent, type ClientCommand, type ServerEvent } from "./protocol";
 
 export type CallSocketOptions = {
   token: string;
@@ -38,11 +38,28 @@ export function createCallSocket(opts: CallSocketOptions): CallSocket {
   return callSocket;
 }
 
+/**
+ * Subscribe to validated server events. Inbound messages that don't match the
+ * canonical schema are dropped + breadcrumbed (the protocol is the contract;
+ * a shape mismatch is a backend bug, not a UI bug).
+ */
 export function onServerEvent(
   socket: CallSocket,
   handler: (event: ServerEvent) => void,
 ): () => void {
-  const wrapped = (event: ServerEvent) => handler(event);
+  const wrapped = (raw: unknown) => {
+    const event = parseServerEvent(raw);
+    if (!event) {
+      addBreadcrumb({
+        category: "ws",
+        message: "Dropped invalid server event",
+        data: { raw },
+        level: "warning",
+      });
+      return;
+    }
+    handler(event);
+  };
   socket.on("event", wrapped);
   return () => {
     socket.off("event", wrapped);

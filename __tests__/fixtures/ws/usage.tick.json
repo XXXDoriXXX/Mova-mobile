@@ -1,0 +1,10 @@
+{
+  "type": "usage.tick",
+  "id": "3bf814ed-7d19-4782-9381-2e2b0007df0c",
+  "timestamp": "2026-05-20T12:00:10.000Z",
+  "data": {
+    "secondsElapsed": 30,
+    "secondsRemaining": 270,
+    "planCode": "free"
+  }
+}

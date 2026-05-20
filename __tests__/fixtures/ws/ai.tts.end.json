@@ -1,0 +1,9 @@
+{
+  "type": "ai.tts.end",
+  "id": "aeeddf22-5660-42a2-8fd3-ae495637637b",
+  "timestamp": "2026-05-20T12:00:07.000Z",
+  "data": {
+    "messageId": "335d4eba-0341-44af-b99a-560c8d4e3237",
+    "status": "completed"
+  }
+}

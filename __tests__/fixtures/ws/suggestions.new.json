@@ -1,0 +1,22 @@
+{
+  "type": "suggestions.new",
+  "id": "c6bb8bd9-804b-4060-b94f-b7a5c9b82bd2",
+  "timestamp": "2026-05-20T12:00:08.000Z",
+  "data": {
+    "parentMessageId": "f5a79cf7-6fb3-4960-a01d-1482f251e7e8",
+    "items": [
+      {
+        "id": "e039a310-d769-437b-a38d-2d342d7ce63b",
+        "text": "Так"
+      },
+      {
+        "id": "76e17811-2d4f-4b4f-8e3a-123cf8198775",
+        "text": "Ні"
+      },
+      {
+        "id": "24f4de8c-49f2-4b28-976d-c34097fb36f8",
+        "text": "Уточніть"
+      }
+    ]
+  }
+}

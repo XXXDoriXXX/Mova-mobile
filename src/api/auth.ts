@@ -1,15 +1,19 @@
 import { apiClient } from "./client";
+import { useAuthStore } from "@/auth/store";
 import type { AuthResponse, Language, User } from "@/types/api";
 
 export async function register(input: {
   email: string;
   password: string;
   name: string;
-  language: Language;
 }): Promise<AuthResponse> {
-  const { data } = await apiClient.post<AuthResponse>("/auth/register", input, {
-    meta: { skipAuth: true },
-  });
+  // Backend `RegisterSchema` (auth.schemas.ts) only accepts these three
+  // fields — `language` is set server-side and changed via PATCH /auth/me.
+  const { data } = await apiClient.post<AuthResponse>(
+    "/auth/register",
+    input,
+    { meta: { skipAuth: true } },
+  );
   return data;
 }
 
@@ -24,7 +28,15 @@ export async function login(input: {
 }
 
 export async function logout(): Promise<void> {
-  await apiClient.post("/auth/logout");
+  // `POST /auth/logout` requires `{ refreshToken }` (LogoutDto). Best-effort —
+  // callers always proceed to local clear even if this fails.
+  const { refreshToken } = useAuthStore.getState();
+  if (!refreshToken) return;
+  await apiClient.post(
+    "/auth/logout",
+    { refreshToken },
+    { meta: { skipAuth: true } },
+  );
 }
 
 export async function getMe(): Promise<User> {
@@ -57,6 +69,20 @@ export async function changePassword(input: {
   await apiClient.post("/auth/change-password", input);
 }
 
-export async function deleteAccount(): Promise<void> {
-  await apiClient.delete("/auth/me");
+export async function deleteAccount(password: string): Promise<void> {
+  // `DELETE /auth/me` requires `{ password }` (DeleteAccountDto).
+  await apiClient.delete("/auth/me", { data: { password } });
+}
+
+/**
+ * Persist a non-default UI language to the user's profile after register.
+ * The register endpoint silently drops `language`, so the choice would be
+ * lost otherwise. Best-effort: failure is non-fatal.
+ */
+export async function persistLanguage(language: Language): Promise<void> {
+  try {
+    await patchMe({ language });
+  } catch {
+    // Non-fatal: language stays at backend default; user can change it later.
+  }
 }
