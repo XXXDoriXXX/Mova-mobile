@@ -282,7 +282,11 @@
     "voiceHint": "Will be used starting from the next call",
     "model": "AI model",
     "modelHint": "Will be used starting from the next call",
-    "nextCallNote": "Voice and model can't change mid-call — that's a LiveKit constraint. Style switches instantly."
+    "nextCallNote": "Voice and model can't change mid-call — that's a LiveKit constraint. Style switches instantly.",
+    "customModel": "Custom model",
+    "customModelHint": "If the provider shipped a newer model — paste its ID here, no code change required.",
+    "customModelPlaceholder": "e.g. gemini-3.0-flash-lite",
+    "customModelApply": "Apply"
   },
   "onboarding": {
     "skip": "Skip",
