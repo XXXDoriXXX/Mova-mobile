@@ -12,11 +12,12 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { useAuthStore } from "@/auth/store";
 import { useCallStore } from "@/features/calls/live/callStore";
 import { useCallSocket } from "@/features/calls/live/useCallSocket";
+import { useAppStateReconnect } from "@/features/calls/live/useAppStateReconnect";
 import { CallEnding } from "@/features/calls/live/CallEnding";
 import { MessageInput } from "@/features/calls/live/MessageInput";
 import { SuggestionChips } from "@/features/calls/live/SuggestionChips";
 import { Transcript } from "@/features/calls/live/Transcript";
-import { formatCentsAsUah, formatDuration } from "@/utils/format";
+import { formatDuration } from "@/utils/format";
 
 export default function LiveCallScreen() {
   const { t } = useTranslation();
@@ -44,6 +45,8 @@ export default function LiveCallScreen() {
     initialStyleId: params.initialStyleId || null,
   });
 
+  useAppStateReconnect();
+
   useEffect(() => {
     if (!toastError) return;
     const id = setTimeout(() => setToastError(null), 4000);
@@ -62,7 +65,7 @@ export default function LiveCallScreen() {
   }
 
   function handleEnd() {
-    send({ type: "user.end_call", data: {} });
+    send({ type: "user.end_call" });
   }
 
   if (!params.conversationId || !accessToken) {
@@ -125,8 +128,11 @@ export default function LiveCallScreen() {
         {usageTick ? (
           <Text variant="caption" color="textMuted">
             {formatDuration(usageTick.secondsElapsed)}
-            {typeof usageTick.balanceCents === "number"
-              ? ` · ₴ ${formatCentsAsUah(usageTick.balanceCents)}`
+            {usageTick.planCode === "free" &&
+            typeof usageTick.secondsRemaining === "number"
+              ? ` · ${t("live.secondsLeft", {
+                  seconds: usageTick.secondsRemaining,
+                })}`
               : ""}
           </Text>
         ) : null}

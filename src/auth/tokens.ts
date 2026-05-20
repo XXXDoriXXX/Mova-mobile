@@ -5,6 +5,7 @@ import type { AuthTokens } from "@/types/api";
 
 const ACCESS_KEY = "mova.accessToken";
 const REFRESH_KEY = "mova.refreshToken";
+const REFRESH_EXPIRES_AT_KEY = "mova.refreshExpiresAt";
 
 // Platform-aware storage:
 // - native (iOS / Android) → expo-secure-store (Keychain / EncryptedSharedPrefs)
@@ -38,21 +39,33 @@ async function removeItem(key: string): Promise<void> {
 }
 
 export async function loadTokens(): Promise<AuthTokens | null> {
-  const [accessToken, refreshToken] = await Promise.all([
+  const [accessToken, refreshToken, refreshExpiresAt] = await Promise.all([
     getItem(ACCESS_KEY),
     getItem(REFRESH_KEY),
+    getItem(REFRESH_EXPIRES_AT_KEY),
   ]);
   if (!accessToken || !refreshToken) return null;
-  return { accessToken, refreshToken };
+  return {
+    accessToken,
+    refreshToken,
+    // Older installs may not have a stored expiry — use epoch start as a
+    // safe "unknown" sentinel; consumers that care fall back to JWT decode.
+    refreshExpiresAt: refreshExpiresAt ?? new Date(0).toISOString(),
+  };
 }
 
 export async function saveTokens(tokens: AuthTokens): Promise<void> {
   await Promise.all([
     setItem(ACCESS_KEY, tokens.accessToken),
     setItem(REFRESH_KEY, tokens.refreshToken),
+    setItem(REFRESH_EXPIRES_AT_KEY, tokens.refreshExpiresAt),
   ]);
 }
 
 export async function clearTokens(): Promise<void> {
-  await Promise.all([removeItem(ACCESS_KEY), removeItem(REFRESH_KEY)]);
+  await Promise.all([
+    removeItem(ACCESS_KEY),
+    removeItem(REFRESH_KEY),
+    removeItem(REFRESH_EXPIRES_AT_KEY),
+  ]);
 }

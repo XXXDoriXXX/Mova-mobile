@@ -27,7 +27,7 @@ const REASON_KEYS: Record<string, string> = {
 export function CallEnding({ info, onNewCall, onHistory }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const reasonKey = REASON_KEYS[info.endReason];
+  const reasonKey = REASON_KEYS[info.reason];
 
   return (
     <View style={{ flex: 1, justifyContent: "center", gap: theme.spacing.lg }}>

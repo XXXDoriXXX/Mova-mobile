@@ -16,6 +16,7 @@ import { listTemplates } from "@/api/templates";
 import { listStyles } from "@/api/styles";
 import { getBillingSummary } from "@/api/billing";
 import { extractErrorPayload } from "@/api/client";
+import { useAuthStore } from "@/auth/store";
 import { StylePicker } from "@/features/calls/StylePicker";
 import { TemplatePicker } from "@/features/calls/TemplatePicker";
 import { isE164 } from "@/utils/phone";
@@ -26,9 +27,11 @@ export default function PreCallScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ prefillPhone?: string }>();
 
+  const preferredStyleId = useAuthStore((s) => s.user?.preferredStyleId ?? null);
   const [phone, setPhone] = useState(params.prefillPhone || "+380");
   const [templateId, setTemplateId] = useState<string | null>(null);
-  const [styleId, setStyleId] = useState<string | null>(null);
+  // Default to the user's saved preferred style — they can override per call.
+  const [styleId, setStyleId] = useState<string | null>(preferredStyleId);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [insufficient, setInsufficient] = useState(false);

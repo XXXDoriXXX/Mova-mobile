@@ -56,6 +56,7 @@ export default function AppTabsLayout() {
       <Tabs.Screen name="conversation/[id]" options={{ href: null }} />
       <Tabs.Screen name="call/pre" options={{ href: null }} />
       <Tabs.Screen name="call/live" options={{ href: null }} />
+      <Tabs.Screen name="settings/style-profile" options={{ href: null }} />
     </Tabs>
   );
 }

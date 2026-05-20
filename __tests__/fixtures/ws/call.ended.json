@@ -1,0 +1,10 @@
+{
+  "type": "call.ended",
+  "id": "33cb71dd-dc29-4040-879a-e06cfecb288d",
+  "timestamp": "2026-05-20T12:00:30.000Z",
+  "data": {
+    "reason": "user",
+    "durationSeconds": 124,
+    "endedBy": "user"
+  }
+}

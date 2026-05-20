@@ -1,0 +1,10 @@
+{
+  "type": "call.error",
+  "id": "d4b00c02-edf7-416e-86aa-902264f17abd",
+  "timestamp": "2026-05-20T12:00:21.000Z",
+  "data": {
+    "code": "STT_DEGRADED",
+    "message": "Перемикаємо на резервне розпізнавання мовлення.",
+    "recoverable": true
+  }
+}

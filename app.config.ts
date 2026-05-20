@@ -53,5 +53,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   extra: {
     apiUrl: process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_API_URL,
     wsUrl: process.env.EXPO_PUBLIC_WS_URL ?? DEFAULT_WS_URL,
+    sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
   },
 });

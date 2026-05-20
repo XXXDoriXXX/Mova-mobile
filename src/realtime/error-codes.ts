@@ -1,42 +1,50 @@
-// Mirrors docs/08-error-codes.md.
-// `recoverable: true` → toast, call keeps going.
-// `recoverable: false` → banner, WS closes, call ends.
+/**
+ * Canonical typed error codes that the backend can surface during a call.
+ * Mirrors `libs/shared-realtime/src/lib/error-codes.ts` on the backend.
+ *
+ *   recoverable: true  → toast/banner, call continues
+ *   recoverable: false → modal, call ends
+ */
+export const CallErrorCode = {
+  // Provider degradation (recoverable)
+  STT_UNAVAILABLE: "STT_UNAVAILABLE",
+  STT_DEGRADED: "STT_DEGRADED",
+  STT_STALLED: "STT_STALLED",
+  LLM_UNAVAILABLE: "LLM_UNAVAILABLE",
+  LLM_DEGRADED: "LLM_DEGRADED",
+  TTS_UNAVAILABLE: "TTS_UNAVAILABLE",
+  TTS_DEGRADED: "TTS_DEGRADED",
 
-export type CallErrorCode =
-  | "STT_UNAVAILABLE"
-  | "STT_DEGRADED"
-  | "STT_STALLED"
-  | "LLM_UNAVAILABLE"
-  | "LLM_DEGRADED"
-  | "TTS_DEGRADED"
-  | "PROMPT_INJECTION"
-  | "CONTENT_BLOCKED"
-  | "RATE_LIMITED"
-  | "BALANCE_EXHAUSTED"
-  | "LIVEKIT_DISCONNECTED"
-  | "AGENT_LOST"
-  | "TTS_UNAVAILABLE"
-  | "CALL_TIMEOUT"
-  | "FATAL_INTERNAL";
+  // Safety / moderation (recoverable)
+  PROMPT_INJECTION: "PROMPT_INJECTION",
+  CONTENT_BLOCKED: "CONTENT_BLOCKED",
 
-export const RECOVERABLE_CALL_ERRORS: Record<CallErrorCode, boolean> = {
-  STT_UNAVAILABLE: true,
-  STT_DEGRADED: true,
-  STT_STALLED: true,
-  LLM_UNAVAILABLE: true,
-  LLM_DEGRADED: true,
-  TTS_DEGRADED: true,
-  PROMPT_INJECTION: true,
-  CONTENT_BLOCKED: true,
-  RATE_LIMITED: true,
-  BALANCE_EXHAUSTED: false,
-  LIVEKIT_DISCONNECTED: false,
-  AGENT_LOST: false,
-  TTS_UNAVAILABLE: false,
-  CALL_TIMEOUT: false,
-  FATAL_INTERNAL: false,
-};
+  // Rate / fair-use (recoverable)
+  RATE_LIMITED: "RATE_LIMITED",
+
+  // Fatal — call ends
+  BALANCE_EXHAUSTED: "BALANCE_EXHAUSTED",
+  LIVEKIT_DISCONNECTED: "LIVEKIT_DISCONNECTED",
+  AGENT_LOST: "AGENT_LOST",
+  CALL_TIMEOUT: "CALL_TIMEOUT",
+  FATAL_INTERNAL: "FATAL_INTERNAL",
+} as const;
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export type CallErrorCode = (typeof CallErrorCode)[keyof typeof CallErrorCode];
+
+const RECOVERABLE: ReadonlySet<CallErrorCode> = new Set<CallErrorCode>([
+  CallErrorCode.STT_UNAVAILABLE,
+  CallErrorCode.STT_DEGRADED,
+  CallErrorCode.STT_STALLED,
+  CallErrorCode.LLM_UNAVAILABLE,
+  CallErrorCode.LLM_DEGRADED,
+  CallErrorCode.TTS_DEGRADED,
+  CallErrorCode.PROMPT_INJECTION,
+  CallErrorCode.CONTENT_BLOCKED,
+  CallErrorCode.RATE_LIMITED,
+]);
 
 export function isRecoverable(code: CallErrorCode): boolean {
-  return RECOVERABLE_CALL_ERRORS[code];
+  return RECOVERABLE.has(code);
 }

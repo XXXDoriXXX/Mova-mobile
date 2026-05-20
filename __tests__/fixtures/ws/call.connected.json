@@ -1,0 +1,8 @@
+{
+  "type": "call.connected",
+  "id": "d3171fc9-cec4-4106-bf87-94a87afc26a1",
+  "timestamp": "2026-05-20T12:00:00.000Z",
+  "data": {
+    "conversationId": "9edd59b6-5676-4598-8535-4b2555a5f0c2"
+  }
+}

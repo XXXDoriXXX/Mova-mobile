@@ -12,6 +12,11 @@ import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import { logout as logoutRequest } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
+import { ChangePasswordModal } from "@/features/settings/ChangePasswordModal";
+import { DeleteAccountModal } from "@/features/settings/DeleteAccountModal";
+import { EditProfileModal } from "@/features/settings/EditProfileModal";
+import { AppearanceModal } from "@/features/settings/AppearanceModal";
+import { PushNotificationsRow } from "@/features/settings/PushNotificationsRow";
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
@@ -21,6 +26,10 @@ export default function SettingsScreen() {
   const clear = useAuthStore((s) => s.clear);
   const queryClient = useQueryClient();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [editingAppearance, setEditingAppearance] = useState(false);
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -55,6 +64,34 @@ export default function SettingsScreen() {
 
         <View style={{ gap: theme.spacing.sm }}>
           <Text variant="label" color="textMuted">
+            {t("settings.sectionAccount")}
+          </Text>
+          <Row
+            iconName="person-circle-outline"
+            title={t("settings.editProfile")}
+            onPress={() => setEditingProfile(true)}
+          />
+          <Row
+            iconName="key-outline"
+            title={t("settings.changePassword")}
+            onPress={() => setChangingPassword(true)}
+          />
+          <Row
+            iconName="sparkles-outline"
+            title={t("settings.styleProfile")}
+            subtitle={t("settings.styleProfileSubtitle")}
+            onPress={() => router.push("/settings/style-profile")}
+          />
+          <Row
+            iconName="color-palette-outline"
+            title={t("settings.appearance")}
+            onPress={() => setEditingAppearance(true)}
+          />
+          <PushNotificationsRow />
+        </View>
+
+        <View style={{ gap: theme.spacing.sm }}>
+          <Text variant="label" color="textMuted">
             {t("settings.sectionContent")}
           </Text>
           <Row
@@ -63,7 +100,7 @@ export default function SettingsScreen() {
             onPress={() => router.push("/templates")}
           />
           <Row
-            iconName="color-palette-outline"
+            iconName="brush-outline"
             title={t("settings.styles")}
             onPress={() => router.push("/styles")}
           />
@@ -86,7 +123,30 @@ export default function SettingsScreen() {
           loading={loggingOut}
           onPress={handleLogout}
         />
+
+        <Button
+          label={t("settings.deleteAccount")}
+          variant="ghost"
+          onPress={() => setDeletingAccount(true)}
+        />
       </ScrollView>
+
+      <EditProfileModal
+        visible={editingProfile}
+        onClose={() => setEditingProfile(false)}
+      />
+      <ChangePasswordModal
+        visible={changingPassword}
+        onClose={() => setChangingPassword(false)}
+      />
+      <DeleteAccountModal
+        visible={deletingAccount}
+        onClose={() => setDeletingAccount(false)}
+      />
+      <AppearanceModal
+        visible={editingAppearance}
+        onClose={() => setEditingAppearance(false)}
+      />
     </Screen>
   );
 }

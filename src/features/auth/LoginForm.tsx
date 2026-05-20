@@ -37,13 +37,7 @@ export function LoginForm() {
     setBanner(null);
     try {
       const resp = await loginRequest(values);
-      await setSession({
-        user: resp.user,
-        tokens: {
-          accessToken: resp.accessToken,
-          refreshToken: resp.refreshToken,
-        },
-      });
+      await setSession({ user: resp.user, tokens: resp.tokens });
     } catch (err) {
       const mapped = mapError(err);
       if (mapped.emailError)

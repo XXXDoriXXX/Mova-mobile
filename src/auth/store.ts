@@ -3,6 +3,7 @@ import { create } from "zustand";
 import type { AuthTokens, User } from "@/types/api";
 
 import { clearTokens, loadTokens, saveTokens } from "./tokens";
+import { schedulePreemptiveRefresh } from "./refreshScheduler";
 
 export type AuthStatus = "unknown" | "authed" | "guest";
 
@@ -11,6 +12,7 @@ type AuthState = {
   user: User | null;
   accessToken: string | null;
   refreshToken: string | null;
+  refreshExpiresAt: string | null;
   hydrate: () => Promise<void>;
   setSession: (payload: { user: User; tokens: AuthTokens }) => Promise<void>;
   setUser: (user: User) => void;
@@ -18,23 +20,32 @@ type AuthState = {
   clear: () => Promise<void>;
 };
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   status: "unknown",
   user: null,
   accessToken: null,
   refreshToken: null,
+  refreshExpiresAt: null,
 
   async hydrate() {
     const tokens = await loadTokens();
     if (!tokens) {
-      set({ status: "guest", accessToken: null, refreshToken: null, user: null });
+      set({
+        status: "guest",
+        accessToken: null,
+        refreshToken: null,
+        refreshExpiresAt: null,
+        user: null,
+      });
       return;
     }
     set({
       status: "authed",
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
+      refreshExpiresAt: tokens.refreshExpiresAt,
     });
+    schedulePreemptiveRefresh(tokens.refreshExpiresAt);
   },
 
   async setSession({ user, tokens }) {
@@ -44,7 +55,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       user,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
+      refreshExpiresAt: tokens.refreshExpiresAt,
     });
+    schedulePreemptiveRefresh(tokens.refreshExpiresAt);
   },
 
   setUser(user) {
@@ -56,16 +69,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
+      refreshExpiresAt: tokens.refreshExpiresAt,
     });
+    schedulePreemptiveRefresh(tokens.refreshExpiresAt);
   },
 
   async clear() {
     await clearTokens();
+    schedulePreemptiveRefresh(null);
     set({
       status: "guest",
       user: null,
       accessToken: null,
       refreshToken: null,
+      refreshExpiresAt: null,
     });
   },
 }));

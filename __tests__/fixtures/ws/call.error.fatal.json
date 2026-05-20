@@ -1,0 +1,10 @@
+{
+  "type": "call.error",
+  "id": "22e4ec75-1541-46fa-9a47-9e315b662b97",
+  "timestamp": "2026-05-20T12:00:22.000Z",
+  "data": {
+    "code": "BALANCE_EXHAUSTED",
+    "message": "Безкоштовний ліміт вичерпано.",
+    "recoverable": false
+  }
+}

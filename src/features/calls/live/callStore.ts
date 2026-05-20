@@ -17,7 +17,10 @@ export type Bubble = {
   ts: number;
 };
 
-export type CallSuggestion = { id: string; content: string };
+export type CallSuggestion = {
+  id: string;
+  content: string;
+};
 
 export type CallError = {
   code: CallErrorCode;
@@ -26,14 +29,18 @@ export type CallError = {
 };
 
 export type CallEnd = {
-  endReason: string;
+  /** Matches backend `call.ended` data.reason. */
+  reason: "user" | "interlocutor" | "balance" | "fatal_error" | "timeout" | "admin";
   durationSeconds: number;
+  endedBy: "user" | "system" | "interlocutor" | "admin";
 };
 
 export type UsageTick = {
+  /** Seconds elapsed since the call started. */
   secondsElapsed: number;
-  balanceCents?: number;
-  freeSecondsRemaining?: number;
+  /** null for paid plans (no free quota left to count down). */
+  secondsRemaining: number | null;
+  planCode: "free" | "paid";
 };
 
 type CallState = {
@@ -43,6 +50,7 @@ type CallState = {
   aiThinking: boolean;
   usageTick: UsageTick | null;
   activeStyleId: string | null;
+  activeVoice: string | null;
   lastStreamId: string | null;
   toastError: CallError | null;
   fatalError: CallError | null;
@@ -51,13 +59,14 @@ type CallState = {
   reset: () => void;
   setStatus: (status: CallStatus) => void;
   setActiveStyleId: (styleId: string | null) => void;
+  setActiveVoice: (voice: string | null) => void;
   setLastStreamId: (id: string | null) => void;
 
-  setInterlocutorPartial: (content: string) => void;
-  commitInterlocutorFinal: (messageId: string, content: string) => void;
+  setInterlocutorPartial: (text: string) => void;
+  commitInterlocutorFinal: (messageId: string, text: string) => void;
 
-  setAiPartial: (content: string) => void;
-  commitAiFinal: (messageId: string, content: string) => void;
+  setAiPartial: (text: string) => void;
+  commitAiFinal: (messageId: string, text: string) => void;
   setAiThinking: (active: boolean) => void;
 
   pushUserTyped: (content: string) => void;
@@ -87,6 +96,7 @@ export const useCallStore = create<CallState>((set) => ({
   aiThinking: false,
   usageTick: null,
   activeStyleId: null,
+  activeVoice: null,
   lastStreamId: null,
   toastError: null,
   fatalError: null,
@@ -100,6 +110,7 @@ export const useCallStore = create<CallState>((set) => ({
       aiThinking: false,
       usageTick: null,
       activeStyleId: null,
+      activeVoice: null,
       lastStreamId: null,
       toastError: null,
       fatalError: null,
@@ -108,9 +119,10 @@ export const useCallStore = create<CallState>((set) => ({
 
   setStatus: (status) => set({ status }),
   setActiveStyleId: (styleId) => set({ activeStyleId: styleId }),
+  setActiveVoice: (voice) => set({ activeVoice: voice }),
   setLastStreamId: (id) => set({ lastStreamId: id }),
 
-  setInterlocutorPartial: (content) =>
+  setInterlocutorPartial: (text) =>
     set((s) => {
       const others = s.bubbles.filter((b) => b.id !== PARTIAL_INTERLOCUTOR_ID);
       return {
@@ -119,7 +131,7 @@ export const useCallStore = create<CallState>((set) => ({
           {
             id: PARTIAL_INTERLOCUTOR_ID,
             role: "interlocutor",
-            content,
+            content: text,
             partial: true,
             ts: Date.now(),
           },
@@ -127,7 +139,7 @@ export const useCallStore = create<CallState>((set) => ({
       };
     }),
 
-  commitInterlocutorFinal: (messageId, content) =>
+  commitInterlocutorFinal: (messageId, text) =>
     set((s) => {
       const others = s.bubbles.filter((b) => b.id !== PARTIAL_INTERLOCUTOR_ID);
       return {
@@ -136,7 +148,7 @@ export const useCallStore = create<CallState>((set) => ({
           {
             id: messageId,
             role: "interlocutor",
-            content,
+            content: text,
             partial: false,
             ts: Date.now(),
           },
@@ -144,7 +156,7 @@ export const useCallStore = create<CallState>((set) => ({
       };
     }),
 
-  setAiPartial: (content) =>
+  setAiPartial: (text) =>
     set((s) => {
       const others = s.bubbles.filter((b) => b.id !== PARTIAL_AI_ID);
       return {
@@ -153,7 +165,7 @@ export const useCallStore = create<CallState>((set) => ({
           {
             id: PARTIAL_AI_ID,
             role: "ai",
-            content,
+            content: text,
             partial: true,
             ts: Date.now(),
           },
@@ -162,7 +174,7 @@ export const useCallStore = create<CallState>((set) => ({
       };
     }),
 
-  commitAiFinal: (messageId, content) =>
+  commitAiFinal: (messageId, text) =>
     set((s) => {
       const others = s.bubbles.filter((b) => b.id !== PARTIAL_AI_ID);
       return {
@@ -171,7 +183,7 @@ export const useCallStore = create<CallState>((set) => ({
           {
             id: messageId,
             role: "ai",
-            content,
+            content: text,
             partial: false,
             ts: Date.now(),
           },
@@ -194,6 +206,8 @@ export const useCallStore = create<CallState>((set) => ({
           ts: Date.now(),
         },
       ],
+      // Sending a message invalidates any old suggestions — they were for the
+      // prior interlocutor turn.
       suggestions: [],
     })),
 

@@ -1,0 +1,9 @@
+{
+  "type": "ai.tts.start",
+  "id": "e6d30e4f-e06e-4b1a-838e-cf57169fed83",
+  "timestamp": "2026-05-20T12:00:06.000Z",
+  "data": {
+    "messageId": "b7bfbd5f-4070-4535-a6cc-0c5ffbdd49b9",
+    "voice": "alloy"
+  }
+}

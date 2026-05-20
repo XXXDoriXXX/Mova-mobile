@@ -8,7 +8,9 @@ import axios, {
 
 import { useAuthStore } from "@/auth/store";
 import { API_BASE_URL } from "@/constants/env";
-import type { ApiErrorPayload, AuthTokens } from "@/types/api";
+import type { ApiErrorPayload } from "@/types/api";
+
+import { performRefresh } from "./refresh";
 
 // Augment Axios request config to carry our metadata without `any`.
 declare module "axios" {
@@ -45,32 +47,6 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Single-flight refresh. While a refresh is in progress, parallel 401's wait
-// on the same promise instead of each triggering their own refresh round-trip.
-let refreshInflight: Promise<AuthTokens | null> | null = null;
-
-async function performRefresh(): Promise<AuthTokens | null> {
-  const { refreshToken } = useAuthStore.getState();
-  if (!refreshToken) return null;
-  try {
-    const resp = await axios.post<AuthTokens>(
-      `${API_BASE_URL}/auth/refresh`,
-      { refreshToken },
-      { timeout: 10_000 },
-    );
-    const next: AuthTokens = {
-      accessToken: resp.data.accessToken,
-      // Backend may rotate refresh; keep current one if not provided.
-      refreshToken: resp.data.refreshToken ?? refreshToken,
-    };
-    await useAuthStore.getState().setTokens(next);
-    return next;
-  } catch {
-    await useAuthStore.getState().clear();
-    return null;
-  }
-}
-
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiErrorPayload>) => {
@@ -84,10 +60,7 @@ apiClient.interceptors.response.use(
       !config.meta?.retried &&
       !config.url?.includes("/auth/refresh")
     ) {
-      if (!refreshInflight) refreshInflight = performRefresh();
-      const tokens = await refreshInflight.finally(() => {
-        refreshInflight = null;
-      });
+      const tokens = await performRefresh();
       if (!tokens) return Promise.reject(error);
 
       config.meta = { ...config.meta, retried: true };
