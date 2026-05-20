@@ -1,4 +1,5 @@
 import {
+  dayPartFor,
   estimateMinutesFromBalance,
   formatCentsAsUah,
   formatDuration,
@@ -44,4 +45,17 @@ describe("formatDuration", () => {
   it("handles long calls", () => {
     expect(formatDuration(3725)).toBe("62:05");
   });
+});
+
+describe("dayPartFor", () => {
+  function at(hour: number): Date {
+    const d = new Date(2026, 4, 20, hour, 0, 0);
+    return d;
+  }
+
+  it("3am → night", () => expect(dayPartFor(at(3))).toBe("night"));
+  it("8am → morning", () => expect(dayPartFor(at(8))).toBe("morning"));
+  it("14pm → afternoon", () => expect(dayPartFor(at(14))).toBe("afternoon"));
+  it("20pm → evening", () => expect(dayPartFor(at(20))).toBe("evening"));
+  it("23pm → night", () => expect(dayPartFor(at(23))).toBe("night"));
 });

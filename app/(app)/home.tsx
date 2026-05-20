@@ -16,6 +16,7 @@ import { listConversations } from "@/api/conversations";
 import { getMe } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
 import { RecentCallsList } from "@/features/home/RecentCallsList";
+import { dayPartFor } from "@/utils/format";
 
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -76,8 +77,11 @@ export default function HomeScreen() {
             <Avatar name={user?.name} size={48} />
           </Pressable>
           <View style={{ flex: 1 }}>
+            <Text variant="caption" color="textMuted">
+              {t(`home.greeting_${dayPartFor()}`)}
+            </Text>
             <Text variant="title">
-              {t("home.greeting", { name: user?.name ?? "" })}
+              {user?.name ?? ""}
             </Text>
           </View>
         </View>

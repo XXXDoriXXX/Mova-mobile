@@ -40,6 +40,10 @@
   },
   "home": {
     "greeting": "Привіт, {{name}}",
+    "greeting_morning": "Доброго ранку",
+    "greeting_afternoon": "Добрий день",
+    "greeting_evening": "Добрий вечір",
+    "greeting_night": "Гарної ночі",
     "balanceTitle": "Баланс",
     "balanceFreeQuota": "{{used}} / {{total}} безкоштовних секунд цього місяця",
     "balanceAmount": "₴ {{amount}}",
