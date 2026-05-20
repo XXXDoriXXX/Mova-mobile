@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,6 +14,7 @@ import { useCallStore } from "@/features/calls/live/callStore";
 import { useCallSocket } from "@/features/calls/live/useCallSocket";
 import { useAppStateReconnect } from "@/features/calls/live/useAppStateReconnect";
 import { CallEnding } from "@/features/calls/live/CallEnding";
+import { CallSettingsDrawer } from "@/features/calls/live/CallSettingsDrawer";
 import { MessageInput } from "@/features/calls/live/MessageInput";
 import { SuggestionChips } from "@/features/calls/live/SuggestionChips";
 import { Transcript } from "@/features/calls/live/Transcript";
@@ -38,6 +39,7 @@ export default function LiveCallScreen() {
   const fatalError = useCallStore((s) => s.fatalError);
   const endInfo = useCallStore((s) => s.endInfo);
   const setToastError = useCallStore((s) => s.setToastError);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const { send } = useCallSocket({
     conversationId: params.conversationId ?? "",
@@ -125,18 +127,38 @@ export default function LiveCallScreen() {
           </Text>
         </Pressable>
 
-        {usageTick ? (
-          <Text variant="caption" color="textMuted">
-            {formatDuration(usageTick.secondsElapsed)}
-            {usageTick.planCode === "free" &&
-            typeof usageTick.secondsRemaining === "number"
-              ? ` · ${t("live.secondsLeft", {
-                  seconds: usageTick.secondsRemaining,
-                })}`
-              : ""}
-          </Text>
-        ) : null}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.md }}>
+          {usageTick ? (
+            <Text variant="caption" color="textMuted">
+              {formatDuration(usageTick.secondsElapsed)}
+              {usageTick.planCode === "free" &&
+              typeof usageTick.secondsRemaining === "number"
+                ? ` · ${t("live.secondsLeft", {
+                    seconds: usageTick.secondsRemaining,
+                  })}`
+                : ""}
+            </Text>
+          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("liveSettings.title")}
+            onPress={() => setSettingsOpen(true)}
+            hitSlop={8}
+          >
+            <Ionicons
+              name="settings-outline"
+              size={22}
+              color={theme.colors.textMuted}
+            />
+          </Pressable>
+        </View>
       </View>
+
+      <CallSettingsDrawer
+        visible={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        send={send}
+      />
 
       {headerLine ? (
         <View

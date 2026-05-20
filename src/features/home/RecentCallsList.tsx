@@ -1,4 +1,6 @@
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Card } from "@/components/Card";
@@ -22,13 +24,21 @@ const STATUS_ICON: Record<Conversation["status"], string> = {
 export function RecentCallsList({ items }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
+  const router = useRouter();
 
   if (items.length === 0) {
     return (
       <Card>
-        <Text color="textMuted" align="center">
-          {t("home.recentEmpty")}
-        </Text>
+        <View style={{ alignItems: "center", gap: theme.spacing.sm }}>
+          <Ionicons
+            name="call-outline"
+            size={32}
+            color={theme.colors.textMuted}
+          />
+          <Text color="textMuted" align="center">
+            {t("home.recentEmpty")}
+          </Text>
+        </View>
       </Card>
     );
   }
@@ -42,17 +52,53 @@ export function RecentCallsList({ items }: Props) {
               flexDirection: "row",
               justifyContent: "space-between",
               alignItems: "center",
+              gap: theme.spacing.sm,
             }}
           >
-            <View style={{ flexShrink: 1 }}>
-              <Text variant="subtitle">{formatPhoneForDisplay(c.targetPhone)}</Text>
+            <Pressable
+              style={{ flex: 1 }}
+              onPress={() =>
+                router.push({
+                  pathname: "/conversation/[id]",
+                  params: { id: c.id },
+                })
+              }
+            >
+              <Text variant="subtitle">
+                {formatPhoneForDisplay(c.targetPhone)}
+              </Text>
               <Text variant="caption" color="textMuted">
                 {formatRelativeFromNow(c.startedAt)}
                 {c.durationSeconds > 0
                   ? ` · ${formatDuration(c.durationSeconds)}`
                   : ""}
               </Text>
-            </View>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t("history.recall")}
+              onPress={() =>
+                router.push({
+                  pathname: "/call/pre",
+                  params: { prefillPhone: c.targetPhone },
+                })
+              }
+              hitSlop={8}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: theme.colors.surfaceMuted,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons
+                name="call-outline"
+                size={18}
+                color={theme.colors.primary}
+              />
+            </Pressable>
             <Text
               variant="title"
               color={

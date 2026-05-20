@@ -1,9 +1,10 @@
 import { useCallback, useState } from "react";
-import { RefreshControl, ScrollView, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
+import { Avatar } from "@/components/Avatar";
 import { BalanceWidget } from "@/components/BalanceWidget";
 import { Button } from "@/components/Button";
 import { Screen } from "@/components/Screen";
@@ -59,9 +60,27 @@ export default function HomeScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <Text variant="title">
-          {t("home.greeting", { name: user?.name ?? "" })}
-        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.md,
+          }}
+        >
+          <Pressable
+            onPress={() => router.push("/settings")}
+            accessibilityRole="button"
+            accessibilityLabel={t("tabs.settings")}
+            hitSlop={8}
+          >
+            <Avatar name={user?.name} size={48} />
+          </Pressable>
+          <View style={{ flex: 1 }}>
+            <Text variant="title">
+              {t("home.greeting", { name: user?.name ?? "" })}
+            </Text>
+          </View>
+        </View>
 
         {billingQuery.isLoading ? (
           <Spinner />
