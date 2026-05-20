@@ -1,6 +1,12 @@
-import { Share, ScrollView, View } from "react-native";
+import { Alert, Share, ScrollView, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import * as Clipboard from "expo-clipboard";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
@@ -10,6 +16,7 @@ import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import {
+  deleteConversation,
   getConversation,
   getConversationMessages,
 } from "@/api/conversations";
@@ -31,6 +38,7 @@ export default function ConversationDetailScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const convQuery = useQuery({
@@ -48,6 +56,14 @@ export default function ConversationDetailScreen() {
     enabled: !!id,
   });
 
+  const deleteMut = useMutation({
+    mutationFn: () => deleteConversation(id as string),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      router.replace("/history");
+    },
+  });
+
   if (convQuery.isLoading || !convQuery.data) {
     return (
       <Screen>
@@ -60,9 +76,33 @@ export default function ConversationDetailScreen() {
   const reasonKey = c.endReason ? REASON_KEYS[c.endReason] : null;
   const messages = messagesQuery.data?.pages.flatMap((p) => p.items) ?? [];
 
+  const transcriptText = () =>
+    transcriptToText({
+      phone: c.targetPhone,
+      startedAt: c.startedAt,
+      durationSeconds: c.durationSeconds,
+      messages,
+    });
+
+  function confirmDelete() {
+    Alert.alert(t("conversation.deleteConfirm"), undefined, [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("conversation.delete"),
+        style: "destructive",
+        onPress: () => deleteMut.mutate(),
+      },
+    ]);
+  }
+
   return (
     <Screen>
-      <ScrollView contentContainerStyle={{ gap: theme.spacing.md, paddingBottom: theme.spacing.xxl }}>
+      <ScrollView
+        contentContainerStyle={{
+          gap: theme.spacing.md,
+          paddingBottom: theme.spacing.xxl,
+        }}
+      >
         <Text variant="title">{formatPhoneForDisplay(c.targetPhone)}</Text>
 
         <Card>
@@ -99,16 +139,26 @@ export default function ConversationDetailScreen() {
               label={t("history.share")}
               variant="ghost"
               disabled={messages.length === 0}
-              onPress={() =>
-                void Share.share({
-                  message: transcriptToText({
-                    phone: c.targetPhone,
-                    startedAt: c.startedAt,
-                    durationSeconds: c.durationSeconds,
-                    messages,
-                  }),
-                })
-              }
+              onPress={() => void Share.share({ message: transcriptText() })}
+            />
+          </View>
+        </View>
+
+        <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
+          <View style={{ flex: 1 }}>
+            <Button
+              label={t("history.copy")}
+              variant="ghost"
+              disabled={messages.length === 0}
+              onPress={() => void Clipboard.setStringAsync(transcriptText())}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Button
+              label={t("conversation.delete")}
+              variant="danger"
+              loading={deleteMut.isPending}
+              onPress={confirmDelete}
             />
           </View>
         </View>
