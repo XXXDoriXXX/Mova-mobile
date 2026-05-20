@@ -29,3 +29,19 @@ export function formatDuration(seconds: number): string {
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
+
+export type DayPart = "morning" | "afternoon" | "evening" | "night";
+
+/**
+ * Returns a coarse-grained slice of the day suitable for picking a localized
+ * greeting. Uses the local clock, so a user in Kyiv at 23:00 gets "night"
+ * even if UTC says it's afternoon.
+ */
+export function dayPartFor(date: Date = new Date()): DayPart {
+  const h = date.getHours();
+  if (h < 5) return "night";
+  if (h < 12) return "morning";
+  if (h < 18) return "afternoon";
+  if (h < 23) return "evening";
+  return "night";
+}

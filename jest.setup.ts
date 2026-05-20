@@ -55,3 +55,10 @@ jest.mock("expo-constants", () => ({
 jest.mock("expo-localization", () => ({
   getLocales: () => [{ languageCode: "uk" }],
 }));
+
+// Initialize i18next once for the entire suite so `useTranslation()` works.
+// Keeping it here (rather than per-file) means tests that don't care about
+// strings still get sensible fallbacks instead of NO_I18NEXT_INSTANCE warnings.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { initI18n } = require("@/i18n");
+initI18n();

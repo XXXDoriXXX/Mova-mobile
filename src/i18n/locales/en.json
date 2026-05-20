@@ -40,6 +40,10 @@
   },
   "home": {
     "greeting": "Hi, {{name}}",
+    "greeting_morning": "Good morning",
+    "greeting_afternoon": "Good afternoon",
+    "greeting_evening": "Good evening",
+    "greeting_night": "Hope you're well",
     "balanceTitle": "Balance",
     "balanceFreeQuota": "{{used}} / {{total}} free seconds this month",
     "balanceAmount": "₴ {{amount}}",
