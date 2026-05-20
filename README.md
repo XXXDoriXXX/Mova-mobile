@@ -68,14 +68,15 @@ npm run prepush         # typecheck + lint + test --ci
 
 ## Що вкрите
 
+### Backend API surface
 Усі ендпоінти бекенда, які потрібні юзеру:
 
 - **Auth**: register, login, refresh, logout, me (GET + PATCH),
   change-password, delete-account (з підтвердженням пароля).
 - **Billing**: summary, plans, usage, topup (idempotent), subscribe.
 - **Calls**: start + live WebSocket.
-- **Conversations**: list (cursor pagination), get, messages (infinite
-  scroll), delete.
+- **Conversations**: list (cursor pagination, filter за статусом), get,
+  messages (infinite scroll), delete, share / copy транскрипту.
 - **Templates**: list, create, edit, delete, duplicate, set-default,
   set-default-style.
 - **Styles**: list (builtin + custom), create / edit / delete custom,
@@ -86,6 +87,28 @@ npm run prepush         # typecheck + lint + test --ci
 
 Admin endpoints не охоплено — мобільний застосунок призначений для
 кінцевих користувачів.
+
+### Користувацькі флоу
+- **Onboarding** wizard (3 слайди + style picker), показується раз на
+  пристрій. Прапорець у SecureStore + tiny Zustand store, який тримає
+  AuthGate і екран синхронізовано.
+- **Pre-call**: phone input → contacts picker (expo-contacts +
+  libphonenumber-js нормалізація до E.164) → template + style picker
+  (pre-selects `user.preferredStyleId`) → start.
+- **Live call**: типізовані bubbles (Reanimated FadeIn), staggered
+  suggestions chips, character counter на input, in-call settings drawer
+  (style/voice/model swap), `useAppStateReconnect` для background, ping
+  кожні 20с, refresh `lastStreamId` на кожен reconnect.
+- **History**: status filter chips (All / Ended / Active / Failed),
+  quick-recall в один тап, swipe-to-delete з alert-підтвердженням.
+- **Conversation detail**: share via OS sheet, copy via clipboard,
+  delete з alert-підтвердженням, recall.
+- **Billing**: 4 tab-и (overview / plan / topup / usage), top-up з
+  inline validation (1..1000 UAH) + idempotency-key reuse на retry.
+- **Settings**: avatar з ініціалами, edit profile (language tag), change
+  password, delete account (password modal), styles, templates, push
+  registration toggle, appearance (theme + 4 font-scale рівні), about
+  з версією + mailto + repo link.
 
 ---
 
