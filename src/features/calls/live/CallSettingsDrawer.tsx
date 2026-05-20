@@ -5,10 +5,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Banner } from "@/components/Banner";
+import { Button } from "@/components/Button";
 import { Chip } from "@/components/Chip";
 import { Modal } from "@/components/Modal";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
+import { TextField } from "@/components/TextField";
 import { useTheme } from "@/theme/ThemeProvider";
 import { listStyles } from "@/api/styles";
 import type { ClientCommand } from "@/realtime/protocol";
@@ -25,14 +27,23 @@ type Props = {
 // agents need each to exist on the worker side.
 const VOICE_OPTIONS = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"] as const;
 
-const LLM_OPTIONS = [
+type LlmOption = { provider: string; model: string; label: string };
+
+// Gemini ids tracked here are what's stable as of early 2026; the @ai-sdk/google
+// client passes the model id straight through, so anything Google publishes
+// later (e.g. a `gemini-3.x-…`) just works via the "Custom model" input below.
+const LLM_OPTIONS: readonly LlmOption[] = [
   { provider: "openai", model: "gpt-4o-mini", label: "OpenAI · 4o-mini" },
   { provider: "openai", model: "gpt-4o", label: "OpenAI · 4o" },
+  { provider: "gemini", model: "gemini-2.5-flash-lite", label: "Gemini · 2.5 Flash-Lite" },
   { provider: "gemini", model: "gemini-2.5-flash", label: "Gemini · 2.5 Flash" },
   { provider: "gemini", model: "gemini-2.5-pro", label: "Gemini · 2.5 Pro" },
   { provider: "anthropic", model: "claude-3-5-sonnet", label: "Anthropic · Sonnet" },
   { provider: "groq", model: "llama-3.1-70b-versatile", label: "Groq · Llama-70B" },
 ] as const;
+
+const PROVIDERS_FOR_CUSTOM = ["openai", "gemini", "anthropic", "groq"] as const;
+type ProviderId = (typeof PROVIDERS_FOR_CUSTOM)[number];
 
 /**
  * Mid-call settings drawer. Exposes the three WS commands the backend
@@ -50,6 +61,8 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
   const activeStyleId = useCallStore((s) => s.activeStyleId);
   const activeVoice = useCallStore((s) => s.activeVoice);
   const [chosenLlm, setChosenLlm] = useState<{ provider: string; model: string } | null>(null);
+  const [customProvider, setCustomProvider] = useState<ProviderId>("gemini");
+  const [customModel, setCustomModel] = useState("");
 
   const stylesQuery = useQuery({
     queryKey: ["styles"],
@@ -73,9 +86,15 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
     });
   }
 
+  function applyCustom() {
+    const model = customModel.trim();
+    if (!model) return;
+    handleLlm(customProvider, model);
+  }
+
   return (
     <Modal visible={visible} onClose={onClose} title={t("liveSettings.title")}>
-      <ScrollView style={{ maxHeight: 480 }} contentContainerStyle={{ gap: theme.spacing.lg }}>
+      <ScrollView style={{ maxHeight: 540 }} contentContainerStyle={{ gap: theme.spacing.lg }}>
         {/* Style — applies immediately */}
         <View style={{ gap: theme.spacing.sm }}>
           <Text variant="label">{t("liveSettings.style")}</Text>
@@ -164,6 +183,40 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
               );
             })}
           </View>
+        </View>
+
+        {/* Custom model — pin any model id the backend accepts. Useful when
+            a provider releases a new generation that doesn't have a preset
+            in the list above. The string goes straight through to the
+            provider SDK on the worker side. */}
+        <View style={{ gap: theme.spacing.sm }}>
+          <Text variant="label">{t("liveSettings.customModel")}</Text>
+          <Text variant="caption" color="textMuted">
+            {t("liveSettings.customModelHint")}
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.xs }}>
+            {PROVIDERS_FOR_CUSTOM.map((p) => (
+              <Chip
+                key={p}
+                label={p}
+                selected={customProvider === p}
+                onPress={() => setCustomProvider(p)}
+              />
+            ))}
+          </View>
+          <TextField
+            placeholder={t("liveSettings.customModelPlaceholder")}
+            value={customModel}
+            onChangeText={setCustomModel}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          <Button
+            label={t("liveSettings.customModelApply")}
+            variant="secondary"
+            disabled={!customModel.trim()}
+            onPress={applyCustom}
+          />
         </View>
 
         <Banner tone="info" message={t("liveSettings.nextCallNote")} />
