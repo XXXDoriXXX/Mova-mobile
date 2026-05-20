@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Banner } from "@/components/Banner";
@@ -17,6 +18,7 @@ import { listStyles } from "@/api/styles";
 import { getBillingSummary } from "@/api/billing";
 import { extractErrorPayload } from "@/api/client";
 import { useAuthStore } from "@/auth/store";
+import { ContactsPicker } from "@/features/calls/ContactsPicker";
 import { StylePicker } from "@/features/calls/StylePicker";
 import { TemplatePicker } from "@/features/calls/TemplatePicker";
 import { isE164 } from "@/utils/phone";
@@ -35,6 +37,7 @@ export default function PreCallScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [insufficient, setInsufficient] = useState(false);
+  const [pickingContact, setPickingContact] = useState(false);
 
   const templatesQuery = useQuery({
     queryKey: ["templates"],
@@ -112,13 +115,45 @@ export default function PreCallScreen() {
         <Banner tone="warning" message={t("preCall.lowBalanceWarn")} />
       ) : null}
 
-      <TextField
-        label={t("preCall.phoneLabel")}
-        placeholder={t("preCall.phonePlaceholder")}
-        keyboardType="phone-pad"
-        value={phone}
-        onChangeText={setPhone}
-        error={phone.length > 4 && !phoneOk ? t("preCall.phoneError") : undefined}
+      <View style={{ flexDirection: "row", alignItems: "flex-end", gap: theme.spacing.sm }}>
+        <View style={{ flex: 1 }}>
+          <TextField
+            label={t("preCall.phoneLabel")}
+            placeholder={t("preCall.phonePlaceholder")}
+            keyboardType="phone-pad"
+            value={phone}
+            onChangeText={setPhone}
+            error={phone.length > 4 && !phoneOk ? t("preCall.phoneError") : undefined}
+          />
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("preCall.contactsTitle")}
+          onPress={() => setPickingContact(true)}
+          style={{
+            width: 52,
+            height: 52,
+            marginBottom: 22,
+            borderRadius: theme.radii.md,
+            backgroundColor: theme.colors.surface,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Ionicons
+            name="people-outline"
+            size={22}
+            color={theme.colors.text}
+          />
+        </Pressable>
+      </View>
+
+      <ContactsPicker
+        visible={pickingContact}
+        onClose={() => setPickingContact(false)}
+        onPick={(e164) => setPhone(e164)}
       />
 
       {templatesQuery.isLoading ? (

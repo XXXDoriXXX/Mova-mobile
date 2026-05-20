@@ -1,6 +1,8 @@
 import { useCallback } from "react";
-import { Alert, FlatList, RefreshControl, View } from "react-native";
+import { Alert, FlatList, Pressable, RefreshControl, View } from "react-native";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Card } from "@/components/Card";
@@ -21,18 +23,20 @@ const STATUS_ICON: Record<Conversation["status"], string> = {
 
 type Props = {
   onOpen: (id: string) => void;
+  status?: Conversation["status"];
 };
 
-export function ConversationsList({ onOpen }: Props) {
+export function ConversationsList({ onOpen, status }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   const query = useInfiniteQuery({
-    queryKey: ["conversations", "list"],
+    queryKey: ["conversations", "list", { status: status ?? "all" }],
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) =>
-      listConversations({ cursor: pageParam, limit: 20 }),
+      listConversations({ cursor: pageParam, limit: 20, status }),
     getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
 
@@ -55,6 +59,13 @@ export function ConversationsList({ onOpen }: Props) {
 
   const items = query.data?.pages.flatMap((p) => p.items) ?? [];
 
+  function quickRecall(c: Conversation) {
+    router.push({
+      pathname: "/call/pre",
+      params: { prefillPhone: c.targetPhone },
+    });
+  }
+
   const renderItem = useCallback(
     ({ item }: { item: Conversation }) => (
       <Card style={{ paddingVertical: theme.spacing.md }}>
@@ -66,12 +77,12 @@ export function ConversationsList({ onOpen }: Props) {
             gap: theme.spacing.sm,
           }}
         >
-          <View style={{ flex: 1 }}>
-            <Text
-              variant="subtitle"
-              onPress={() => onOpen(item.id)}
-              onLongPress={() => confirmDelete(item)}
-            >
+          <Pressable
+            style={{ flex: 1 }}
+            onPress={() => onOpen(item.id)}
+            onLongPress={() => confirmDelete(item)}
+          >
+            <Text variant="subtitle">
               {formatPhoneForDisplay(item.targetPhone)}
             </Text>
             <Text variant="caption" color="textMuted">
@@ -80,7 +91,23 @@ export function ConversationsList({ onOpen }: Props) {
                 ? ` · ${formatDuration(item.durationSeconds)}`
                 : ""}
             </Text>
-          </View>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("history.recall")}
+            onPress={() => quickRecall(item)}
+            hitSlop={8}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: theme.colors.surfaceMuted,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name="call-outline" size={20} color={theme.colors.primary} />
+          </Pressable>
           <Text
             variant="title"
             color={
@@ -97,7 +124,7 @@ export function ConversationsList({ onOpen }: Props) {
       </Card>
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [onOpen, theme],
+    [onOpen, theme, t],
   );
 
   if (query.isLoading) return <Spinner />;

@@ -1,4 +1,4 @@
-import { ScrollView, View } from "react-native";
+import { Share, ScrollView, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -14,6 +14,7 @@ import {
   getConversationMessages,
 } from "@/api/conversations";
 import { TranscriptView } from "@/features/conversations/TranscriptView";
+import { transcriptToText } from "@/features/conversations/exportTranscript";
 import { formatDuration, formatRelativeFromNow } from "@/utils/format";
 import { formatPhoneForDisplay } from "@/utils/phone";
 
@@ -80,16 +81,37 @@ export default function ConversationDetailScreen() {
           </View>
         </Card>
 
-        <Button
-          label={t("history.recall")}
-          variant="secondary"
-          onPress={() =>
-            router.push({
-              pathname: "/call/pre",
-              params: { prefillPhone: c.targetPhone },
-            })
-          }
-        />
+        <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
+          <View style={{ flex: 1 }}>
+            <Button
+              label={t("history.recall")}
+              variant="secondary"
+              onPress={() =>
+                router.push({
+                  pathname: "/call/pre",
+                  params: { prefillPhone: c.targetPhone },
+                })
+              }
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Button
+              label={t("history.share")}
+              variant="ghost"
+              disabled={messages.length === 0}
+              onPress={() =>
+                void Share.share({
+                  message: transcriptToText({
+                    phone: c.targetPhone,
+                    startedAt: c.startedAt,
+                    durationSeconds: c.durationSeconds,
+                    messages,
+                  }),
+                })
+              }
+            />
+          </View>
+        </View>
 
         <Text variant="subtitle">{t("history.transcriptTab")}</Text>
         {messagesQuery.isLoading ? (

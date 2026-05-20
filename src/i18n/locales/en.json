@@ -207,7 +207,13 @@
     "insufficientBalance": "Insufficient balance. Top up your account",
     "topupCta": "Top up",
     "startCta": "Call",
-    "errorGeneric": "Could not start the call"
+    "errorGeneric": "Could not start the call",
+    "contactsTitle": "Contacts",
+    "contactsSearch": "Search by name or number",
+    "contactsDenied": "Contacts permission denied. Enable it in system settings.",
+    "contactsUnsupported": "Contacts aren't available on this device.",
+    "contactsEmpty": "No matches",
+    "contactsInvalid": "Not E.164"
   },
   "live": {
     "connecting": "Calling…",
@@ -232,6 +238,33 @@
     "transcriptTab": "Transcript",
     "metaTab": "Details",
     "recall": "Call again",
-    "loading": "Loading transcript…"
+    "share": "Share",
+    "loading": "Loading transcript…",
+    "filterAll": "All",
+    "filterEnded": "Ended",
+    "filterActive": "Active",
+    "filterFailed": "Failed"
+  },
+  "liveSettings": {
+    "title": "Call settings",
+    "style": "Conversation style",
+    "styleHint": "Applies immediately, from the AI's next reply",
+    "voice": "AI voice",
+    "voiceHint": "Will be used starting from the next call",
+    "model": "AI model",
+    "modelHint": "Will be used starting from the next call",
+    "nextCallNote": "Voice and model can't change mid-call — that's a LiveKit constraint. Style switches instantly."
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "next": "Next",
+    "done": "Done",
+    "slide1Title": "We make the call",
+    "slide1Body": "The AI speaks on your behalf while you read the other side's words as text.",
+    "slide2Title": "Suggestions on the fly",
+    "slide2Body": "After each sentence the AI offers three replies. Tap one and it speaks for you.",
+    "slide3Title": "Your style",
+    "slide3Body": "Pick how the AI should sound. You can change it anytime later.",
+    "stylePickerTitle": "Pick your default style"
   }
 }
