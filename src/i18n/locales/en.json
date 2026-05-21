@@ -59,6 +59,8 @@
     "balanceFreeQuota": "{{used}} / {{total}} free seconds this month",
     "balanceAmount": "₴ {{amount}}",
     "balanceMinutes": "enough for ~{{minutes}} min of talk",
+    "balanceRingLeftLabel": "LEFT",
+    "balanceRingMinutesLabel": "MINUTES",
     "startCallCta": "Start a call",
     "recentTitle": "Recent calls",
     "recentEmpty": "No calls yet",
