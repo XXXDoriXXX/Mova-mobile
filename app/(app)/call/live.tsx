@@ -11,7 +11,6 @@ import { Banner } from "@/components/Banner";
 import { FaceAvatar } from "@/components/FaceAvatar";
 import { IconButton } from "@/components/IconButton";
 import { Screen } from "@/components/Screen";
-import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import { confirm } from "@/feedback/dialogStore";
@@ -20,7 +19,9 @@ import { useAuthStore } from "@/auth/store";
 import { useCallStore } from "@/features/calls/live/callStore";
 import { useCallSocket } from "@/features/calls/live/useCallSocket";
 import { useAppStateReconnect } from "@/features/calls/live/useAppStateReconnect";
+import { CallConnecting } from "@/features/calls/live/CallConnecting";
 import { CallEnding } from "@/features/calls/live/CallEnding";
+import { CallFatal } from "@/features/calls/live/CallFatal";
 import { CallSettingsDrawer } from "@/features/calls/live/CallSettingsDrawer";
 import { MessageInput } from "@/features/calls/live/MessageInput";
 import { SuggestionChips } from "@/features/calls/live/SuggestionChips";
@@ -157,11 +158,22 @@ export default function LiveCallScreen() {
   }
 
   if (fatalError) {
+    // Retry restarts the whole call flow by routing to /call/pre with
+    // the conversation discarded. The user re-picks template/style if
+    // needed and a fresh `startCall` mints a new conversation.
     return (
       <Screen>
-        <View style={{ flex: 1, justifyContent: "center", gap: theme.spacing.lg }}>
-          <Banner tone="danger" title={t("common.error")} message={fatalError.message} />
-        </View>
+        <CallFatal
+          error={fatalError}
+          onRetry={() => {
+            useCallStore.getState().reset();
+            router.replace("/call/pre");
+          }}
+          onClose={() => {
+            useCallStore.getState().reset();
+            router.replace("/home");
+          }}
+        />
       </Screen>
     );
   }
@@ -206,10 +218,7 @@ export default function LiveCallScreen() {
       ) : null}
 
       {showConnectingState ? (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <Text variant="subtitle">{t("live.connecting")}</Text>
-          <Spinner />
-        </View>
+        <CallConnecting />
       ) : (
         <>
           <Transcript bubbles={bubbles} aiThinking={aiThinking} />
