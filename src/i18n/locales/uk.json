@@ -256,7 +256,12 @@
     "usageSource_free": "безкоштовно",
     "usageSource_paid": "оплачено",
     "planSwitched": "Тариф змінено",
-    "planSwitchError": "Не вдалось змінити тариф"
+    "planSwitchError": "Не вдалось змінити тариф",
+    "weekSummaryTitle": "Останні 7 днів",
+    "weekCalls": "Дзвінків",
+    "weekMinutes": "Хвилин",
+    "weekSpend": "Витрат",
+    "weekEmpty": "Поки нічого. Зробіть дзвінок — і тут оживе."
   },
   "preCall": {
     "title": "Куди дзвонимо?",
