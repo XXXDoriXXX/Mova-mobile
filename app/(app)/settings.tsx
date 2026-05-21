@@ -9,6 +9,7 @@ import { Button } from "@/components/Button";
 import { Row } from "@/components/Row";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
+import { toast } from "@/feedback/toast";
 import { useTheme } from "@/theme/ThemeProvider";
 import { logout as logoutRequest } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
@@ -59,6 +60,7 @@ export default function SettingsScreen() {
       await logoutRequest().catch(() => undefined);
       queryClient.clear();
       await clear();
+      toast.info(t("settings.logoutSuccess"));
     } finally {
       setLoggingOut(false);
     }
