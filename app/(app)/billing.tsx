@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Alert, ScrollView, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Chip } from "@/components/Chip";
+import { IconButton } from "@/components/IconButton";
 import { Screen } from "@/components/Screen";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
@@ -18,9 +21,15 @@ import type { Plan } from "@/types/api";
 
 type Tab = "overview" | "plan" | "topup" | "history";
 
+/**
+ * Billing — four tabs in a horizontal pill row: overview, plan, top-up,
+ * history. Each tab lazy-loads its data so opening the screen doesn't
+ * pay for all four endpoints up front.
+ */
 export default function BillingScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("overview");
 
@@ -56,9 +65,31 @@ export default function BillingScreen() {
 
   return (
     <Screen>
-      <View style={{ gap: theme.spacing.md, flex: 1 }}>
-        <Text variant="title">{t("billing.title")}</Text>
-        <View style={{ flexDirection: "row", gap: theme.spacing.sm, flexWrap: "wrap" }}>
+      <View style={{ flex: 1, gap: theme.spacing.md, paddingTop: 4 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <IconButton onPress={() => router.back()} accessibilityLabel={t("common.back")}>
+            <Ionicons name="chevron-back" size={20} color={theme.colors.text} />
+          </IconButton>
+        </View>
+
+        <View style={{ gap: 4 }}>
+          <Text variant="label" color="textMuted">
+            MOVA
+          </Text>
+          <Text variant="title">{t("billing.title")}</Text>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 8, paddingVertical: 4 }}
+        >
           {(
             [
               ["overview", t("billing.tabs.overview")],
@@ -74,10 +105,14 @@ export default function BillingScreen() {
               onPress={() => setTab(key)}
             />
           ))}
-        </View>
+        </ScrollView>
 
         <ScrollView
-          contentContainerStyle={{ gap: theme.spacing.md, paddingBottom: theme.spacing.xxl }}
+          contentContainerStyle={{
+            gap: theme.spacing.md,
+            paddingBottom: 140,
+          }}
+          showsVerticalScrollIndicator={false}
         >
           {tab === "overview" ? (
             summaryQuery.isLoading || !summaryQuery.data ? (

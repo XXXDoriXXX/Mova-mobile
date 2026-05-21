@@ -15,6 +15,8 @@
     "prepush": "npm run typecheck && npm run lint && npm test -- --ci"
   },
   "dependencies": {
+    "@expo-google-fonts/jetbrains-mono": "^0.4.1",
+    "@expo-google-fonts/onest": "^0.4.1",
     "@expo/vector-icons": "^15.0.3",
     "@hookform/resolvers": "^5.2.2",
     "@react-native-community/netinfo": "^11.5.2",
@@ -52,6 +54,7 @@
     "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
+    "react-native-svg": "^15.15.5",
     "react-native-uuid": "^2.0.4",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.5.1",

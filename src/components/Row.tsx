@@ -11,8 +11,15 @@ type Props = {
   onLongPress?: () => void;
   trailing?: React.ReactNode;
   iconName?: keyof typeof Ionicons.glyphMap;
+  /** Tint applied to the icon badge. Defaults to the muted beige chip. */
+  tone?: "neutral" | "danger";
 };
 
+/**
+ * Settings-style list row. White card with a soft icon badge on the left,
+ * title + optional subtitle in the middle, chevron (or custom trailing
+ * node) on the right. Tap target spans the whole row.
+ */
 export function Row({
   title,
   subtitle,
@@ -20,25 +27,45 @@ export function Row({
   onLongPress,
   trailing,
   iconName,
+  tone = "neutral",
 }: Props) {
   const theme = useTheme();
+  const iconColor = tone === "danger" ? theme.colors.danger : theme.colors.text;
+  const iconBg =
+    tone === "danger" ? theme.colors.dangerSoft : theme.colors.surfaceMuted;
+
   const content = (
     <View
       style={{
         flexDirection: "row",
         alignItems: "center",
         gap: theme.spacing.md,
-        paddingVertical: theme.spacing.md,
-        paddingHorizontal: theme.spacing.lg,
+        paddingVertical: 14,
+        paddingHorizontal: 16,
         backgroundColor: theme.colors.surface,
-        borderRadius: theme.radii.md,
+        borderRadius: theme.radii.xl,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
       }}
     >
       {iconName ? (
-        <Ionicons name={iconName} size={22} color={theme.colors.text} />
+        <View
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            backgroundColor: iconBg,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Ionicons name={iconName} size={20} color={iconColor} />
+        </View>
       ) : null}
-      <View style={{ flex: 1 }}>
-        <Text variant="body">{title}</Text>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text variant="bodyLarge" weight="bold" color={tone === "danger" ? "danger" : "text"}>
+          {title}
+        </Text>
         {subtitle ? (
           <Text variant="caption" color="textMuted">
             {subtitle}

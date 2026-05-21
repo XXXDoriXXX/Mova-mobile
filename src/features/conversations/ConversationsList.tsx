@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
-import { Card } from "@/components/Card";
+import { Avatar } from "@/components/Avatar";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -16,11 +16,11 @@ import { formatPhoneForDisplay } from "@/utils/phone";
 
 import { ConversationsSkeleton } from "./ConversationsSkeleton";
 
-const STATUS_ICON: Record<Conversation["status"], string> = {
-  pending: "•",
-  active: "●",
-  ended: "✓",
-  failed: "⚠",
+const STATUS_ICON: Record<Conversation["status"], keyof typeof Ionicons.glyphMap> = {
+  pending: "ellipse-outline",
+  active: "radio",
+  ended: "checkmark-circle",
+  failed: "alert-circle",
 };
 
 type Props = {
@@ -28,6 +28,12 @@ type Props = {
   status?: Conversation["status"];
 };
 
+/**
+ * Paginated conversation list with pull-to-refresh and infinite scroll.
+ * Mirrors the home-screen row style for visual continuity: white card
+ * with an initials avatar, identity + timestamp, and a quick-redial
+ * affordance. Long-press deletes after confirmation.
+ */
 export function ConversationsList({ onOpen, status }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -69,62 +75,66 @@ export function ConversationsList({ onOpen, status }: Props) {
   }
 
   const renderItem = useCallback(
-    ({ item }: { item: Conversation }) => (
-      <Card style={{ paddingVertical: theme.spacing.md }}>
-        <View
-          style={{
+    ({ item }: { item: Conversation }) => {
+      const phone = formatPhoneForDisplay(item.targetPhone);
+      const statusColor =
+        item.status === "failed"
+          ? theme.colors.danger
+          : item.status === "active"
+            ? theme.colors.success
+            : theme.colors.textMuted;
+      return (
+        <Pressable
+          onPress={() => onOpen(item.id)}
+          onLongPress={() => confirmDelete(item)}
+          style={({ pressed }) => ({
             flexDirection: "row",
-            justifyContent: "space-between",
             alignItems: "center",
-            gap: theme.spacing.sm,
-          }}
+            gap: 12,
+            paddingHorizontal: 14,
+            paddingVertical: 12,
+            backgroundColor: theme.colors.surface,
+            borderRadius: theme.radii.xl,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+            opacity: pressed ? 0.85 : 1,
+          })}
         >
-          <Pressable
-            style={{ flex: 1 }}
-            onPress={() => onOpen(item.id)}
-            onLongPress={() => confirmDelete(item)}
-          >
-            <Text variant="subtitle">
-              {formatPhoneForDisplay(item.targetPhone)}
+          <Avatar name={phone} size={42} />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text variant="bodyLarge" weight="bold">
+              {phone}
             </Text>
-            <Text variant="caption" color="textMuted">
-              {formatRelativeFromNow(item.startedAt)}
-              {item.durationSeconds > 0
-                ? ` · ${formatDuration(item.durationSeconds)}`
-                : ""}
-            </Text>
-          </Pressable>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Ionicons name={STATUS_ICON[item.status]} size={12} color={statusColor} />
+              <Text variant="caption" color="textMuted">
+                {formatRelativeFromNow(item.startedAt)}
+                {item.durationSeconds > 0
+                  ? ` · ${formatDuration(item.durationSeconds)}`
+                  : ""}
+              </Text>
+            </View>
+          </View>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t("history.recall")}
             onPress={() => quickRecall(item)}
             hitSlop={8}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: theme.colors.surfaceMuted,
+            style={({ pressed }) => ({
+              width: 38,
+              height: 38,
+              borderRadius: 19,
+              backgroundColor: theme.colors.primary,
               alignItems: "center",
               justifyContent: "center",
-            }}
+              opacity: pressed ? 0.8 : 1,
+            })}
           >
-            <Ionicons name="call-outline" size={20} color={theme.colors.primary} />
+            <Ionicons name="call" size={16} color={theme.colors.primaryText} />
           </Pressable>
-          <Text
-            variant="title"
-            color={
-              item.status === "failed"
-                ? "danger"
-                : item.status === "active"
-                  ? "success"
-                  : "textMuted"
-            }
-          >
-            {STATUS_ICON[item.status]}
-          </Text>
-        </View>
-      </Card>
-    ),
+        </Pressable>
+      );
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [onOpen, theme, t],
   );
@@ -132,11 +142,23 @@ export function ConversationsList({ onOpen, status }: Props) {
   if (query.isLoading) return <ConversationsSkeleton />;
   if (items.length === 0) {
     return (
-      <Card>
+      <View
+        style={{
+          paddingVertical: theme.spacing.xl,
+          paddingHorizontal: theme.spacing.lg,
+          backgroundColor: theme.colors.surface,
+          borderRadius: theme.radii.xxl,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <Ionicons name="time-outline" size={28} color={theme.colors.textMuted} />
         <Text color="textMuted" align="center">
           {t("history.empty")}
         </Text>
-      </Card>
+      </View>
     );
   }
 
@@ -146,6 +168,7 @@ export function ConversationsList({ onOpen, status }: Props) {
       keyExtractor={(c) => c.id}
       renderItem={renderItem}
       ItemSeparatorComponent={() => <View style={{ height: theme.spacing.sm }} />}
+      contentContainerStyle={{ paddingBottom: 140 }}
       onEndReached={() => {
         if (query.hasNextPage && !query.isFetchingNextPage) query.fetchNextPage();
       }}
@@ -154,11 +177,13 @@ export function ConversationsList({ onOpen, status }: Props) {
         <RefreshControl
           refreshing={query.isRefetching && !query.isFetchingNextPage}
           onRefresh={() => query.refetch()}
+          tintColor={theme.colors.text}
         />
       }
       ListFooterComponent={
         query.isFetchingNextPage ? <Spinner size="small" /> : null
       }
+      showsVerticalScrollIndicator={false}
     />
   );
 }

@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Alert, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
+import { AudioWave } from "@/components/AudioWave";
 import { Banner } from "@/components/Banner";
+import { FaceAvatar } from "@/components/FaceAvatar";
+import { IconButton } from "@/components/IconButton";
 import { Screen } from "@/components/Screen";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
@@ -23,6 +25,13 @@ import { SuggestionChips } from "@/features/calls/live/SuggestionChips";
 import { Transcript } from "@/features/calls/live/Transcript";
 import { formatDuration } from "@/utils/format";
 
+/**
+ * Live call screen. Header has a back arrow, a centre identity pill
+ * (avatar + name + duration), and a destructive hangup button — exactly
+ * the layout from the design canvas. Beneath, a "live speaker" status
+ * card pulses while the partner is mid-utterance; the transcript fills
+ * the centre; quick-replies + composer pin the bottom.
+ */
 export default function LiveCallScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -38,6 +47,11 @@ export default function LiveCallScreen() {
   const bubbles = useCallStore((s) => s.bubbles);
   const suggestions = useCallStore((s) => s.suggestions);
   const aiThinking = useCallStore((s) => s.aiThinking);
+  const interlocutorSpeaking = useCallStore((s) =>
+    s.bubbles.some(
+      (b) => b.role === "interlocutor" && b.partial,
+    ),
+  );
   const usageTick = useCallStore((s) => s.usageTick);
   const toastError = useCallStore((s) => s.toastError);
   const fatalError = useCallStore((s) => s.fatalError);
@@ -124,58 +138,25 @@ export default function LiveCallScreen() {
   }
 
   const showConnectingState = status === "connecting" && bubbles.length === 0;
-  const headerLine = status === "reconnecting" ? t("live.reconnecting") : null;
+  const reconnecting = status === "reconnecting";
 
   return (
     <Screen padded={false}>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingHorizontal: theme.spacing.lg,
-          paddingTop: theme.spacing.md,
-          paddingBottom: theme.spacing.sm,
-        }}
-      >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t("live.endCall")}
-          onPress={handleEnd}
-          style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-        >
-          <Ionicons name="close" size={22} color={theme.colors.danger} />
-          <Text variant="label" style={{ color: theme.colors.danger }}>
-            {t("live.endCall")}
-          </Text>
-        </Pressable>
+      <Header
+        durationSeconds={usageTick?.secondsElapsed ?? 0}
+        secondsRemaining={
+          usageTick?.planCode === "free" ? usageTick.secondsRemaining : null
+        }
+        onBack={() => router.back()}
+        onSettings={() => setSettingsOpen(true)}
+        onEnd={handleEnd}
+        reconnecting={reconnecting}
+      />
 
-        <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.md }}>
-          {usageTick ? (
-            <Text variant="caption" color="textMuted">
-              {formatDuration(usageTick.secondsElapsed)}
-              {usageTick.planCode === "free" &&
-              typeof usageTick.secondsRemaining === "number"
-                ? ` · ${t("live.secondsLeft", {
-                    seconds: usageTick.secondsRemaining,
-                  })}`
-                : ""}
-            </Text>
-          ) : null}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("liveSettings.title")}
-            onPress={() => setSettingsOpen(true)}
-            hitSlop={8}
-          >
-            <Ionicons
-              name="settings-outline"
-              size={22}
-              color={theme.colors.textMuted}
-            />
-          </Pressable>
-        </View>
-      </View>
+      <SpeakerStatus
+        speaking={interlocutorSpeaking}
+        aiThinking={aiThinking}
+      />
 
       <CallSettingsDrawer
         visible={settingsOpen}
@@ -183,28 +164,12 @@ export default function LiveCallScreen() {
         send={send}
       />
 
-      {headerLine ? (
-        <Animated.View
-          entering={FadeIn.duration(160)}
-          exiting={FadeOut.duration(160)}
-          style={{
-            backgroundColor: theme.colors.warning,
-            paddingHorizontal: theme.spacing.lg,
-            paddingVertical: theme.spacing.sm,
-          }}
-        >
-          <Text variant="caption" style={{ color: theme.colors.primaryText }}>
-            {headerLine}
-          </Text>
-        </Animated.View>
-      ) : null}
-
       {toastError ? (
         <Animated.View
           entering={FadeIn.duration(160)}
           exiting={FadeOut.duration(200)}
           style={{
-            paddingHorizontal: theme.spacing.lg,
+            paddingHorizontal: theme.spacing.page,
             paddingVertical: theme.spacing.sm,
           }}
         >
@@ -225,5 +190,152 @@ export default function LiveCallScreen() {
         </>
       )}
     </Screen>
+  );
+}
+
+type HeaderProps = {
+  durationSeconds: number;
+  secondsRemaining: number | null;
+  onBack: () => void;
+  onSettings: () => void;
+  onEnd: () => void;
+  reconnecting: boolean;
+};
+
+function Header({
+  durationSeconds,
+  secondsRemaining,
+  onBack,
+  onSettings,
+  onEnd,
+  reconnecting,
+}: HeaderProps) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: theme.spacing.page,
+        paddingTop: 6,
+        paddingBottom: 10,
+        gap: 8,
+      }}
+    >
+      <IconButton onPress={onBack} accessibilityLabel={t("common.back")}>
+        <Ionicons name="chevron-back" size={20} color={theme.colors.text} />
+      </IconButton>
+
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 10,
+          backgroundColor: theme.colors.surface,
+          borderColor: theme.colors.border,
+          borderWidth: 1,
+          borderRadius: 999,
+          paddingLeft: 6,
+          paddingRight: 14,
+          paddingVertical: 6,
+          flexShrink: 1,
+        }}
+      >
+        <FaceAvatar size={28} />
+        <View style={{ flexShrink: 1 }}>
+          <Text
+            variant="caption"
+            weight="bold"
+            numberOfLines={1}
+            style={{ fontSize: 14 }}
+          >
+            {t("live.callee")}
+          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 1 }}>
+            <View
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 3,
+                backgroundColor: reconnecting ? theme.colors.warning : theme.colors.danger,
+              }}
+            />
+            <Text variant="label" color="textMuted">
+              {formatDuration(durationSeconds)}
+              {secondsRemaining !== null
+                ? ` · ${t("live.secondsLeft", { seconds: secondsRemaining })}`
+                : ""}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <IconButton
+        onPress={onSettings}
+        accessibilityLabel={t("liveSettings.title")}
+      >
+        <Ionicons name="options" size={18} color={theme.colors.text} />
+      </IconButton>
+      <IconButton
+        tone="danger"
+        shadow
+        onPress={onEnd}
+        accessibilityLabel={t("live.endCall")}
+      >
+        <Ionicons name="call" size={20} color={theme.colors.primaryText} style={{ transform: [{ rotate: "135deg" }] }} />
+      </IconButton>
+    </View>
+  );
+}
+
+function SpeakerStatus({
+  speaking,
+  aiThinking,
+}: {
+  speaking: boolean;
+  aiThinking: boolean;
+}) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const visible = speaking || aiThinking;
+  if (!visible) return null;
+
+  return (
+    <View style={{ paddingHorizontal: theme.spacing.page, paddingBottom: 8 }}>
+      <View
+        style={{
+          backgroundColor: theme.colors.surfaceInverse,
+          borderRadius: theme.radii.lg,
+          paddingHorizontal: 14,
+          paddingVertical: 10,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <View
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: theme.colors.accent,
+            }}
+          />
+          <Text
+            variant="label"
+            color="textOnInverse"
+            style={{ textTransform: "uppercase" }}
+          >
+            {speaking ? t("live.transcribingPartner") : t("live.aiThinking")}
+          </Text>
+        </View>
+        <AudioWave color={theme.colors.accent} count={12} height={20} />
+      </View>
+    </View>
   );
 }

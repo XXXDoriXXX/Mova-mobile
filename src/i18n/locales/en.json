@@ -54,7 +54,13 @@
     "startCallCta": "Start a call",
     "recentTitle": "Recent calls",
     "recentEmpty": "No calls yet",
-    "viewAll": "View all →"
+    "viewAll": "View all →",
+    "heroVerb": "we talk",
+    "userFallback": "MOVA",
+    "shortcutNewCallTitle": "New call",
+    "shortcutNewCallSubtitle": "AI voice",
+    "shortcutTemplatesTitle": "Templates",
+    "shortcutTemplatesSubtitle": "Conversation scripts"
   },
   "tabs": {
     "home": "Home",
@@ -147,7 +153,8 @@
     "endReasonFatal": "Technical failure",
     "endReasonAdmin": "Ended by moderator",
     "deleteConfirm": "Delete this call?",
-    "delete": "Delete"
+    "delete": "Delete",
+    "interrupted": "(interrupted)"
   },
   "templates": {
     "title": "Templates",
@@ -254,9 +261,17 @@
     "balanceTick": "{{minutes}}:{{seconds}} · ₴ {{balance}}",
     "secondsLeft": "{{seconds}}s left",
     "endingTitle": "Call ended",
+    "endingDurationLabel": "Duration",
     "endingNewCall": "New call",
     "endingGoHistory": "Go to history",
     "aiThinking": "AI is typing…",
+    "transcribingPartner": "Transcribing",
+    "callee": "Contact",
+    "live": "live",
+    "whoInterlocutor": "Caller",
+    "whoAi": "You · AI voice",
+    "whoYou": "You",
+    "composerHint": "AI will speak your message",
     "errorRecoverable": "{{message}}",
     "errorTerminal": "{{message}}"
   },

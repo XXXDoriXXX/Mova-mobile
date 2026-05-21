@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Alert, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
+import { IconButton } from "@/components/IconButton";
 import { KeyboardScreen } from "@/components/KeyboardScreen";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
@@ -20,6 +22,12 @@ import {
 import { TemplateForm } from "@/features/templates/TemplateForm";
 import type { TemplateFormValues } from "@/features/templates/schemas";
 
+/**
+ * Template editor — create / edit / duplicate / delete. System templates
+ * are read-only; the only action exposed for them is "Duplicate" which
+ * lands the user on the editable copy. Mutations invalidate the index
+ * cache so the templates screen reflects the change on back.
+ */
 export default function TemplateEditScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -123,13 +131,31 @@ export default function TemplateEditScreen() {
 
   return (
     <KeyboardScreen>
-      <Text variant="title">
-        {isNew ? t("templates.newCta") : (data?.name ?? "")}
-      </Text>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <IconButton onPress={() => router.back()} accessibilityLabel={t("common.back")}>
+          <Ionicons name="chevron-back" size={20} color={theme.colors.text} />
+        </IconButton>
+      </View>
+
+      <View style={{ gap: 4 }}>
+        <Text variant="label" color="textMuted">
+          {t("templates.title")}
+        </Text>
+        <Text variant="title">
+          {isNew ? t("templates.newCta") : (data?.name ?? "")}
+        </Text>
+      </View>
 
       {readOnly ? (
         <Button
           label={t("templates.form.duplicateCta")}
+          variant="primary"
           loading={busy === "duplicate"}
           onPress={onDuplicate}
         />
@@ -148,7 +174,7 @@ export default function TemplateEditScreen() {
           />
           <Button
             label={t("common.delete")}
-            variant="danger"
+            variant="ghost"
             loading={busy === "delete"}
             onPress={onDelete}
           />
