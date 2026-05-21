@@ -13,6 +13,9 @@
     "offline": "Сервер не відповідає. Заварює каву, мабуть.",
     "offlineBanner": "Інтернет десь загубився",
     "onlineRestored": "Звʼязок відновлено",
+    "discard": "Відкинути",
+    "discardChangesTitle": "Відкинути зміни?",
+    "discardChangesBody": "Ваші правки зникнуть. Ми попереджали 😉",
     "empty": "Тут хоч кулі катай"
   },
   "welcome": {
@@ -59,6 +62,7 @@
     "startCallCta": "Дзвонимо",
     "recentTitle": "Що було недавно",
     "recentEmpty": "Жодного дзвінка. Тиша.",
+    "recentEmptyBody": "Зробіть перший — а далі по накатаній",
     "viewAll": "Усе →",
     "heroVerb": "балакаємо",
     "userFallback": "друже",
@@ -165,7 +169,8 @@
     "delete": "Видалити",
     "deleteSuccess": "Дзвінок видалено",
     "deleteError": "Не вдалось видалити",
-    "interrupted": "(перервано на півслові)"
+    "interrupted": "(перервано на півслові)",
+    "jumpToBottom": "Догори до останнього"
   },
   "templates": {
     "title": "Шаблони",
@@ -277,12 +282,15 @@
   "live": {
     "connecting": "Дзвонимо…",
     "reconnecting": "Звʼязок мерехтить, повертаємось…",
+    "bannerTitle": "Дзвінок триває",
+    "bannerCta": "Повернутись до дзвінка",
     "transcript": "Транскрипт",
     "suggestionsLabel": "Можна відповісти так",
     "messagePlaceholder": "Напишіть — AI озвучить",
     "say": "Сказати",
     "endCall": "Завершити",
     "endCallConfirmTitle": "Точно покласти слухавку?",
+    "endCallConfirmBody": "Розмова перерветься. Передзвонити можна буде з історії.",
     "balanceTick": "{{minutes}}:{{seconds}} · ₴ {{balance}}",
     "secondsLeft": "{{seconds}}с лишилось",
     "endingTitle": "Розмова завершена",
@@ -302,10 +310,12 @@
   },
   "history": {
     "title": "Історія",
-    "empty": "Жодного дзвінка. Може, перший?",
+    "empty": "Жодного дзвінка ще",
+    "emptyBody": "Тут зʼявиться список ваших розмов",
     "transcriptTab": "Транскрипт",
     "metaTab": "Деталі",
     "recall": "Передзвонити",
+    "open": "Відкрити розмову",
     "share": "Поділитись",
     "copy": "Скопіювати",
     "loading": "Витягаємо транскрипт…",

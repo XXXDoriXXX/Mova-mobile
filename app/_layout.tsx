@@ -15,6 +15,7 @@ import { useAuthStore } from "@/auth/store";
 import "@/auth/refreshScheduler";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { DialogHost } from "@/feedback/DialogHost";
 import { ToastHost } from "@/feedback/toast";
 import { QueryProvider } from "@/net/QueryProvider";
 import { ThemeProvider } from "@/theme/ThemeProvider";
@@ -72,8 +73,12 @@ export default function RootLayout() {
                   <AuthGate>
                     <Stack screenOptions={{ headerShown: false }} />
                   </AuthGate>
-                  {/* ToastHost sits LAST in the tree so it renders above
-                      every screen, the tab bar, and any keyboard. */}
+                  {/* Dialog + toast hosts sit last in the tree so they
+                      render above every screen, the tab bar, and any
+                      keyboard. DialogHost goes BEFORE ToastHost so the
+                      transient toast stacks visually above an open
+                      bottom sheet. */}
+                  <DialogHost />
                   <ToastHost />
                 </View>
               </ThemeProvider>
