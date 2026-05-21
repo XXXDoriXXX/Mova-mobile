@@ -10,6 +10,7 @@ import { IconButton } from "@/components/IconButton";
 import { KeyboardScreen } from "@/components/KeyboardScreen";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
+import { toast } from "@/feedback/toast";
 import { useTheme } from "@/theme/ThemeProvider";
 import { createStyle, deleteStyle, listStyles, updateStyle } from "@/api/styles";
 import { StyleForm } from "@/features/styles/StyleForm";
@@ -45,8 +46,10 @@ export default function StyleEditScreen() {
     mutationFn: createStyle,
     onSuccess: () => {
       invalidate();
+      toast.success(t("styles.form.created"));
       router.back();
     },
+    onError: () => toast.error(t("styles.form.saveError")),
   });
 
   const updateMut = useMutation({
@@ -54,8 +57,10 @@ export default function StyleEditScreen() {
       updateStyle(vars.id, vars.values),
     onSuccess: () => {
       invalidate();
+      toast.success(t("styles.form.updated"));
       router.back();
     },
+    onError: () => toast.error(t("styles.form.saveError")),
   });
 
   const [deleting, setDeleting] = useState(false);
@@ -80,7 +85,10 @@ export default function StyleEditScreen() {
           try {
             await deleteStyle(initial.id);
             invalidate();
+            toast.success(t("styles.form.deleted"));
             router.back();
+          } catch {
+            toast.error(t("styles.form.saveError"));
           } finally {
             setDeleting(false);
           }

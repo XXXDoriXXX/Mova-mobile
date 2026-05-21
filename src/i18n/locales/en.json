@@ -12,6 +12,7 @@
     "error": "Error",
     "offline": "Server unreachable, try again later",
     "offlineBanner": "No network connection",
+    "onlineRestored": "Back online",
     "empty": "Nothing here yet"
   },
   "welcome": {
@@ -75,6 +76,7 @@
     "title": "Profile",
     "comingSoon": "Coming soon",
     "logout": "Log out",
+    "logoutSuccess": "See you!",
     "sectionAccount": "Account",
     "sectionContent": "Content",
     "sectionBilling": "Billing",
@@ -82,6 +84,7 @@
     "styles": "Conversation styles",
     "billing": "Balance & payments",
     "language": "App language",
+    "profileSaved": "Profile saved",
     "editProfile": "Edit profile",
     "editProfilePhone": "Phone number",
     "editProfileNameRequired": "Name is required",
@@ -97,6 +100,7 @@
     "deleteAccountPassword": "Password",
     "deleteAccountConfirm": "Delete forever",
     "deleteAccountWrongPassword": "Wrong password",
+    "deleteAccountSuccess": "Sorry to see you go. Data will be wiped in 30 days.",
     "styleProfile": "Style adaptation",
     "styleProfileSubtitle": "AI learns your writing style",
     "styleProfileDescription": "When you type during calls, the AI remembers your characteristic samples and tailors suggestions to your style.",
@@ -159,6 +163,8 @@
     "endReasonAdmin": "Ended by moderator",
     "deleteConfirm": "Delete this call?",
     "delete": "Delete",
+    "deleteSuccess": "Call deleted",
+    "deleteError": "Couldn't delete",
     "interrupted": "(interrupted)"
   },
   "templates": {
@@ -185,7 +191,13 @@
       "duplicateCta": "Duplicate to edit",
       "setDefaultCta": "Make default",
       "errorPromptInjection": "This prompt was rejected by safety filter",
-      "deleteConfirm": "Delete template?"
+      "deleteConfirm": "Delete template?",
+      "created": "Template created",
+      "updated": "Template saved",
+      "deleted": "Template deleted",
+      "duplicated": "Copy ready — edit it",
+      "defaultSet": "Set as default template",
+      "saveError": "Couldn't save. Try again."
     }
   },
   "styles": {
@@ -203,7 +215,11 @@
       "instructionsHint": "In English — describe how the AI should speak",
       "submitCreate": "Create",
       "submitUpdate": "Save",
-      "deleteConfirm": "Delete this style?"
+      "deleteConfirm": "Delete this style?",
+      "created": "Style created",
+      "updated": "Style saved",
+      "deleted": "Style deleted",
+      "saveError": "Couldn't save. Try again."
     }
   },
   "billing": {
@@ -232,7 +248,9 @@
     "usageTotal": "Period total",
     "usageSecondsShort": "s",
     "usageSource_free": "free",
-    "usageSource_paid": "paid"
+    "usageSource_paid": "paid",
+    "planSwitched": "Plan switched",
+    "planSwitchError": "Couldn't switch plan"
   },
   "preCall": {
     "title": "Call",
@@ -294,7 +312,10 @@
     "filterAll": "All",
     "filterEnded": "Ended",
     "filterActive": "Active",
-    "filterFailed": "Failed"
+    "filterFailed": "Failed",
+    "copied": "Copied to clipboard",
+    "statToday": "{{count}} today",
+    "statWeek": "{{count}} this week"
   },
   "liveSettings": {
     "title": "Call settings",

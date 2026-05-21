@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,6 +10,7 @@ import { IconButton } from "@/components/IconButton";
 import { Screen } from "@/components/Screen";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
+import { toast } from "@/feedback/toast";
 import { useTheme } from "@/theme/ThemeProvider";
 import { getBillingSummary, listPlans, listUsage, subscribe } from "@/api/billing";
 import { BillingOverview } from "@/features/billing/BillingOverview";
@@ -55,12 +56,20 @@ export default function BillingScreen() {
     onSettled: () => setPickingPlan(null),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["billing", "me"] });
+      toast.success(t("billing.planSwitched"));
+    },
+    onError: () => {
+      toast.error(t("billing.planSwitchError"));
     },
   });
 
   function handleTopupSuccess(info: { balanceCents: number; reused: boolean }) {
     queryClient.invalidateQueries({ queryKey: ["billing", "me"] });
-    Alert.alert(info.reused ? t("billing.topupReused") : t("billing.topupSuccess"));
+    if (info.reused) {
+      toast.info(t("billing.topupReused"));
+    } else {
+      toast.success(t("billing.topupSuccess"));
+    }
   }
 
   return (

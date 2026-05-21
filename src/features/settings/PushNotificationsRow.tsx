@@ -1,16 +1,20 @@
 import { useState } from "react";
-import { Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { Row } from "@/components/Row";
 import { Spinner } from "@/components/Spinner";
+import { toast } from "@/feedback/toast";
 import { registerForPush } from "@/notifications/registration";
 
 /**
  * Self-contained settings entry for push notifications. The backend has no
- * endpoint to receive the token yet, so on success we just surface a toast —
- * the plumbing works end-to-end; once `POST /users/me/push-tokens` exists,
+ * endpoint to receive the token yet, so on success we surface a toast and
+ * keep the token in memory only. Once `POST /users/me/push-tokens` exists,
  * forward the token from here.
+ *
+ * Three terminal states (granted / denied / unsupported) each produce a
+ * different toast variant so the user knows what happened without a
+ * follow-up alert dialog interrupting them.
  */
 export function PushNotificationsRow() {
   const { t } = useTranslation();
@@ -25,17 +29,11 @@ export function PushNotificationsRow() {
       const result = await registerForPush();
       setState(result.status);
       if (result.status === "granted") {
-        Alert.alert(t("settings.pushSuccessTitle"), t("settings.pushSuccessBody"));
+        toast.success(t("settings.pushSuccessBody"), t("settings.pushSuccessTitle"));
       } else if (result.status === "denied") {
-        Alert.alert(
-          t("settings.pushDeniedTitle"),
-          t("settings.pushDeniedBody"),
-        );
+        toast.warning(t("settings.pushDeniedBody"), t("settings.pushDeniedTitle"));
       } else {
-        Alert.alert(
-          t("settings.pushUnsupportedTitle"),
-          t("settings.pushUnsupportedBody"),
-        );
+        toast.info(t("settings.pushUnsupportedBody"), t("settings.pushUnsupportedTitle"));
       }
     } finally {
       setBusy(false);
@@ -55,7 +53,7 @@ export function PushNotificationsRow() {
       title={t("settings.push")}
       subtitle={subtitle}
       onPress={busy ? undefined : handlePress}
-      trailing={busy ? <Spinner /> : undefined}
+      trailing={busy ? <Spinner size="small" /> : undefined}
     />
   );
 }

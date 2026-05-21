@@ -1,6 +1,7 @@
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
+import { PressableScale } from "./PressableScale";
 import { Text } from "./Text";
 import { useTheme } from "@/theme/ThemeProvider";
 
@@ -18,7 +19,8 @@ type Props = {
 /**
  * Settings-style list row. White card with a soft icon badge on the left,
  * title + optional subtitle in the middle, chevron (or custom trailing
- * node) on the right. Tap target spans the whole row.
+ * node) on the right. Tap target spans the whole row and scales
+ * subtly on press; long-press fires a heavier `selection` haptic.
  */
 export function Row({
   title,
@@ -85,13 +87,14 @@ export function Row({
 
   if (!onPress && !onLongPress) return content;
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       onPress={onPress}
       onLongPress={onLongPress}
-      style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+      scaleTo={0.98}
+      haptic="light"
     >
       {content}
-    </Pressable>
+    </PressableScale>
   );
 }

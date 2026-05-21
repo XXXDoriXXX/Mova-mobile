@@ -14,6 +14,7 @@ import { Screen } from "@/components/Screen";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
+import { toast } from "@/feedback/toast";
 import { useAuthStore } from "@/auth/store";
 import { useCallStore } from "@/features/calls/live/callStore";
 import { useCallSocket } from "@/features/calls/live/useCallSocket";
@@ -69,9 +70,20 @@ export default function LiveCallScreen() {
 
   useEffect(() => {
     if (!toastError) return;
+    // Surface the recoverable error as a toast (with warning haptic) and
+    // mirror it in the call store so the inline banner shows for context.
+    toast.warning(toastError.message);
     const id = setTimeout(() => setToastError(null), 4000);
     return () => clearTimeout(id);
   }, [toastError, setToastError]);
+
+  // Fatal errors get a louder error toast — the screen reroutes anyway,
+  // but the toast travels with the user to the next screen so they know
+  // what happened.
+  useEffect(() => {
+    if (!fatalError) return;
+    toast.error(fatalError.message);
+  }, [fatalError]);
 
   // When the call ends (or fatal-errors out), invalidate the queries the
   // History + Home screens read from so the new conversation appears + the

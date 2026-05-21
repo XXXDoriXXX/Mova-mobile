@@ -14,6 +14,7 @@ import { Button } from "@/components/Button";
 import { Chip } from "@/components/Chip";
 import { IconButton } from "@/components/IconButton";
 import { Pill } from "@/components/Pill";
+import { toast } from "@/feedback/toast";
 import { Screen } from "@/components/Screen";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
@@ -69,8 +70,10 @@ export default function ConversationDetailScreen() {
     mutationFn: () => deleteConversation(id as string),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      toast.success(t("conversation.deleteSuccess"));
       router.replace("/history");
     },
+    onError: () => toast.error(t("conversation.deleteError")),
   });
 
   if (convQuery.isLoading || !convQuery.data) {
@@ -202,7 +205,10 @@ export default function ConversationDetailScreen() {
             label={t("history.copy")}
             leading={<Ionicons name="copy-outline" size={14} color={theme.colors.text} />}
             disabled={messages.length === 0}
-            onPress={() => void Clipboard.setStringAsync(transcriptText())}
+            onPress={async () => {
+              await Clipboard.setStringAsync(transcriptText());
+              toast.success(t("history.copied"));
+            }}
           />
           <Chip
             label={t("conversation.delete")}

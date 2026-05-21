@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
-import { Pressable, type PressableProps, View } from "react-native";
+import { View, type PressableProps, type ViewStyle } from "react-native";
 
+import { PressableScale } from "./PressableScale";
 import { useTheme } from "@/theme/ThemeProvider";
+import type { HapticKind } from "@/utils/haptics";
 
 export type IconButtonTone =
   | "surface"   // white card with hairline border (default)
@@ -18,18 +20,23 @@ export type IconButtonProps = Omit<PressableProps, "style" | "children"> & {
   size?: number;
   tone?: IconButtonTone;
   shadow?: boolean;
+  /** Override the haptic. Defaults differ by tone (danger → warning,
+   *  accent → selection, otherwise light). Pass null to suppress. */
+  haptic?: HapticKind | null;
 };
 
 /**
- * Round button used for header controls (back, brand, hangup) and the
- * `→` affordances on cards. Tone maps to the brand palette; pick the
- * one that contrasts with the surface it sits on.
+ * Round tactile button. Used for header controls (back, brand, hangup)
+ * and the `→` affordances on cards. Press fires the tone-appropriate
+ * haptic; danger gets a "warning" tick so users feel the gravity of
+ * the action before the alert pops.
  */
 export function IconButton({
   children,
   size = 42,
   tone = "surface",
   shadow = false,
+  haptic,
   disabled,
   ...rest
 }: IconButtonProps) {
@@ -47,33 +54,44 @@ export function IconButton({
     }
   })();
 
+  const resolvedHaptic: HapticKind | null = haptic === undefined
+    ? (tone === "danger" ? "warning"
+       : tone === "accent" ? "selection"
+       : "light")
+    : haptic;
+
+  const baseStyle: ViewStyle = {
+    width: size,
+    height: size,
+    borderRadius: size / 2,
+    backgroundColor: bg,
+    borderWidth: border === "transparent" ? 0 : 1,
+    borderColor: border,
+    alignItems: "center",
+    justifyContent: "center",
+    opacity: disabled ? 0.5 : 1,
+  };
+
+  const shadowStyle: ViewStyle | null = shadow
+    ? {
+        shadowColor: theme.colors.text,
+        shadowOpacity: 0.18,
+        shadowOffset: { width: 0, height: 6 },
+        shadowRadius: 12,
+        elevation: 4,
+      }
+    : null;
+
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       disabled={disabled}
-      style={({ pressed }) => [
-        {
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          backgroundColor: bg,
-          borderWidth: border === "transparent" ? 0 : 1,
-          borderColor: border,
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
-        },
-        shadow && {
-          shadowColor: theme.colors.text,
-          shadowOpacity: 0.18,
-          shadowOffset: { width: 0, height: 6 },
-          shadowRadius: 12,
-          elevation: 4,
-        },
-      ]}
+      haptic={disabled ? null : resolvedHaptic}
+      scaleTo={0.9}
+      style={shadowStyle ? [baseStyle, shadowStyle] : baseStyle}
       {...rest}
     >
       <View>{children}</View>
-    </Pressable>
+    </PressableScale>
   );
 }
