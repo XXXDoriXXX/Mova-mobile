@@ -164,13 +164,37 @@ export default function TemplateEditScreen() {
         </Text>
       </View>
 
-      {readOnly ? (
-        <Button
-          label={t("templates.form.duplicateCta")}
-          variant="primary"
-          loading={busy === "duplicate"}
-          onPress={onDuplicate}
-        />
+      {readOnly && data ? (
+        // System templates can't be edited — show a read-only preview
+        // + a smaller "Duplicate" affordance. Without the preview the
+        // page would be a single huge button with nothing else.
+        <View style={{ gap: theme.spacing.md }}>
+          <View
+            style={{
+              backgroundColor: theme.colors.surfaceMuted,
+              borderRadius: theme.radii.xl,
+              padding: theme.spacing.lg,
+              gap: 8,
+            }}
+          >
+            <Text
+              variant="label"
+              color="textMuted"
+              style={{ textTransform: "uppercase" }}
+            >
+              {t("templates.form.description")}
+            </Text>
+            <Text variant="body">{data.description}</Text>
+          </View>
+          <Button
+            label={t("templates.form.duplicateCta")}
+            variant="primary"
+            size="md"
+            fullWidth={false}
+            loading={busy === "duplicate"}
+            onPress={onDuplicate}
+          />
+        </View>
       ) : (
         <TemplateForm initial={data} onSubmit={onSubmit} />
       )}

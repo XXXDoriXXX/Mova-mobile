@@ -93,7 +93,12 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
   }
 
   return (
-    <Modal visible={visible} onClose={onClose} title={t("liveSettings.title")}>
+    <Modal
+      visible={visible}
+      onClose={onClose}
+      title={t("liveSettings.title")}
+      scrollable={false}
+    >
       <ScrollView style={{ maxHeight: 540 }} contentContainerStyle={{ gap: theme.spacing.lg }}>
         {/* Style — applies immediately */}
         <View style={{ gap: theme.spacing.sm }}>

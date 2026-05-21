@@ -164,6 +164,7 @@ export default function SettingsScreen() {
           <Button
             label={t("settings.logout")}
             variant="secondary"
+            size="md"
             loading={loggingOut}
             onPress={handleLogout}
           />

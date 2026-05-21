@@ -73,6 +73,7 @@ function ConfirmHost() {
           <Button
             label={req?.cancelLabel ?? t("common.cancel")}
             variant="secondary"
+            size="md"
             haptic="light"
             onPress={() => resolve(false)}
           />
@@ -81,6 +82,7 @@ function ConfirmHost() {
           <Button
             label={req?.confirmLabel ?? t("common.save")}
             variant={req?.destructive ? "danger" : "primary"}
+            size="md"
             onPress={() => resolve(true)}
           />
         </View>
@@ -118,6 +120,7 @@ function SheetHost() {
         <Button
           label={t("common.cancel")}
           variant="ghost"
+          size="md"
           haptic="light"
           onPress={() => resolve(null)}
         />

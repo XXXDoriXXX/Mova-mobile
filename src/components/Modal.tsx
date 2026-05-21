@@ -16,6 +16,15 @@ type Props = {
   onClose: () => void;
   title?: string;
   children: ReactNode;
+  /**
+   * When true (default), the sheet body is wrapped in an internal
+   * `ScrollView` so long forms scroll above the keyboard. Set to
+   * `false` when the child manages its own scrolling — most notably
+   * when the child is a `FlatList` / `SectionList`, since nesting a
+   * VirtualizedList inside a ScrollView with the same orientation
+   * breaks windowing and warns at runtime.
+   */
+  scrollable?: boolean;
 };
 
 /**
@@ -23,15 +32,27 @@ type Props = {
  * handle. Tapping the dim closes; the sheet itself swallows taps so
  * clicking inside doesn't dismiss.
  *
- * Wraps the sheet in `KeyboardAvoidingView` + an inner `ScrollView` so:
- *   - on Android, the on-screen keyboard pushes the sheet up rather
- *     than covering the input (`adjustResize` is unreliable inside RN
- *     modals — KAV is the portable fix);
- *   - if the form is taller than the available sheet area, the user
- *     can scroll to reach lower fields and the submit button.
+ * Wraps the sheet in `KeyboardAvoidingView` so on Android the
+ * on-screen keyboard pushes the sheet up rather than covering the
+ * input (`adjustResize` is unreliable inside RN modals). For tall
+ * forms an internal `ScrollView` keeps the submit button reachable;
+ * set `scrollable={false}` when embedding a virtualized list.
  */
-export function Modal({ visible, onClose, title, children }: Props) {
+export function Modal({
+  visible,
+  onClose,
+  title,
+  children,
+  scrollable = true,
+}: Props) {
   const theme = useTheme();
+
+  const body = title ? (
+    <Text variant="title" style={{ marginBottom: 8 }}>
+      {title}
+    </Text>
+  ) : null;
+
   return (
     <RNModal
       visible={visible}
@@ -74,18 +95,18 @@ export function Modal({ visible, onClose, title, children }: Props) {
                 marginBottom: 8,
               }}
             />
-            {title ? (
-              <Text variant="title" style={{ marginBottom: 8 }}>
-                {title}
-              </Text>
-            ) : null}
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ gap: theme.spacing.md }}
-            >
-              {children}
-            </ScrollView>
+            {body}
+            {scrollable ? (
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ gap: theme.spacing.md }}
+              >
+                {children}
+              </ScrollView>
+            ) : (
+              <View style={{ flexShrink: 1 }}>{children}</View>
+            )}
           </Pressable>
         </Pressable>
       </KeyboardAvoidingView>
