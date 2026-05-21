@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
+import { Chip } from "@/components/Chip";
 import { IconButton } from "@/components/IconButton";
 import { Pill } from "@/components/Pill";
 import { Screen } from "@/components/Screen";
@@ -181,33 +182,35 @@ export default function ConversationDetailScreen() {
           ) : null}
         </View>
 
-        <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
-          <View style={{ flex: 1 }}>
-            <Button
-              label={t("history.share")}
-              variant="secondary"
-              size="md"
-              disabled={messages.length === 0}
-              onPress={() => void Share.share({ message: transcriptText() })}
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Button
-              label={t("history.copy")}
-              variant="secondary"
-              size="md"
-              disabled={messages.length === 0}
-              onPress={() => void Clipboard.setStringAsync(transcriptText())}
-            />
-          </View>
+        {/* Single action row: chip-sized buttons rather than three stacked
+            full-width CTAs. Destructive "delete" stays in the same row but
+            visually retreats (danger text on muted chip background). */}
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 8,
+          }}
+        >
+          <Chip
+            label={t("history.share")}
+            leading={<Ionicons name="share-outline" size={14} color={theme.colors.text} />}
+            disabled={messages.length === 0}
+            onPress={() => void Share.share({ message: transcriptText() })}
+          />
+          <Chip
+            label={t("history.copy")}
+            leading={<Ionicons name="copy-outline" size={14} color={theme.colors.text} />}
+            disabled={messages.length === 0}
+            onPress={() => void Clipboard.setStringAsync(transcriptText())}
+          />
+          <Chip
+            label={t("conversation.delete")}
+            leading={<Ionicons name="trash-outline" size={14} color={theme.colors.danger} />}
+            disabled={deleteMut.isPending}
+            onPress={confirmDelete}
+          />
         </View>
-
-        <Button
-          label={t("conversation.delete")}
-          variant="ghost"
-          loading={deleteMut.isPending}
-          onPress={confirmDelete}
-        />
 
         <Text variant="subtitle" style={{ marginTop: theme.spacing.md }}>
           {t("history.transcriptTab")}

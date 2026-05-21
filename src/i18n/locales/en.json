@@ -192,6 +192,7 @@
     "title": "Conversation styles",
     "builtinSection": "Built-in",
     "customSection": "My styles",
+    "customEmpty": "No custom styles yet. Tap «+» at the top to create one.",
     "newCta": "Create style",
     "preferredLabel": "Default style",
     "preferredHint": "Used when a template does not specify one",
@@ -214,6 +215,7 @@
       "history": "History"
     },
     "currentPlan": "Current plan",
+    "currentPlanBadge": "Current",
     "balance": "Balance",
     "freeQuota": "Free quota",
     "renewsAt": "Resets on {{date}}",

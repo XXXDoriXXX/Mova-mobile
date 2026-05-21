@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
-import { Button } from "@/components/Button";
+import { Chip } from "@/components/Chip";
 import { IconButton } from "@/components/IconButton";
 import { KeyboardScreen } from "@/components/KeyboardScreen";
 import { Spinner } from "@/components/Spinner";
@@ -123,11 +123,18 @@ export default function StyleEditScreen() {
       <StyleForm initial={initial} onSubmit={onSubmit} />
 
       {!isNew && initial ? (
-        <View style={{ marginTop: theme.spacing.lg }}>
-          <Button
+        <View
+          style={{
+            flexDirection: "row",
+            marginTop: theme.spacing.md,
+          }}
+        >
+          <Chip
             label={t("common.delete")}
-            variant="ghost"
-            loading={deleting}
+            leading={
+              <Ionicons name="trash-outline" size={14} color={theme.colors.danger} />
+            }
+            disabled={deleting}
             onPress={onDelete}
           />
         </View>
