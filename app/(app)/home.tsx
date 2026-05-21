@@ -24,6 +24,7 @@ import { useAuthStore } from "@/auth/store";
 import { HomeSkeleton } from "@/features/home/HomeSkeleton";
 import { RecentCallsList } from "@/features/home/RecentCallsList";
 import { greetingKey } from "@/utils/format";
+import { triggerHaptic } from "@/utils/haptics";
 
 /**
  * Home — single source of truth for the user's "what now?" moment.
@@ -65,6 +66,9 @@ export default function HomeScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = useCallback(async () => {
+    // Light haptic at the start of the gesture — matches the native
+    // RefreshControl on iOS so the pull-to-refresh feels grounded.
+    triggerHaptic("light");
     setRefreshing(true);
     await Promise.all([billingQuery.refetch(), recentQuery.refetch()]);
     setRefreshing(false);

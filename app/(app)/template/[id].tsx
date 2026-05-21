@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,6 +11,7 @@ import { IconButton } from "@/components/IconButton";
 import { KeyboardScreen } from "@/components/KeyboardScreen";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
+import { confirm } from "@/feedback/dialogStore";
 import { toast } from "@/feedback/toast";
 import { useTheme } from "@/theme/ThemeProvider";
 import {
@@ -109,26 +110,24 @@ export default function TemplateEditScreen() {
     }
   }
 
-  function onDelete() {
+  async function onDelete() {
     if (!query.data) return;
-    Alert.alert(t("templates.form.deleteConfirm"), undefined, [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("common.delete"),
-        style: "destructive",
-        onPress: async () => {
-          setBusy("delete");
-          try {
-            await deleteTemplate(query.data!.id);
-            invalidate();
-            toast.success(t("templates.form.deleted"));
-            router.back();
-          } finally {
-            setBusy(null);
-          }
-        },
-      },
-    ]);
+    const ok = await confirm({
+      title: t("templates.form.deleteConfirm"),
+      confirmLabel: t("common.delete"),
+      destructive: true,
+      icon: "trash-outline",
+    });
+    if (!ok) return;
+    setBusy("delete");
+    try {
+      await deleteTemplate(query.data.id);
+      invalidate();
+      toast.success(t("templates.form.deleted"));
+      router.back();
+    } finally {
+      setBusy(null);
+    }
   }
 
   if (!isNew && query.isLoading) {

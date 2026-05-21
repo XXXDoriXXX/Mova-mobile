@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/Button";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
+import { useUnsavedChanges } from "@/feedback/useUnsavedChanges";
 import { useTheme } from "@/theme/ThemeProvider";
 import type { ConversationStyle } from "@/types/api";
 
@@ -28,13 +29,20 @@ export function StyleForm({ initial, onSubmit }: Props) {
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<StyleFormValues>({
     resolver: zodResolver(styleFormSchema),
     defaultValues: {
       name: initial?.name ?? "",
       instructions: initial?.instructions ?? "",
     },
+  });
+
+  useUnsavedChanges({
+    dirty: isDirty && !submitting,
+    title: t("common.discardChangesTitle"),
+    body: t("common.discardChangesBody"),
+    confirmLabel: t("common.discard"),
   });
 
   async function handle(values: StyleFormValues) {

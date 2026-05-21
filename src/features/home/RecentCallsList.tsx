@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Avatar } from "@/components/Avatar";
+import { EmptyState } from "@/components/EmptyState";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import type { Conversation } from "@/types/api";
@@ -36,23 +37,13 @@ export function RecentCallsList({ items }: Props) {
 
   if (items.length === 0) {
     return (
-      <View
-        style={{
-          paddingVertical: theme.spacing.xl,
-          paddingHorizontal: theme.spacing.lg,
-          backgroundColor: theme.colors.surface,
-          borderRadius: theme.radii.xxl,
-          borderWidth: 1,
-          borderColor: theme.colors.border,
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
-        <Ionicons name="call-outline" size={28} color={theme.colors.textMuted} />
-        <Text color="textMuted" align="center">
-          {t("home.recentEmpty")}
-        </Text>
-      </View>
+      <EmptyState
+        icon="call-outline"
+        title={t("home.recentEmpty")}
+        body={t("home.recentEmptyBody")}
+        ctaLabel={t("home.startCallCta")}
+        onCta={() => router.push("/call/pre")}
+      />
     );
   }
 
