@@ -1,58 +1,58 @@
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 
+import { Bubble } from "@/components/Bubble";
 import { Text } from "@/components/Text";
-import { useTheme } from "@/theme/ThemeProvider";
 import type { Message } from "@/types/api";
 
 type Props = { messages: Message[] };
 
+/**
+ * Static transcript view used on `/conversation/[id]`. Reuses the
+ * lime/forest `Bubble` primitive that the live screen renders so the
+ * post-call read-through matches what the user saw during the call.
+ *
+ *   - `interlocutor` → left, lime
+ *   - `ai` / `user_typed` → right, forest
+ *   - `system` → centred caption
+ */
 export function TranscriptView({ messages }: Props) {
-  const theme = useTheme();
+  const { t } = useTranslation();
   return (
-    <View style={{ gap: theme.spacing.sm }}>
+    <View style={{ gap: 10 }}>
       {messages.map((m) => {
-        const isUser = m.role === "user_typed";
-        const isAi = m.role === "ai";
-        const isSystem = m.role === "system";
-
-        if (isSystem) {
+        if (m.role === "system") {
           return (
             <View key={m.id} style={{ alignSelf: "center" }}>
-              <Text variant="caption" color="textMuted">
+              <Text
+                variant="label"
+                color="textMuted"
+                style={{ textTransform: "uppercase" }}
+              >
                 {m.content}
               </Text>
             </View>
           );
         }
 
-        const align = isUser ? "flex-end" : "flex-start";
-        const bg = isUser
-          ? theme.colors.primary
-          : isAi
-            ? theme.colors.surface
-            : theme.colors.surfaceMuted;
-        const fg = isUser ? theme.colors.primaryText : theme.colors.text;
+        const side = m.role === "interlocutor" ? "left" : "right";
+        const who =
+          m.role === "interlocutor"
+            ? t("live.whoInterlocutor")
+            : m.role === "ai"
+              ? t("live.whoAi")
+              : t("live.whoYou");
 
         return (
-          <View
-            key={m.id}
-            style={{
-              alignSelf: align,
-              maxWidth: "82%",
-              backgroundColor: bg,
-              borderRadius: theme.radii.lg,
-              paddingHorizontal: theme.spacing.md,
-              paddingVertical: theme.spacing.sm,
-              borderWidth: isAi ? 1 : 0,
-              borderColor: theme.colors.border,
-            }}
-          >
-            <Text variant="body" style={{ color: fg }}>
-              {m.content}
-            </Text>
+          <View key={m.id} style={{ gap: 4 }}>
+            <Bubble side={side} who={who} text={m.content} />
             {m.ttsStatus === "interrupted" ? (
-              <Text variant="caption" color="textMuted">
-                (перервано)
+              <Text
+                variant="caption"
+                color="textMuted"
+                style={{ alignSelf: side === "left" ? "flex-start" : "flex-end" }}
+              >
+                {t("conversation.interrupted")}
               </Text>
             ) : null}
           </View>

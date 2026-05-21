@@ -4,8 +4,8 @@ import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 
+import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
 import { Row } from "@/components/Row";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
@@ -19,6 +19,12 @@ import { EditProfileModal } from "@/features/settings/EditProfileModal";
 import { AppearanceModal } from "@/features/settings/AppearanceModal";
 import { PushNotificationsRow } from "@/features/settings/PushNotificationsRow";
 
+/**
+ * Settings — grouped list of rows. Sections separated by visual spacing
+ * rather than chrome dividers; each group is preceded by a small mono
+ * uppercase header. The user identity card at top doubles as a quick
+ * visual anchor.
+ */
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -34,9 +40,6 @@ export default function SettingsScreen() {
   const onboardingStatus = useOnboardingStore((s) => s.status);
 
   function handleReplayOnboarding() {
-    // Hidden action: long-press About to re-run the welcome wizard. Useful
-    // for QA + for users who want to revisit the slides + change their
-    // default style without diving into Styles → Set preferred.
     if (onboardingStatus === "unknown") return;
     Alert.alert(t("settings.replayOnboardingTitle"), undefined, [
       { text: t("common.cancel"), style: "cancel" },
@@ -53,7 +56,6 @@ export default function SettingsScreen() {
   async function handleLogout() {
     setLoggingOut(true);
     try {
-      // Best-effort: revoke server-side; local logout still proceeds on failure.
       await logoutRequest().catch(() => undefined);
       queryClient.clear();
       await clear();
@@ -67,24 +69,42 @@ export default function SettingsScreen() {
       <ScrollView
         contentContainerStyle={{
           gap: theme.spacing.lg,
-          paddingBottom: theme.spacing.xxl,
+          paddingTop: 4,
+          paddingBottom: 140,
         }}
+        showsVerticalScrollIndicator={false}
       >
-        <Text variant="title">{t("settings.title")}</Text>
+        <View style={{ gap: 4 }}>
+          <Text variant="label" color="textMuted">
+            MOVA
+          </Text>
+          <Text variant="title">{t("settings.title")}</Text>
+        </View>
 
         {user ? (
-          <Card>
-            <Text variant="subtitle">{user.name}</Text>
-            <Text variant="caption" color="textMuted">
-              {user.email}
-            </Text>
-          </Card>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 14,
+              padding: 16,
+              backgroundColor: theme.colors.surfaceInverse,
+              borderRadius: theme.radii.xxl,
+            }}
+          >
+            <Avatar name={user.name} size={52} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text variant="subtitle" color="textOnInverse">
+                {user.name}
+              </Text>
+              <Text variant="caption" color="textOnInverse" style={{ opacity: 0.7 }}>
+                {user.email}
+              </Text>
+            </View>
+          </View>
         ) : null}
 
-        <View style={{ gap: theme.spacing.sm }}>
-          <Text variant="label" color="textMuted">
-            {t("settings.sectionAccount")}
-          </Text>
+        <Section title={t("settings.sectionAccount")}>
           <Row
             iconName="person-circle-outline"
             title={t("settings.editProfile")}
@@ -102,17 +122,14 @@ export default function SettingsScreen() {
             onPress={() => router.push("/settings/style-profile")}
           />
           <Row
-            iconName="color-palette-outline"
+            iconName="text-outline"
             title={t("settings.appearance")}
             onPress={() => setEditingAppearance(true)}
           />
           <PushNotificationsRow />
-        </View>
+        </Section>
 
-        <View style={{ gap: theme.spacing.sm }}>
-          <Text variant="label" color="textMuted">
-            {t("settings.sectionContent")}
-          </Text>
+        <Section title={t("settings.sectionContent")}>
           <Row
             iconName="document-text-outline"
             title={t("settings.templates")}
@@ -123,43 +140,38 @@ export default function SettingsScreen() {
             title={t("settings.styles")}
             onPress={() => router.push("/styles")}
           />
-        </View>
+        </Section>
 
-        <View style={{ gap: theme.spacing.sm }}>
-          <Text variant="label" color="textMuted">
-            {t("settings.sectionBilling")}
-          </Text>
+        <Section title={t("settings.sectionBilling")}>
           <Row
             iconName="wallet-outline"
             title={t("settings.billing")}
             onPress={() => router.push("/billing")}
           />
-        </View>
+        </Section>
 
-        <View style={{ gap: theme.spacing.sm }}>
-          <Text variant="label" color="textMuted">
-            {t("settings.sectionHelp")}
-          </Text>
+        <Section title={t("settings.sectionHelp")}>
           <Row
             iconName="information-circle-outline"
             title={t("settings.about")}
             onPress={() => router.push("/settings/about")}
             onLongPress={handleReplayOnboarding}
           />
+        </Section>
+
+        <View style={{ gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
+          <Button
+            label={t("settings.logout")}
+            variant="secondary"
+            loading={loggingOut}
+            onPress={handleLogout}
+          />
+          <Button
+            label={t("settings.deleteAccount")}
+            variant="ghost"
+            onPress={() => setDeletingAccount(true)}
+          />
         </View>
-
-        <Button
-          label={t("settings.logout")}
-          variant="danger"
-          loading={loggingOut}
-          onPress={handleLogout}
-        />
-
-        <Button
-          label={t("settings.deleteAccount")}
-          variant="ghost"
-          onPress={() => setDeletingAccount(true)}
-        />
       </ScrollView>
 
       <EditProfileModal
@@ -179,5 +191,26 @@ export default function SettingsScreen() {
         onClose={() => setEditingAppearance(false)}
       />
     </Screen>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <View style={{ gap: 8 }}>
+      <Text
+        variant="label"
+        color="textMuted"
+        style={{ textTransform: "uppercase", paddingHorizontal: 4 }}
+      >
+        {title}
+      </Text>
+      <View style={{ gap: 8 }}>{children}</View>
+    </View>
   );
 }

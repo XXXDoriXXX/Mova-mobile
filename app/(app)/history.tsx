@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
@@ -19,6 +19,11 @@ const FILTERS: { key: Filter; i18nKey: string }[] = [
   { key: "failed", i18nKey: "history.filterFailed" },
 ];
 
+/**
+ * History tab. Filter chips at the top scroll horizontally so we never
+ * wrap into a second row that pushes the list down on narrow devices;
+ * the list itself paginates infinitely and exposes long-press to delete.
+ */
 export default function HistoryScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -27,9 +32,19 @@ export default function HistoryScreen() {
 
   return (
     <Screen>
-      <View style={{ gap: theme.spacing.md, flex: 1 }}>
-        <Text variant="title">{t("history.title")}</Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.sm }}>
+      <View style={{ flex: 1, gap: theme.spacing.md, paddingTop: 4 }}>
+        <View style={{ gap: 4 }}>
+          <Text variant="label" color="textMuted">
+            MOVA
+          </Text>
+          <Text variant="title">{t("history.title")}</Text>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 8, paddingVertical: 4 }}
+        >
           {FILTERS.map((f) => (
             <Chip
               key={f.key}
@@ -38,11 +53,14 @@ export default function HistoryScreen() {
               onPress={() => setFilter(f.key)}
             />
           ))}
+        </ScrollView>
+
+        <View style={{ flex: 1 }}>
+          <ConversationsList
+            status={filter === "all" ? undefined : filter}
+            onOpen={(id) => router.push(`/conversation/${id}`)}
+          />
         </View>
-        <ConversationsList
-          status={filter === "all" ? undefined : filter}
-          onOpen={(id) => router.push(`/conversation/${id}`)}
-        />
       </View>
     </Screen>
   );

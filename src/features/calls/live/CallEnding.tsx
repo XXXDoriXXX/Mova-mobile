@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
+import { Pill } from "@/components/Pill";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import { getBillingSummary } from "@/api/billing";
@@ -27,6 +27,12 @@ const REASON_KEYS: Record<string, string> = {
   admin: "conversation.endReasonAdmin",
 };
 
+/**
+ * Post-call summary. A forest hero card with the duration in large mono,
+ * the reason for the end as a pill, and the cost (paid plan only).
+ * Recovery actions adapt to the reason: balance-exhausted promotes the
+ * top-up CTA above "new call".
+ */
 export function CallEnding({ info, onNewCall, onHistory }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -34,8 +40,6 @@ export function CallEnding({ info, onNewCall, onHistory }: Props) {
   const reasonKey = REASON_KEYS[info.reason];
   const balanceExhausted = info.reason === "balance";
 
-  // Pull plan from cache (post-call invalidation already kicked a refetch);
-  // shown only on paid plans where there's a real per-second price.
   const summary = useQuery({
     queryKey: ["billing", "me"],
     queryFn: getBillingSummary,
@@ -46,41 +50,60 @@ export function CallEnding({ info, onNewCall, onHistory }: Props) {
       : null;
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", gap: theme.spacing.lg }}>
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        gap: theme.spacing.lg,
+        paddingVertical: theme.spacing.xxl,
+      }}
+    >
       <Text variant="title" align="center">
         {t("live.endingTitle")}
       </Text>
 
-      <Card>
-        <Text variant="displayLarge" align="center">
+      <View
+        style={{
+          backgroundColor: theme.colors.surfaceInverse,
+          borderRadius: theme.radii.xxl,
+          padding: theme.spacing.xl,
+          gap: 8,
+          alignItems: "center",
+        }}
+      >
+        <Text variant="label" color="textOnInverse" style={{ opacity: 0.6 }}>
+          {t("live.endingDurationLabel")}
+        </Text>
+        <Text
+          variant="display"
+          color="textOnInverse"
+          style={{ fontSize: 56, lineHeight: 56 }}
+        >
           {formatDuration(info.durationSeconds)}
         </Text>
         {cost !== null ? (
-          <Text
-            variant="subtitle"
-            color="textMuted"
-            align="center"
-            style={{ marginTop: theme.spacing.xs }}
-          >
-            ₴ {formatCentsAsUah(cost)}
-          </Text>
+          <Pill
+            tone="accent"
+            label={`₴ ${formatCentsAsUah(cost)}`}
+          />
         ) : null}
         {reasonKey ? (
           <Text
             variant="body"
-            color="textMuted"
+            color="textOnInverse"
             align="center"
-            style={{ marginTop: theme.spacing.sm }}
+            style={{ opacity: 0.7, marginTop: 4 }}
           >
             {t(reasonKey)}
           </Text>
         ) : null}
-      </Card>
+      </View>
 
       <View style={{ gap: theme.spacing.sm }}>
         {balanceExhausted ? (
           <Button
             label={t("preCall.topupCta")}
+            variant="accent"
             onPress={() => router.replace("/billing")}
           />
         ) : null}

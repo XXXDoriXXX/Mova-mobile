@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Alert, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
+import { IconButton } from "@/components/IconButton";
 import { KeyboardScreen } from "@/components/KeyboardScreen";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
@@ -13,6 +15,11 @@ import { createStyle, deleteStyle, listStyles, updateStyle } from "@/api/styles"
 import { StyleForm } from "@/features/styles/StyleForm";
 import type { StyleFormValues } from "@/features/styles/schemas";
 
+/**
+ * Style editor. Mirrors the template editor: header with a back arrow,
+ * page title, form below, and a ghost "delete" affordance pinned at
+ * the bottom for existing custom styles.
+ */
 export default function StyleEditScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -92,9 +99,26 @@ export default function StyleEditScreen() {
 
   return (
     <KeyboardScreen>
-      <Text variant="title">
-        {isNew ? t("styles.newCta") : (initial?.name ?? "")}
-      </Text>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <IconButton onPress={() => router.back()} accessibilityLabel={t("common.back")}>
+          <Ionicons name="chevron-back" size={20} color={theme.colors.text} />
+        </IconButton>
+      </View>
+
+      <View style={{ gap: 4 }}>
+        <Text variant="label" color="textMuted">
+          {t("styles.title")}
+        </Text>
+        <Text variant="title">
+          {isNew ? t("styles.newCta") : (initial?.name ?? "")}
+        </Text>
+      </View>
 
       <StyleForm initial={initial} onSubmit={onSubmit} />
 
@@ -102,7 +126,7 @@ export default function StyleEditScreen() {
         <View style={{ marginTop: theme.spacing.lg }}>
           <Button
             label={t("common.delete")}
-            variant="danger"
+            variant="ghost"
             loading={deleting}
             onPress={onDelete}
           />
