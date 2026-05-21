@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
 import { ScrollView, View } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { useTranslation } from "react-i18next";
 
+import { Bubble as BubbleView } from "@/components/Bubble";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 
@@ -9,7 +11,20 @@ import type { Bubble } from "./callStore";
 
 type Props = { bubbles: Bubble[]; aiThinking: boolean };
 
+/**
+ * Live transcript scroll-view. Maps the in-store bubble roles onto the
+ * two-sided chat layout from the design:
+ *
+ *   - `interlocutor`  → left, lime (the remote person)
+ *   - `ai` / `user`   → right, forest (your AI voice or your typed line)
+ *   - `system`        → centred caption (call-state notices)
+ *
+ * Partial bubbles get the typing-dots indicator. The view auto-scrolls
+ * to bottom on each new bubble so the latest exchange is always in
+ * frame — there is no scrollback-while-active flow.
+ */
 export function Transcript({ bubbles, aiThinking }: Props) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const scrollRef = useRef<ScrollView>(null);
 
@@ -22,56 +37,47 @@ export function Transcript({ bubbles, aiThinking }: Props) {
       ref={scrollRef}
       style={{ flex: 1 }}
       contentContainerStyle={{
-        gap: theme.spacing.sm,
-        padding: theme.spacing.sm,
+        gap: 10,
+        paddingHorizontal: theme.spacing.page,
+        paddingVertical: 8,
       }}
+      showsVerticalScrollIndicator={false}
     >
       {bubbles.map((b) => {
-        const isUser = b.role === "user";
-        const isAi = b.role === "ai";
-        const isSystem = b.role === "system";
-
-        if (isSystem) {
+        if (b.role === "system") {
           return (
             <Animated.View
               key={b.id}
               entering={FadeIn.duration(120)}
               style={{ alignSelf: "center" }}
             >
-              <Text variant="caption" color="textMuted">
+              <Text variant="label" color="textMuted" style={{ textTransform: "uppercase" }}>
                 {b.content}
               </Text>
             </Animated.View>
           );
         }
 
-        const align = isUser ? "flex-end" : "flex-start";
-        const bg = isUser
-          ? theme.colors.primary
-          : isAi
-            ? theme.colors.surface
-            : theme.colors.surfaceMuted;
-        const fg = isUser ? theme.colors.primaryText : theme.colors.text;
+        const side = b.role === "interlocutor" ? "left" : "right";
+        const who =
+          b.role === "interlocutor"
+            ? t("live.whoInterlocutor")
+            : b.role === "ai"
+              ? t("live.whoAi")
+              : t("live.whoYou");
 
         return (
           <Animated.View
             key={b.id}
             entering={FadeIn.duration(160)}
-            style={{
-              alignSelf: align,
-              maxWidth: "82%",
-              backgroundColor: bg,
-              borderRadius: theme.radii.lg,
-              paddingHorizontal: theme.spacing.md,
-              paddingVertical: theme.spacing.sm,
-              opacity: b.partial ? 0.75 : 1,
-              borderWidth: isAi ? 1 : 0,
-              borderColor: theme.colors.border,
-            }}
+            style={{ width: "100%" }}
           >
-            <Text variant="body" style={{ color: fg }}>
-              {b.content}
-            </Text>
+            <BubbleView
+              side={side}
+              who={who}
+              text={b.content}
+              partial={b.partial}
+            />
           </Animated.View>
         );
       })}
@@ -79,27 +85,21 @@ export function Transcript({ bubbles, aiThinking }: Props) {
         <Animated.View
           entering={FadeIn.duration(120)}
           exiting={FadeOut.duration(120)}
-          style={{ alignSelf: "flex-start" }}
+          style={{ alignSelf: "flex-end", maxWidth: "86%" }}
         >
           <View
             style={{
               flexDirection: "row",
               alignItems: "center",
-              gap: theme.spacing.xs,
-              paddingHorizontal: theme.spacing.md,
-              paddingVertical: theme.spacing.sm,
-              backgroundColor: theme.colors.surfaceMuted,
-              borderRadius: theme.radii.pill,
+              gap: 6,
+              paddingHorizontal: 14,
+              paddingVertical: 10,
+              backgroundColor: theme.colors.surfaceInverse,
+              borderRadius: theme.radii.xl,
             }}
           >
-            <Text variant="caption" color="textMuted">
-              ●
-            </Text>
-            <Text variant="caption" color="textMuted">
-              ●
-            </Text>
-            <Text variant="caption" color="textMuted">
-              ●
+            <Text variant="label" color="textOnInverse" style={{ opacity: 0.6 }}>
+              {t("live.aiThinking")}
             </Text>
           </View>
         </Animated.View>

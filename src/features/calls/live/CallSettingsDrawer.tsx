@@ -158,23 +158,29 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
                 <Pressable
                   key={`${opt.provider}-${opt.model}`}
                   onPress={() => handleLlm(opt.provider, opt.model)}
-                  style={{
-                    padding: theme.spacing.md,
-                    borderRadius: theme.radii.md,
+                  style={({ pressed }) => ({
+                    paddingHorizontal: 14,
+                    paddingVertical: 12,
+                    borderRadius: theme.radii.lg,
                     borderWidth: 1,
                     borderColor: selected
                       ? theme.colors.primary
                       : theme.colors.border,
-                    backgroundColor: theme.colors.surface,
+                    backgroundColor: selected
+                      ? theme.colors.surfaceMuted
+                      : theme.colors.surface,
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "space-between",
-                  }}
+                    opacity: pressed ? 0.85 : 1,
+                  })}
                 >
-                  <Text variant="body">{opt.label}</Text>
+                  <Text variant="bodyLarge" weight={selected ? "bold" : "medium"}>
+                    {opt.label}
+                  </Text>
                   {selected ? (
                     <Ionicons
-                      name="checkmark"
+                      name="checkmark-circle"
                       size={20}
                       color={theme.colors.primary}
                     />
@@ -214,6 +220,7 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
           <Button
             label={t("liveSettings.customModelApply")}
             variant="secondary"
+            size="md"
             disabled={!customModel.trim()}
             onPress={applyCustom}
           />

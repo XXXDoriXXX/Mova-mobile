@@ -54,7 +54,13 @@
     "startCallCta": "Почати дзвінок",
     "recentTitle": "Останні дзвінки",
     "recentEmpty": "Поки що жодного дзвінка",
-    "viewAll": "Усі →"
+    "viewAll": "Усі →",
+    "heroVerb": "говоримо",
+    "userFallback": "MOVA",
+    "shortcutNewCallTitle": "Новий дзвінок",
+    "shortcutNewCallSubtitle": "Голос ШІ",
+    "shortcutTemplatesTitle": "Шаблони",
+    "shortcutTemplatesSubtitle": "Сценарії розмов"
   },
   "tabs": {
     "home": "Головна",
@@ -147,7 +153,8 @@
     "endReasonFatal": "Технічна помилка",
     "endReasonAdmin": "Завершено модератором",
     "deleteConfirm": "Видалити цей дзвінок?",
-    "delete": "Видалити"
+    "delete": "Видалити",
+    "interrupted": "(перервано)"
   },
   "templates": {
     "title": "Шаблони",
@@ -254,9 +261,17 @@
     "balanceTick": "{{minutes}}:{{seconds}} · ₴ {{balance}}",
     "secondsLeft": "{{seconds}}с залишилось",
     "endingTitle": "Дзвінок завершено",
+    "endingDurationLabel": "Тривалість",
     "endingNewCall": "Новий дзвінок",
     "endingGoHistory": "До історії",
     "aiThinking": "AI друкує…",
+    "transcribingPartner": "Розшифровуємо",
+    "callee": "Співрозмовник",
+    "live": "в ефірі",
+    "whoInterlocutor": "Співрозмовник",
+    "whoAi": "Ти · ШІ-голос",
+    "whoYou": "Ти",
+    "composerHint": "ШІ озвучить твоє повідомлення",
     "errorRecoverable": "{{message}}",
     "errorTerminal": "{{message}}"
   },

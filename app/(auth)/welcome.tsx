@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
+import { Pill } from "@/components/Pill";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -19,6 +20,12 @@ const FEATURES: Feature[] = [
   { icon: "color-palette-outline", i18nKey: "welcome.featureStyle" },
 ];
 
+/**
+ * Welcome / sign-in entry point. Hero typography (display + italic accent)
+ * mirrors the home screen so the brand voice is set from the very first
+ * frame. The CTAs are a lime primary ("Create account") + ghost secondary
+ * ("Log in"), matching the warm-light palette.
+ */
 export default function WelcomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -26,17 +33,24 @@ export default function WelcomeScreen() {
 
   return (
     <Screen>
-      <View style={{ flex: 1, justifyContent: "space-between" }}>
-        <View style={{ marginTop: theme.spacing.xxxl, gap: theme.spacing.md }}>
-          <Text variant="displayLarge" color="primary">
+      <View style={{ flex: 1, justifyContent: "space-between", paddingVertical: theme.spacing.xl }}>
+        <View style={{ gap: theme.spacing.md, marginTop: theme.spacing.xxl }}>
+          <Pill label="MOVA · v0.1" tone="ink" />
+          <Text variant="display">
             {t("welcome.title")}
+            <Text variant="display" color="textMuted">+</Text>
           </Text>
-          <Text variant="bodyLarge" color="textMuted">
-            {t("welcome.subtitle")}
+          <Text variant="display" weight="bold" italic color="text">
+            {t("welcome.subtitle").split("\n")[0]}
           </Text>
+          {t("welcome.subtitle").split("\n")[1] ? (
+            <Text variant="bodyLarge" color="textMuted">
+              {t("welcome.subtitle").split("\n").slice(1).join(" ")}
+            </Text>
+          ) : null}
         </View>
 
-        <View style={{ gap: theme.spacing.lg }}>
+        <View style={{ gap: theme.spacing.md }}>
           {FEATURES.map((f) => (
             <View
               key={f.icon}
@@ -44,32 +58,37 @@ export default function WelcomeScreen() {
                 flexDirection: "row",
                 alignItems: "center",
                 gap: theme.spacing.md,
+                backgroundColor: theme.colors.surface,
+                borderRadius: theme.radii.xl,
+                borderWidth: 1,
+                borderColor: theme.colors.border,
+                paddingHorizontal: 14,
+                paddingVertical: 12,
               }}
             >
               <View
                 style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: theme.colors.surface,
-                  borderWidth: 1,
-                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.surfaceMuted,
                 }}
               >
-                <Ionicons name={f.icon} size={22} color={theme.colors.primary} />
+                <Ionicons name={f.icon} size={20} color={theme.colors.text} />
               </View>
-              <Text variant="body" style={{ flex: 1 }}>
+              <Text variant="bodyLarge" weight="bold" style={{ flex: 1 }}>
                 {t(f.i18nKey)}
               </Text>
             </View>
           ))}
         </View>
 
-        <View style={{ gap: theme.spacing.md, paddingBottom: theme.spacing.xl }}>
+        <View style={{ gap: theme.spacing.md }}>
           <Button
             label={t("welcome.register")}
+            variant="primary"
             onPress={() => router.push("/register")}
           />
           <Button

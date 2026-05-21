@@ -1,10 +1,10 @@
 import { Linking, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import Constants from "expo-constants";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
-import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
+import { IconButton } from "@/components/IconButton";
 import { Row } from "@/components/Row";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
@@ -13,6 +13,11 @@ import { useTheme } from "@/theme/ThemeProvider";
 const SUPPORT_EMAIL = "support@mova.app";
 const BACKEND_REPO = "https://github.com/XXXDoriXXX/MOVA";
 
+/**
+ * Static about screen. Brand block at top (display headline + tagline +
+ * version), support rows below. Long-press on the title returns to the
+ * onboarding wizard — kept hidden because it's a power-user shortcut.
+ */
 export default function AboutScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -32,27 +37,43 @@ export default function AboutScreen() {
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={{ gap: theme.spacing.lg, paddingBottom: theme.spacing.xxl }}>
-        <Text variant="title">{t("settings.aboutTitle")}</Text>
+      <ScrollView
+        contentContainerStyle={{
+          gap: theme.spacing.lg,
+          paddingTop: 4,
+          paddingBottom: 140,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <IconButton onPress={() => router.back()} accessibilityLabel={t("common.back")}>
+            <Ionicons name="chevron-back" size={20} color={theme.colors.text} />
+          </IconButton>
+        </View>
 
-        <Card>
-          <View style={{ gap: theme.spacing.xs }}>
-            <Text variant="subtitle">Mova</Text>
-            <Text variant="caption" color="textMuted">
-              {t("settings.aboutTagline")}
-            </Text>
-            <Text
-              variant="caption"
-              color="textMuted"
-              style={{ marginTop: theme.spacing.sm }}
-            >
-              {t("settings.aboutVersion", { version, build: String(buildVersion) })}
-            </Text>
-          </View>
-        </Card>
-
-        <View style={{ gap: theme.spacing.sm }}>
+        <View style={{ gap: 6 }}>
           <Text variant="label" color="textMuted">
+            {t("settings.title")}
+          </Text>
+          <Text variant="display" style={{ fontSize: 56, lineHeight: 56 }}>
+            MOVA
+          </Text>
+          <Text variant="bodyLarge" color="textMuted" style={{ marginTop: 4 }}>
+            {t("settings.aboutTagline")}
+          </Text>
+          <Text variant="caption" color="textMuted" style={{ marginTop: 8 }}>
+            {t("settings.aboutVersion", { version, build: String(buildVersion) })}
+          </Text>
+        </View>
+
+        <View style={{ gap: 8 }}>
+          <Text variant="label" color="textMuted" style={{ textTransform: "uppercase" }}>
             {t("settings.aboutSupport")}
           </Text>
           <Row
@@ -68,8 +89,6 @@ export default function AboutScreen() {
             onPress={openRepo}
           />
         </View>
-
-        <Button label={t("common.back")} variant="secondary" onPress={() => router.back()} />
       </ScrollView>
     </Screen>
   );

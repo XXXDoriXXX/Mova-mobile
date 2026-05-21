@@ -7,10 +7,12 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
+import { IconButton } from "@/components/IconButton";
+import { Pill } from "@/components/Pill";
 import { Screen } from "@/components/Screen";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
@@ -34,6 +36,12 @@ const REASON_KEYS: Record<string, string> = {
   admin: "conversation.endReasonAdmin",
 };
 
+/**
+ * Past-conversation viewer. Forest hero card with the meta (phone,
+ * duration, end reason, AI config), action row (redial, share, copy,
+ * delete), then the full transcript rendered in the same bubble style
+ * as the live call.
+ */
 export default function ConversationDetailScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -75,6 +83,7 @@ export default function ConversationDetailScreen() {
   const c = convQuery.data;
   const reasonKey = c.endReason ? REASON_KEYS[c.endReason] : null;
   const messages = messagesQuery.data?.pages.flatMap((p) => p.items) ?? [];
+  const phone = formatPhoneForDisplay(c.targetPhone);
 
   const transcriptText = () =>
     transcriptToText({
@@ -95,86 +104,114 @@ export default function ConversationDetailScreen() {
     ]);
   }
 
+  const aiChips = [c.initialLlmProvider, c.initialTtsProvider, c.initialVoice].filter(
+    Boolean,
+  ) as string[];
+
   return (
     <Screen>
       <ScrollView
         contentContainerStyle={{
           gap: theme.spacing.md,
-          paddingBottom: theme.spacing.xxl,
+          paddingTop: 4,
+          paddingBottom: 140,
         }}
+        showsVerticalScrollIndicator={false}
       >
-        <Text variant="title">{formatPhoneForDisplay(c.targetPhone)}</Text>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <IconButton onPress={() => router.back()} accessibilityLabel={t("common.back")}>
+            <Ionicons name="chevron-back" size={20} color={theme.colors.text} />
+          </IconButton>
+          <IconButton
+            onPress={() =>
+              router.push({
+                pathname: "/call/pre",
+                params: { prefillPhone: c.targetPhone },
+              })
+            }
+            tone="ink"
+            accessibilityLabel={t("history.recall")}
+          >
+            <Ionicons name="call" size={18} color={theme.colors.primaryText} />
+          </IconButton>
+        </View>
 
-        <Card>
-          <View style={{ gap: theme.spacing.xs }}>
-            <Text variant="body">
-              {formatRelativeFromNow(c.startedAt)}
-              {c.durationSeconds > 0
-                ? ` · ${formatDuration(c.durationSeconds)}`
-                : ""}
+        <View style={{ gap: 4 }}>
+          <Text variant="label" color="textMuted">
+            {t("history.title")}
+          </Text>
+          <Text variant="title">{phone}</Text>
+        </View>
+
+        <View
+          style={{
+            backgroundColor: theme.colors.surfaceInverse,
+            borderRadius: theme.radii.xxl,
+            padding: theme.spacing.lg,
+            gap: 8,
+          }}
+        >
+          <Text variant="bodyLarge" color="textOnInverse" weight="bold">
+            {formatRelativeFromNow(c.startedAt)}
+          </Text>
+          {c.durationSeconds > 0 ? (
+            <Text variant="numeric" color="textOnInverse">
+              {formatDuration(c.durationSeconds)}
             </Text>
-            {reasonKey ? (
-              <Text variant="caption" color="textMuted">
-                {t(reasonKey)}
-              </Text>
-            ) : null}
-            {c.initialLlmProvider || c.initialTtsProvider || c.initialVoice ? (
-              <Text
-                variant="caption"
-                color="textMuted"
-                style={{ marginTop: theme.spacing.xs }}
-              >
-                {[c.initialLlmProvider, c.initialTtsProvider, c.initialVoice]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </Text>
-            ) : null}
-          </View>
-        </Card>
+          ) : null}
+          {reasonKey ? (
+            <Text variant="caption" color="textOnInverse" style={{ opacity: 0.7 }}>
+              {t(reasonKey)}
+            </Text>
+          ) : null}
+          {aiChips.length > 0 ? (
+            <View
+              style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 8 }}
+            >
+              {aiChips.map((c) => (
+                <Pill key={c} label={c} tone="surface" />
+              ))}
+            </View>
+          ) : null}
+        </View>
 
         <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
           <View style={{ flex: 1 }}>
             <Button
-              label={t("history.recall")}
-              variant="secondary"
-              onPress={() =>
-                router.push({
-                  pathname: "/call/pre",
-                  params: { prefillPhone: c.targetPhone },
-                })
-              }
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Button
               label={t("history.share")}
-              variant="ghost"
+              variant="secondary"
+              size="md"
               disabled={messages.length === 0}
               onPress={() => void Share.share({ message: transcriptText() })}
             />
           </View>
-        </View>
-
-        <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
           <View style={{ flex: 1 }}>
             <Button
               label={t("history.copy")}
-              variant="ghost"
+              variant="secondary"
+              size="md"
               disabled={messages.length === 0}
               onPress={() => void Clipboard.setStringAsync(transcriptText())}
             />
           </View>
-          <View style={{ flex: 1 }}>
-            <Button
-              label={t("conversation.delete")}
-              variant="danger"
-              loading={deleteMut.isPending}
-              onPress={confirmDelete}
-            />
-          </View>
         </View>
 
-        <Text variant="subtitle">{t("history.transcriptTab")}</Text>
+        <Button
+          label={t("conversation.delete")}
+          variant="ghost"
+          loading={deleteMut.isPending}
+          onPress={confirmDelete}
+        />
+
+        <Text variant="subtitle" style={{ marginTop: theme.spacing.md }}>
+          {t("history.transcriptTab")}
+        </Text>
         {messagesQuery.isLoading ? (
           <Spinner />
         ) : (

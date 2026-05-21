@@ -7,6 +7,12 @@ type Props = {
   /** User's full name. Initials are derived from the first two non-empty words. */
   name: string | null | undefined;
   size?: number;
+  /** Optional background colour override. Defaults to a stable pastel
+   *  derived from the name hash so a single user always gets the same
+   *  tone across screens. */
+  background?: string;
+  /** Optional ring around the avatar (used for stacked rows). */
+  ringColor?: string;
 };
 
 function initialsOf(name: string | null | undefined): string {
@@ -18,13 +24,26 @@ function initialsOf(name: string | null | undefined): string {
 }
 
 /**
- * Initials-in-a-circle avatar. We don't render uploaded images — the backend
- * has no avatar surface today and initials cover the common case while being
- * resilient to network failure.
+ * Initials-in-a-circle avatar. The background colour is selected
+ * deterministically from a tiny pastel palette so contacts have a
+ * recognisable identity without us having uploaded images.
  */
-export function Avatar({ name, size = 40 }: Props) {
+export function Avatar({ name, size = 40, background, ringColor }: Props) {
   const theme = useTheme();
   const initials = initialsOf(name);
+
+  const PASTELS = [
+    theme.colors.avatarPeach,
+    theme.colors.avatarSage,
+    theme.colors.avatarLavender,
+    theme.colors.avatarSky,
+    theme.colors.avatarSand,
+  ];
+  const idx = name
+    ? Array.from(name).reduce((acc, c) => acc + c.charCodeAt(0), 0) % PASTELS.length
+    : 0;
+  const bg = background ?? PASTELS[idx]!;
+
   return (
     <View
       accessibilityLabel={name ?? undefined}
@@ -32,18 +51,19 @@ export function Avatar({ name, size = 40 }: Props) {
         width: size,
         height: size,
         borderRadius: size / 2,
-        backgroundColor: theme.colors.primary,
+        backgroundColor: bg,
         alignItems: "center",
         justifyContent: "center",
+        borderWidth: ringColor ? 2 : 0,
+        borderColor: ringColor,
       }}
     >
       <Text
-        variant="label"
+        weight="bold"
         style={{
-          color: theme.colors.primaryText,
-          fontSize: Math.max(14, Math.round(size * 0.42)),
-          lineHeight: Math.max(16, Math.round(size * 0.48)),
-          fontWeight: "700",
+          color: theme.colors.text,
+          fontSize: Math.max(12, Math.round(size * 0.4)),
+          lineHeight: Math.max(14, Math.round(size * 0.44)),
         }}
       >
         {initials}

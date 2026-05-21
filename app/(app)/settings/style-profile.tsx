@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Banner } from "@/components/Banner";
 import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
+import { IconButton } from "@/components/IconButton";
 import { Modal } from "@/components/Modal";
 import { Screen } from "@/components/Screen";
 import { Spinner } from "@/components/Spinner";
@@ -13,9 +15,16 @@ import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import { getStyleProfile, resetStyleProfile } from "@/api/styleProfile";
 
+/**
+ * Style-profile dashboard. Shows aggregate stats (sample count, avg len,
+ * total chars, last-updated) plus a few exemplar snippets, with a
+ * destructive "reset" gated by a confirmation modal. Empty state when
+ * the user hasn't typed enough yet for adaptation to kick in.
+ */
 export default function StyleProfileScreen() {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [confirming, setConfirming] = useState(false);
 
@@ -39,8 +48,33 @@ export default function StyleProfileScreen() {
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={{ gap: theme.spacing.lg }}>
-        <Text variant="title">{t("settings.styleProfile")}</Text>
+      <ScrollView
+        contentContainerStyle={{
+          gap: theme.spacing.lg,
+          paddingTop: 4,
+          paddingBottom: 140,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <IconButton onPress={() => router.back()} accessibilityLabel={t("common.back")}>
+            <Ionicons name="chevron-back" size={20} color={theme.colors.text} />
+          </IconButton>
+        </View>
+
+        <View style={{ gap: 4 }}>
+          <Text variant="label" color="textMuted">
+            {t("settings.title")}
+          </Text>
+          <Text variant="title">{t("settings.styleProfile")}</Text>
+        </View>
+
         <Text variant="body" color="textMuted">
           {t("settings.styleProfileDescription")}
         </Text>
@@ -50,43 +84,61 @@ export default function StyleProfileScreen() {
         ) : profileQuery.error ? (
           <Banner tone="danger" message={t("common.offline")} />
         ) : profileQuery.data?.summary ? (
-          <Card>
-            <View style={{ gap: theme.spacing.sm }}>
-              <Row
-                label={t("settings.styleProfileSamples")}
-                value={String(profileQuery.data.summary.sampleCount)}
-              />
-              <Row
-                label={t("settings.styleProfileAvgLen")}
-                value={`${Math.round(
-                  profileQuery.data.summary.avgMessageLength,
-                )} chars`}
-              />
-              <Row
-                label={t("settings.styleProfileTotal")}
-                value={String(profileQuery.data.summary.totalChars)}
-              />
-              <Row
-                label={t("settings.styleProfileLastUpdated")}
-                value={dateFormatter.format(
-                  new Date(profileQuery.data.summary.lastUpdatedAt),
-                )}
-              />
-            </View>
+          <View
+            style={{
+              backgroundColor: theme.colors.surfaceInverse,
+              borderRadius: theme.radii.xxl,
+              padding: theme.spacing.lg,
+              gap: 12,
+            }}
+          >
+            <StatRow
+              label={t("settings.styleProfileSamples")}
+              value={String(profileQuery.data.summary.sampleCount)}
+              inverse
+            />
+            <StatRow
+              label={t("settings.styleProfileAvgLen")}
+              value={`${Math.round(
+                profileQuery.data.summary.avgMessageLength,
+              )} chars`}
+              inverse
+            />
+            <StatRow
+              label={t("settings.styleProfileTotal")}
+              value={String(profileQuery.data.summary.totalChars)}
+              inverse
+            />
+            <StatRow
+              label={t("settings.styleProfileLastUpdated")}
+              value={dateFormatter.format(
+                new Date(profileQuery.data.summary.lastUpdatedAt),
+              )}
+              inverse
+            />
 
             {profileQuery.data.summary.exemplars.length > 0 ? (
-              <View style={{ marginTop: theme.spacing.md, gap: theme.spacing.xs }}>
-                <Text variant="label" color="textMuted">
+              <View style={{ marginTop: theme.spacing.sm, gap: 6 }}>
+                <Text
+                  variant="label"
+                  color="textOnInverse"
+                  style={{ opacity: 0.65, textTransform: "uppercase" }}
+                >
                   {t("settings.styleProfileExemplars")}
                 </Text>
                 {profileQuery.data.summary.exemplars.slice(0, 5).map((e) => (
-                  <Text key={e.createdAt} variant="caption" color="textMuted">
+                  <Text
+                    key={e.createdAt}
+                    variant="caption"
+                    color="textOnInverse"
+                    style={{ opacity: 0.75 }}
+                  >
                     “{e.content}”
                   </Text>
                 ))}
               </View>
             ) : null}
-          </Card>
+          </View>
         ) : (
           <Banner
             tone="info"
@@ -96,8 +148,17 @@ export default function StyleProfileScreen() {
         )}
 
         {profileQuery.data ? (
-          <Card>
-            <Text variant="label" color="textMuted">
+          <View
+            style={{
+              backgroundColor: theme.colors.surface,
+              borderRadius: theme.radii.xxl,
+              padding: theme.spacing.lg,
+              borderWidth: 1,
+              borderColor: theme.colors.border,
+              gap: 4,
+            }}
+          >
+            <Text variant="label" color="textMuted" style={{ textTransform: "uppercase" }}>
               {t("settings.styleProfilePolicy")}
             </Text>
             <Text variant="caption" color="textMuted">
@@ -106,13 +167,13 @@ export default function StyleProfileScreen() {
                 cap: profileQuery.data.policy.exemplarCap,
               })}
             </Text>
-          </Card>
+          </View>
         ) : null}
 
         {profileQuery.data?.summary ? (
           <Button
             label={t("settings.styleProfileReset")}
-            variant="danger"
+            variant="ghost"
             onPress={() => setConfirming(true)}
           />
         ) : null}
@@ -131,6 +192,7 @@ export default function StyleProfileScreen() {
             <Button
               label={t("common.cancel")}
               variant="secondary"
+              size="md"
               onPress={() => setConfirming(false)}
             />
           </View>
@@ -138,6 +200,7 @@ export default function StyleProfileScreen() {
             <Button
               label={t("settings.styleProfileReset")}
               variant="danger"
+              size="md"
               loading={resetMut.isPending}
               onPress={() => resetMut.mutate()}
             />
@@ -148,13 +211,27 @@ export default function StyleProfileScreen() {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function StatRow({
+  label,
+  value,
+  inverse,
+}: {
+  label: string;
+  value: string;
+  inverse?: boolean;
+}) {
   return (
     <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-      <Text variant="body" color="textMuted">
+      <Text
+        variant="body"
+        color={inverse ? "textOnInverse" : "textMuted"}
+        style={inverse ? { opacity: 0.65 } : undefined}
+      >
         {label}
       </Text>
-      <Text variant="body">{value}</Text>
+      <Text variant="body" weight="bold" color={inverse ? "textOnInverse" : "text"}>
+        {value}
+      </Text>
     </View>
   );
 }
