@@ -44,9 +44,13 @@
   "home": {
     "greeting": "Hi, {{name}}",
     "greeting_morning": "Good morning",
+    "greeting_morning_alt": "Coffee yet?",
     "greeting_afternoon": "Good afternoon",
+    "greeting_afternoon_alt": "How's the day?",
     "greeting_evening": "Good evening",
-    "greeting_night": "Hope you're well",
+    "greeting_evening_alt": "You made it through the day",
+    "greeting_night": "Still up?",
+    "greeting_night_alt": "Hello, fellow night owl",
     "balanceTitle": "Balance",
     "balanceFreeQuota": "{{used}} / {{total}} free seconds this month",
     "balanceAmount": "₴ {{amount}}",
@@ -134,7 +138,8 @@
     "aboutContactEmail": "Contact support",
     "aboutBackendRepo": "Backend source code",
     "replayOnboardingTitle": "Replay the welcome tour?",
-    "replayOnboardingConfirm": "Replay"
+    "replayOnboardingConfirm": "Replay",
+    "easterEgg": "You found the telephone cat 🐈. It says 'meow' and that means 'thanks for being here'."
   },
   "stub": {
     "comingSoon": "Coming soon",

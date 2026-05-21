@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -23,7 +23,7 @@ import { getMe } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
 import { HomeSkeleton } from "@/features/home/HomeSkeleton";
 import { RecentCallsList } from "@/features/home/RecentCallsList";
-import { dayPartFor } from "@/utils/format";
+import { greetingKey } from "@/utils/format";
 
 /**
  * Home — single source of truth for the user's "what now?" moment.
@@ -90,6 +90,10 @@ export default function HomeScreen() {
 
   const locale = i18n.language === "en" ? enUS : ukLocale;
   const datePill = format(new Date(), "EEEE, d MMM yyyy", { locale });
+  // Picked once per mount so the playful "_alt" variant doesn't reshuffle
+  // mid-session every time React re-renders this screen.
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const greetingI18nKey = useMemo(() => greetingKey(), []);
 
   return (
     <Screen>
@@ -110,6 +114,7 @@ export default function HomeScreen() {
       >
         <Header
           name={user?.name}
+          greetingKey={greetingI18nKey}
           onSettings={() => router.push("/settings")}
         />
 
@@ -117,7 +122,7 @@ export default function HomeScreen() {
 
         <View style={{ marginTop: 6 }}>
           <Text variant="display">
-            {t(`home.greeting_${dayPartFor()}`) + ","}
+            {t(greetingI18nKey) + ","}
           </Text>
           <Text variant="display" weight="bold" italic style={{ marginTop: 4 }}>
             {t("home.heroVerb")}
@@ -157,9 +162,11 @@ export default function HomeScreen() {
 
 function Header({
   name,
+  greetingKey,
   onSettings,
 }: {
   name?: string;
+  greetingKey: string;
   onSettings: () => void;
 }) {
   const { t } = useTranslation();
@@ -182,7 +189,7 @@ function Header({
         <FaceAvatar size={42} />
         <View>
           <Text variant="caption" color="textMuted">
-            {t(`home.greeting_${dayPartFor()}`) + ","}
+            {t(greetingKey) + ","}
           </Text>
           <Text variant="bodyLarge" weight="bold">
             {name ?? t("home.userFallback")}
