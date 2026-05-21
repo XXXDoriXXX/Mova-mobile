@@ -21,7 +21,7 @@ import { QueryProvider } from "@/net/QueryProvider";
 import { ThemeProvider } from "@/theme/ThemeProvider";
 import { useAppFonts } from "@/theme/fonts";
 import { initSentry, setUserContext } from "@/observability/sentry";
-import { initI18n } from "@/i18n";
+import i18n, { initI18n } from "@/i18n";
 
 // Keep the splash visible until the brand fonts have loaded. Without this
 // the first paint flashes the system font and re-flows when Onest swaps in.
@@ -50,6 +50,21 @@ export default function RootLayout() {
         setUserContext(null);
       }
     });
+    return () => unsub();
+  }, []);
+
+  // Sync i18n with the authenticated user's language preference. Without
+  // this the UI sticks to device locale even when the profile says `uk`,
+  // so a user on an English phone never sees Ukrainian until they manually
+  // toggle. Runs once on mount with the current user, then on every change.
+  useEffect(() => {
+    const apply = (lang: string | null | undefined) => {
+      if (!lang) return;
+      if (i18n.language === lang) return;
+      void i18n.changeLanguage(lang);
+    };
+    apply(useAuthStore.getState().user?.language);
+    const unsub = useAuthStore.subscribe((s) => apply(s.user?.language));
     return () => unsub();
   }, []);
 

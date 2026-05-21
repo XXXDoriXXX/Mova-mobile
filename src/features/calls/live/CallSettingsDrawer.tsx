@@ -13,6 +13,9 @@ import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
 import { useTheme } from "@/theme/ThemeProvider";
 import { listStyles } from "@/api/styles";
+import { patchMe } from "@/api/auth";
+import { useAuthStore } from "@/auth/store";
+import { toast } from "@/feedback/toast";
 import type { ClientCommand } from "@/realtime/protocol";
 import { useCallStore } from "./callStore";
 
@@ -71,19 +74,43 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
   });
 
   function handleStyle(styleId: string) {
+    // Style is the one setting that takes effect mid-call — it only feeds
+    // the suggestions generator, which picks it up on the next turn.
     send({ type: "user.change_style", data: { styleId } });
   }
 
-  function handleVoice(voice: string) {
+  // Voice and LLM model bind at LiveKit AgentSession creation; mid-call swap
+  // would tear down audio. We persist the choice to the user's profile via
+  // PATCH /users/me so the NEXT call boots with it; the WS command stays for
+  // audit + future hot-swap support. Toast tells the user the change is real
+  // but applies on the next call — no silent failure.
+  async function handleVoice(voice: string) {
     send({ type: "user.change_voice", data: { voice } });
+    try {
+      const updated = await patchMe({ preferredVoice: voice });
+      useAuthStore.getState().setUser(updated);
+      toast.success(t("liveSettings.savedForNextCall"));
+    } catch {
+      toast.error(t("liveSettings.saveFailed"));
+    }
   }
 
-  function handleLlm(provider: string, model: string) {
+  async function handleLlm(provider: string, model: string) {
     setChosenLlm({ provider, model });
     send({
       type: "user.change_model",
       data: { providerType: "llm", provider, model },
     });
+    try {
+      const updated = await patchMe({
+        preferredLlmProvider: provider,
+        preferredLlmModel: model,
+      });
+      useAuthStore.getState().setUser(updated);
+      toast.success(t("liveSettings.savedForNextCall"));
+    } catch {
+      toast.error(t("liveSettings.saveFailed"));
+    }
   }
 
   function applyCustom() {

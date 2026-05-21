@@ -396,7 +396,9 @@
     "customModel": "Інша модель",
     "customModelHint": "Якщо провайдер випустив новішу — вкажіть її ID. Без коду, без танців.",
     "customModelPlaceholder": "напр. gemini-3.0-flash-lite",
-    "customModelApply": "Застосувати"
+    "customModelApply": "Застосувати",
+    "savedForNextCall": "Збережено — застосується з наступного дзвінка",
+    "saveFailed": "Не вдалося зберегти налаштування"
   },
   "onboarding": {
     "skip": "Пропустити",

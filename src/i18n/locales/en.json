@@ -392,7 +392,9 @@
     "customModel": "Custom model",
     "customModelHint": "If the provider shipped a newer model — paste its ID here, no code change required.",
     "customModelPlaceholder": "e.g. gemini-3.0-flash-lite",
-    "customModelApply": "Apply"
+    "customModelApply": "Apply",
+    "savedForNextCall": "Saved — applies on your next call",
+    "saveFailed": "Could not save the setting"
   },
   "onboarding": {
     "skip": "Skip",

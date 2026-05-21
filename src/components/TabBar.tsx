@@ -25,6 +25,20 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
+  // Honor per-screen `tabBarStyle: { display: "none" }` from the layout
+  // options. The default RN tab bar reads this automatically; our custom
+  // tabBar component has to opt in explicitly. Used by call/pre, call/live
+  // and onboarding to hide the floating pill that would otherwise overlap
+  // the in-call composer.
+  const currentRoute = state.routes[state.index];
+  const currentOptions = currentRoute
+    ? descriptors[currentRoute.key]?.options
+    : undefined;
+  const tabBarStyle = currentOptions?.tabBarStyle as
+    | { display?: "none" | "flex" }
+    | undefined;
+  if (tabBarStyle?.display === "none") return null;
+
   const visible = state.routes
     .map((route, index) => ({ route, index }))
     .filter(({ route }) => ICONS[route.name] !== undefined);
