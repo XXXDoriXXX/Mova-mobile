@@ -7,6 +7,7 @@ import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
+import { toast } from "@/feedback/toast";
 import { useTheme } from "@/theme/ThemeProvider";
 import { deleteAccount } from "@/api/auth";
 import { extractErrorPayload } from "@/api/client";
@@ -25,6 +26,7 @@ export function DeleteAccountModal({ visible, onClose }: Props) {
   const mutation = useMutation({
     mutationFn: () => deleteAccount(password),
     onSuccess: async () => {
+      toast.success(t("settings.deleteAccountSuccess"));
       queryClient.clear();
       await clear();
     },

@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { Alert, FlatList, Pressable, RefreshControl, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -8,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { Avatar } from "@/components/Avatar";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
+import { toast } from "@/feedback/toast";
 import { useTheme } from "@/theme/ThemeProvider";
 import { deleteConversation, listConversations } from "@/api/conversations";
 import type { Conversation } from "@/types/api";
@@ -50,8 +52,11 @@ export function ConversationsList({ onOpen, status }: Props) {
 
   const deleteMut = useMutation({
     mutationFn: (id: string) => deleteConversation(id),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["conversations", "list"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations", "list"] });
+      toast.success(t("conversation.deleteSuccess"));
+    },
+    onError: () => toast.error(t("conversation.deleteError")),
   });
 
   function confirmDelete(c: Conversation) {
@@ -75,7 +80,7 @@ export function ConversationsList({ onOpen, status }: Props) {
   }
 
   const renderItem = useCallback(
-    ({ item }: { item: Conversation }) => {
+    ({ item, index }: { item: Conversation; index: number }) => {
       const phone = formatPhoneForDisplay(item.targetPhone);
       const statusColor =
         item.status === "failed"
@@ -84,6 +89,12 @@ export function ConversationsList({ onOpen, status }: Props) {
             ? theme.colors.success
             : theme.colors.textMuted;
       return (
+        <Animated.View
+          // Stagger entry so the list "cascades" in rather than popping
+          // all at once. Cap delay at 240ms so later items don't feel
+          // slow.
+          entering={FadeInDown.duration(280).delay(Math.min(index * 35, 240))}
+        >
         <Pressable
           onPress={() => onOpen(item.id)}
           onLongPress={() => confirmDelete(item)}
@@ -133,6 +144,7 @@ export function ConversationsList({ onOpen, status }: Props) {
             <Ionicons name="call" size={16} color={theme.colors.primaryText} />
           </Pressable>
         </Pressable>
+        </Animated.View>
       );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

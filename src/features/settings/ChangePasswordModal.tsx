@@ -7,6 +7,7 @@ import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
+import { toast } from "@/feedback/toast";
 import { useTheme } from "@/theme/ThemeProvider";
 import { changePassword } from "@/api/auth";
 import { extractErrorPayload } from "@/api/client";
@@ -31,6 +32,7 @@ export function ChangePasswordModal({ visible, onClose }: Props) {
       setNext("");
       setConfirm("");
       setError(null);
+      toast.success(t("settings.changePasswordSuccess"));
     },
     onError: (err) => {
       const payload = extractErrorPayload(err);

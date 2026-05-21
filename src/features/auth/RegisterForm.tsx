@@ -8,6 +8,7 @@ import { Button } from "@/components/Button";
 import { Chip } from "@/components/Chip";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
+import { triggerHaptic } from "@/utils/haptics";
 import { useTheme } from "@/theme/ThemeProvider";
 import { persistLanguage, register as registerRequest } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
@@ -46,12 +47,14 @@ export function RegisterForm() {
         name: values.name,
       });
       await setSession({ user: resp.user, tokens: resp.tokens });
+      triggerHaptic("success");
       // Persist non-default UI language to the user profile so it survives
       // reinstalls. Best-effort — failure is silent.
       if (values.language && values.language !== resp.user.language) {
         void persistLanguage(values.language);
       }
     } catch (err) {
+      triggerHaptic("error");
       const mapped = mapError(err);
       if (mapped.emailError)
         setError("email", { message: mapped.emailError });

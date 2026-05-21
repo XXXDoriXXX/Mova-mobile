@@ -1,4 +1,5 @@
 import { Pressable, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -57,23 +58,27 @@ export function RecentCallsList({ items }: Props) {
 
   return (
     <View style={{ gap: theme.spacing.sm }}>
-      {items.map((c) => (
-        <RecentRow
+      {items.map((c, i) => (
+        <Animated.View
           key={c.id}
-          item={c}
-          onOpen={() =>
-            router.push({
-              pathname: "/conversation/[id]",
-              params: { id: c.id },
-            })
-          }
-          onRecall={() =>
-            router.push({
-              pathname: "/call/pre",
-              params: { prefillPhone: c.targetPhone },
-            })
-          }
-        />
+          entering={FadeInDown.duration(280).delay(Math.min(i * 60, 240))}
+        >
+          <RecentRow
+            item={c}
+            onOpen={() =>
+              router.push({
+                pathname: "/conversation/[id]",
+                params: { id: c.id },
+              })
+            }
+            onRecall={() =>
+              router.push({
+                pathname: "/call/pre",
+                params: { prefillPhone: c.targetPhone },
+              })
+            }
+          />
+        </Animated.View>
       ))}
     </View>
   );
