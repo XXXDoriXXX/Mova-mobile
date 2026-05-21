@@ -103,7 +103,12 @@ export function ContactsPicker({ visible, onClose, onPick }: Props) {
   }, [entries, query]);
 
   return (
-    <Modal visible={visible} onClose={onClose} title={t("preCall.contactsTitle")}>
+    <Modal
+      visible={visible}
+      onClose={onClose}
+      title={t("preCall.contactsTitle")}
+      scrollable={false}
+    >
       <View style={{ gap: theme.spacing.md, maxHeight: 480 }}>
         <TextField
           placeholder={t("preCall.contactsSearch")}

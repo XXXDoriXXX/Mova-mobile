@@ -251,8 +251,9 @@ export default function ConversationDetailScreen() {
         )}
         {messagesQuery.hasNextPage ? (
           <Button
-            label={t("common.loading")}
+            label={t("conversation.loadMore")}
             variant="ghost"
+            size="md"
             onPress={() => messagesQuery.fetchNextPage()}
             loading={messagesQuery.isFetchingNextPage}
           />

@@ -109,6 +109,7 @@ export function ChangePasswordModal({ visible, onClose }: Props) {
             <Button
               label={t("common.cancel")}
               variant="secondary"
+              size="md"
               onPress={handleClose}
             />
           </View>
@@ -116,6 +117,7 @@ export function ChangePasswordModal({ visible, onClose }: Props) {
             <View style={{ flex: 1 }}>
               <Button
                 label={t("common.save")}
+                size="md"
                 onPress={handleSubmit}
                 loading={mutation.isPending}
                 disabled={!current || !next}
