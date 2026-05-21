@@ -84,6 +84,12 @@ export default function HistoryScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          // `flexGrow: 0` prevents the horizontal scroller from
+          // inheriting `flex: 1` from its column parent. Without it
+          // the scroller stretches vertically and the chips inside
+          // (alignItems: stretch by default) follow — turning a
+          // chip row into half-screen vertical pills.
+          style={{ flexGrow: 0 }}
           contentContainerStyle={{ gap: 8, paddingVertical: 4 }}
         >
           {FILTERS.map((f) => (

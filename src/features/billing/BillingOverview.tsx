@@ -1,26 +1,156 @@
 import { View } from "react-native";
+import { useQuery } from "@tanstack/react-query";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { BalanceWidget } from "@/components/BalanceWidget";
+import { PressableScale } from "@/components/PressableScale";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
+import { listUsage } from "@/api/billing";
 import type { BillingSummary } from "@/types/api";
+import { formatCentsAsUah } from "@/utils/format";
 
-type Props = { summary: BillingSummary };
+type Props = {
+  summary: BillingSummary;
+  /** Tap on a quick-top-up preset → switch to the Top-up tab with the
+   *  amount pre-filled. Optional — when not provided the tiles still
+   *  render but as static info. */
+  onPickQuickTopup?: (amountUah: number) => void;
+  /** Tap on the plan card → switch to the Plan tab. */
+  onOpenPlan?: () => void;
+};
+
+const QUICK_TOPUPS = [50, 100, 200];
 
 /**
- * "Overview" tab content. Balance card (forest) on top, plan info card
- * (white) below. The plan card surfaces the renewal date — the only
- * piece of info that isn't already in `BalanceWidget`.
+ * Billing → Overview tab content.
+ *
+ * Layout:
+ *   1. Balance card (forest) — animated headline
+ *   2. Plan card (white) — tappable; routes to the Plan tab
+ *   3. Quick top-up row — three preset amounts as ink-pill chips
+ *      that jump straight to the Top-up tab
+ *   4. Last-7-days mini-stat: total seconds + paid spend, computed
+ *      from the usage list (lazy-loaded once the screen opens)
+ *
+ * Previously this tab was just balance + plan and ~half the screen
+ * was empty — adding two more sections fills the space with
+ * actionable info instead of leaving the user staring at wallpaper.
  */
-export function BillingOverview({ summary }: Props) {
-  const { t } = useTranslation();
+export function BillingOverview({
+  summary,
+  onPickQuickTopup,
+  onOpenPlan,
+}: Props) {
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
-  const renewsDate = new Date(summary.currentPeriodEnd).toLocaleDateString();
+
+  // Pull usage in the background so the "last week" tile has data
+  // by the time the user scrolls down. Cheap on cold start because
+  // the History tab uses the same query key.
+  const usageQuery = useQuery({
+    queryKey: ["billing", "usage"],
+    queryFn: () => listUsage(),
+    staleTime: 60_000,
+  });
+
+  const weekStats = (() => {
+    const items = usageQuery.data ?? [];
+    const cutoff = Date.now() - 7 * 86_400_000;
+    const recent = items.filter((u) => new Date(u.recordedAt).getTime() >= cutoff);
+    const seconds = recent.reduce((acc, u) => acc + u.secondsBilled, 0);
+    const cents = recent.reduce(
+      (acc, u) => acc + (u.source === "paid" ? u.costCents : 0),
+      0,
+    );
+    return { seconds, cents, count: recent.length };
+  })();
+
+  const renewsDate = new Date(summary.currentPeriodEnd).toLocaleDateString(
+    i18n.language === "en" ? "en-US" : "uk-UA",
+    { day: "numeric", month: "short", year: "numeric" },
+  );
 
   return (
     <View style={{ gap: theme.spacing.md }}>
       <BalanceWidget summary={summary} />
+
+      <PressableScale
+        onPress={onOpenPlan}
+        haptic="light"
+        scaleTo={0.99}
+        style={{
+          backgroundColor: theme.colors.surface,
+          borderRadius: theme.radii.xxl,
+          padding: theme.spacing.lg,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 8,
+          }}
+        >
+          <View style={{ gap: 4, flex: 1 }}>
+            <Text
+              variant="label"
+              color="textMuted"
+              style={{ textTransform: "uppercase" }}
+            >
+              {t("billing.currentPlan")}
+            </Text>
+            <Text variant="subtitle">{summary.plan.name}</Text>
+            <Text variant="caption" color="textMuted">
+              {t("billing.renewsAt", { date: renewsDate })}
+            </Text>
+          </View>
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={theme.colors.textMuted}
+          />
+        </View>
+      </PressableScale>
+
+      {onPickQuickTopup ? (
+        <View style={{ gap: 8 }}>
+          <Text
+            variant="label"
+            color="textMuted"
+            style={{ textTransform: "uppercase" }}
+          >
+            {t("billing.quickAmounts")}
+          </Text>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            {QUICK_TOPUPS.map((amount) => (
+              <PressableScale
+                key={amount}
+                onPress={() => onPickQuickTopup(amount)}
+                haptic="selection"
+                scaleTo={0.94}
+                style={{
+                  flex: 1,
+                  backgroundColor: theme.colors.primary,
+                  borderRadius: theme.radii.pill,
+                  paddingVertical: 14,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text variant="button" color="textInverse">
+                  ₴ {amount}
+                </Text>
+              </PressableScale>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
       <View
         style={{
           backgroundColor: theme.colors.surface,
@@ -28,17 +158,82 @@ export function BillingOverview({ summary }: Props) {
           padding: theme.spacing.lg,
           borderWidth: 1,
           borderColor: theme.colors.border,
-          gap: 4,
+          gap: 12,
         }}
       >
-        <Text variant="label" color="textMuted" style={{ textTransform: "uppercase" }}>
-          {t("billing.currentPlan")}
-        </Text>
-        <Text variant="subtitle">{summary.plan.name}</Text>
-        <Text variant="caption" color="textMuted">
-          {t("billing.renewsAt", { date: renewsDate })}
-        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 8,
+          }}
+        >
+          <Text variant="subtitle">{t("billing.weekSummaryTitle")}</Text>
+          <View
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 15,
+              backgroundColor: theme.colors.accent,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons
+              name="trending-up"
+              size={16}
+              color={theme.colors.accentText}
+            />
+          </View>
+        </View>
+        <View style={{ flexDirection: "row", gap: 14 }}>
+          <Stat
+            label={t("billing.weekCalls")}
+            value={String(weekStats.count)}
+          />
+          <Stat
+            label={t("billing.weekMinutes")}
+            value={Math.round(weekStats.seconds / 60).toString()}
+          />
+          <Stat
+            label={t("billing.weekSpend")}
+            value={`₴ ${formatCentsAsUah(weekStats.cents)}`}
+          />
+        </View>
+        {weekStats.count === 0 ? (
+          <Text variant="caption" color="textMuted">
+            {t("billing.weekEmpty")}
+          </Text>
+        ) : null}
       </View>
+    </View>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  const theme = useTheme();
+  return (
+    <View style={{ flex: 1, gap: 4 }}>
+      <Text variant="numeric" style={{ fontSize: 22, lineHeight: 26 }}>
+        {value}
+      </Text>
+      <Text
+        variant="label"
+        color="textMuted"
+        style={{ textTransform: "uppercase" }}
+      >
+        {label}
+      </Text>
+      <View
+        style={{
+          height: 3,
+          width: 24,
+          borderRadius: 2,
+          backgroundColor: theme.colors.borderStrong,
+          opacity: 0.5,
+        }}
+      />
     </View>
   );
 }

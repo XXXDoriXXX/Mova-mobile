@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -15,6 +15,12 @@ import { newIdempotencyKey } from "@/utils/idempotency-key";
 
 type Props = {
   onSuccess: (info: { balanceCents: number; reused: boolean }) => void;
+  /** Optional amount (in UAH) to pre-fill the input with — used when
+   *  the Overview tab routes the user here via a quick-amount chip. */
+  initialAmountUah?: number;
+  /** Called once after the prefill has been applied so the parent can
+   *  clear its `topupPrefill` state and not re-apply on next mount. */
+  onConsumePrefill?: () => void;
 };
 
 // Backend allows 100..100_000 cents — i.e. 1..1000 UAH per topup.
@@ -22,12 +28,28 @@ const QUICK_AMOUNTS = [50, 100, 500];
 const MIN_UAH = 1;
 const MAX_UAH = 1000;
 
-export function TopupForm({ onSuccess }: Props) {
+export function TopupForm({
+  onSuccess,
+  initialAmountUah,
+  onConsumePrefill,
+}: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const [amount, setAmount] = useState("100");
+  const [amount, setAmount] = useState(
+    initialAmountUah ? String(initialAmountUah) : "100",
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Apply prefill on every mount when present, then notify parent so
+  // the value isn't re-applied if the user switches away and back.
+  useEffect(() => {
+    if (initialAmountUah) {
+      setAmount(String(initialAmountUah));
+      onConsumePrefill?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialAmountUah]);
 
   // Pull the plan from the shared TanStack cache (already populated by the
   // parent's overview tab) so we can estimate minutes from the entered amount.
