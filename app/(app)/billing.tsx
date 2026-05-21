@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, ScrollView, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -65,6 +65,10 @@ export default function BillingScreen() {
 
   return (
     <Screen>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
       <View style={{ flex: 1, gap: theme.spacing.md, paddingTop: 4 }}>
         <View
           style={{
@@ -148,6 +152,7 @@ export default function BillingScreen() {
           ) : null}
         </ScrollView>
       </View>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }
