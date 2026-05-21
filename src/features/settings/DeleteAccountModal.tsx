@@ -67,6 +67,7 @@ export function DeleteAccountModal({ visible, onClose }: Props) {
             <Button
               label={t("common.cancel")}
               variant="secondary"
+              size="md"
               onPress={handleClose}
             />
           </View>
@@ -74,6 +75,7 @@ export function DeleteAccountModal({ visible, onClose }: Props) {
             <Button
               label={t("settings.deleteAccountConfirm")}
               variant="danger"
+              size="md"
               loading={mutation.isPending}
               disabled={!password}
               onPress={() => {

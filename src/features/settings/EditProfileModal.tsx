@@ -119,12 +119,14 @@ export function EditProfileModal({ visible, onClose }: Props) {
             <Button
               label={t("common.cancel")}
               variant="secondary"
+              size="md"
               onPress={onClose}
             />
           </View>
           <View style={{ flex: 1 }}>
             <Button
               label={t("common.save")}
+              size="md"
               loading={mutation.isPending}
               onPress={handleSubmit}
             />

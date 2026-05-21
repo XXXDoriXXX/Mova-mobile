@@ -53,7 +53,7 @@ export function AppearanceModal({ visible, onClose }: Props) {
           </View>
         </View>
 
-        <Button label={t("common.save")} onPress={onClose} />
+        <Button label={t("common.save")} size="md" onPress={onClose} />
       </View>
     </Modal>
   );
