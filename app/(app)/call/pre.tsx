@@ -167,12 +167,12 @@ export default function PreCallScreen() {
           />
         </View>
         <IconButton
-          size={54}
+          size={48}
           tone="muted"
           onPress={() => setPickingContact(true)}
           accessibilityLabel={t("preCall.contactsTitle")}
         >
-          <Ionicons name="people" size={22} color={theme.colors.text} />
+          <Ionicons name="people" size={20} color={theme.colors.text} />
         </IconButton>
       </View>
 

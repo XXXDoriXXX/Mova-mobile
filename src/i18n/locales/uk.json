@@ -192,6 +192,7 @@
     "title": "Стилі розмови",
     "builtinSection": "Готові",
     "customSection": "Ваші",
+    "customEmpty": "Своїх стилів ще немає. Натисніть «+» вгорі, щоб створити.",
     "newCta": "Новий стиль",
     "preferredLabel": "Стиль за замовчуванням",
     "preferredHint": "Використовується, якщо у шаблоні не задано окремий",
@@ -214,6 +215,7 @@
       "history": "Історія"
     },
     "currentPlan": "Тариф",
+    "currentPlanBadge": "Зараз ваш",
     "balance": "Баланс",
     "freeQuota": "Безкоштовна квота",
     "renewsAt": "Оновиться {{date}}",

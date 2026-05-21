@@ -57,28 +57,22 @@ export default function WelcomeScreen() {
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                gap: theme.spacing.md,
-                backgroundColor: theme.colors.surface,
-                borderRadius: theme.radii.xl,
-                borderWidth: 1,
-                borderColor: theme.colors.border,
-                paddingHorizontal: 14,
-                paddingVertical: 12,
+                gap: 14,
               }}
             >
               <View
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 12,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: theme.colors.surfaceMuted,
+                  backgroundColor: theme.colors.accent,
                 }}
               >
-                <Ionicons name={f.icon} size={20} color={theme.colors.text} />
+                <Ionicons name={f.icon} size={18} color={theme.colors.accentText} />
               </View>
-              <Text variant="bodyLarge" weight="bold" style={{ flex: 1 }}>
+              <Text variant="body" weight="bold" style={{ flex: 1 }}>
                 {t(f.i18nKey)}
               </Text>
             </View>

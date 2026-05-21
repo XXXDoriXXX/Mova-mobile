@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, ScrollView, View } from "react-native";
+import { Alert, Pressable, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
@@ -159,18 +159,30 @@ export default function SettingsScreen() {
           />
         </Section>
 
-        <View style={{ gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
+        <View style={{ gap: theme.spacing.md, marginTop: theme.spacing.md }}>
           <Button
             label={t("settings.logout")}
             variant="secondary"
             loading={loggingOut}
             onPress={handleLogout}
           />
-          <Button
-            label={t("settings.deleteAccount")}
-            variant="ghost"
+          {/* Destructive action is intentionally low-key — a small text
+              link, not a button. Users who want it will find it; users
+              who don't won't tap it by accident. */}
+          <Pressable
             onPress={() => setDeletingAccount(true)}
-          />
+            hitSlop={12}
+            accessibilityRole="button"
+          >
+            <Text
+              variant="caption"
+              color="danger"
+              align="center"
+              style={{ textDecorationLine: "underline" }}
+            >
+              {t("settings.deleteAccount")}
+            </Text>
+          </Pressable>
         </View>
       </ScrollView>
 

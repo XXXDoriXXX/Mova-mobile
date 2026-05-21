@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { Alert, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { Alert, BackHandler, Pressable, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
@@ -107,6 +107,21 @@ export default function LiveCallScreen() {
     ]);
   }
 
+  // Android hardware back during an active call must NOT silently leave the
+  // screen — that would orphan the live connection on the backend while the
+  // user sees a stale /call/pre. Surface the same hang-up confirm instead.
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+        if (endInfo || fatalError) return false; // let the system handle it
+        handleEnd();
+        return true;
+      });
+      return () => sub.remove();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [endInfo, fatalError]),
+  );
+
   if (!params.conversationId || !accessToken) {
     return (
       <Screen>
@@ -147,7 +162,6 @@ export default function LiveCallScreen() {
         secondsRemaining={
           usageTick?.planCode === "free" ? usageTick.secondsRemaining : null
         }
-        onBack={() => router.back()}
         onSettings={() => setSettingsOpen(true)}
         onEnd={handleEnd}
         reconnecting={reconnecting}
@@ -196,16 +210,23 @@ export default function LiveCallScreen() {
 type HeaderProps = {
   durationSeconds: number;
   secondsRemaining: number | null;
-  onBack: () => void;
   onSettings: () => void;
   onEnd: () => void;
   reconnecting: boolean;
 };
 
+/**
+ * In-call header — only TWO controls: a wide identity pill that doubles as
+ * the settings entry-point, and a danger hangup button on the right.
+ *
+ * There is no back button: the previous implementation routed back to
+ * /call/pre without ending the call, orphaning the live connection. Now
+ * the only way out is the hangup button (or Android hardware back, which
+ * we intercept above to show the same confirm).
+ */
 function Header({
   durationSeconds,
   secondsRemaining,
-  onBack,
   onSettings,
   onEnd,
   reconnecting,
@@ -222,15 +243,15 @@ function Header({
         paddingHorizontal: theme.spacing.page,
         paddingTop: 6,
         paddingBottom: 10,
-        gap: 8,
+        gap: 10,
       }}
     >
-      <IconButton onPress={onBack} accessibilityLabel={t("common.back")}>
-        <Ionicons name="chevron-back" size={20} color={theme.colors.text} />
-      </IconButton>
-
-      <View
-        style={{
+      <Pressable
+        onPress={onSettings}
+        accessibilityRole="button"
+        accessibilityLabel={t("liveSettings.title")}
+        style={({ pressed }) => ({
+          flex: 1,
           flexDirection: "row",
           alignItems: "center",
           gap: 10,
@@ -239,12 +260,12 @@ function Header({
           borderWidth: 1,
           borderRadius: 999,
           paddingLeft: 6,
-          paddingRight: 14,
+          paddingRight: 12,
           paddingVertical: 6,
-          flexShrink: 1,
-        }}
+          opacity: pressed ? 0.85 : 1,
+        })}
       >
-        <FaceAvatar size={28} />
+        <FaceAvatar size={32} />
         <View style={{ flexShrink: 1 }}>
           <Text
             variant="caption"
@@ -254,7 +275,9 @@ function Header({
           >
             {t("live.callee")}
           </Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 1 }}>
+          <View
+            style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 1 }}
+          >
             <View
               style={{
                 width: 6,
@@ -271,21 +294,26 @@ function Header({
             </Text>
           </View>
         </View>
-      </View>
+        <Ionicons
+          name="options"
+          size={16}
+          color={theme.colors.textMuted}
+          style={{ marginLeft: "auto" }}
+        />
+      </Pressable>
 
-      <IconButton
-        onPress={onSettings}
-        accessibilityLabel={t("liveSettings.title")}
-      >
-        <Ionicons name="options" size={18} color={theme.colors.text} />
-      </IconButton>
       <IconButton
         tone="danger"
         shadow
         onPress={onEnd}
         accessibilityLabel={t("live.endCall")}
       >
-        <Ionicons name="call" size={20} color={theme.colors.primaryText} style={{ transform: [{ rotate: "135deg" }] }} />
+        <Ionicons
+          name="call"
+          size={20}
+          color={theme.colors.primaryText}
+          style={{ transform: [{ rotate: "135deg" }] }}
+        />
       </IconButton>
     </View>
   );
