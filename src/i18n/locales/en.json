@@ -169,6 +169,7 @@
     "delete": "Delete",
     "deleteSuccess": "Call deleted",
     "deleteError": "Couldn't delete",
+    "loadMore": "Show more",
     "interrupted": "(interrupted)",
     "jumpToBottom": "Jump to latest"
   },

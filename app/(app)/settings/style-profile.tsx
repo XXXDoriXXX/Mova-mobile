@@ -174,6 +174,7 @@ export default function StyleProfileScreen() {
           <Button
             label={t("settings.styleProfileReset")}
             variant="ghost"
+            size="md"
             onPress={() => setConfirming(true)}
           />
         ) : null}

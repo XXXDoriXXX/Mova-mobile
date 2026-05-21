@@ -99,22 +99,29 @@ export function CallEnding({ info, onNewCall, onHistory }: Props) {
         ) : null}
       </View>
 
-      <View style={{ gap: theme.spacing.sm }}>
+      {/* Recovery actions. We deliberately keep only ONE full-width
+          CTA so the post-call sheet doesn't feel like a wall of
+          buttons: balance-exhausted promotes "Top up", otherwise the
+          primary is "New call". "Go to history" is a small ghost link
+          underneath. */}
+      <View style={{ gap: 4 }}>
         {balanceExhausted ? (
           <Button
             label={t("preCall.topupCta")}
             variant="accent"
             onPress={() => router.replace("/billing")}
           />
-        ) : null}
-        <Button
-          label={t("live.endingNewCall")}
-          variant={balanceExhausted ? "secondary" : "primary"}
-          onPress={onNewCall}
-        />
+        ) : (
+          <Button
+            label={t("live.endingNewCall")}
+            variant="primary"
+            onPress={onNewCall}
+          />
+        )}
         <Button
           label={t("live.endingGoHistory")}
           variant="ghost"
+          size="md"
           onPress={onHistory}
         />
       </View>

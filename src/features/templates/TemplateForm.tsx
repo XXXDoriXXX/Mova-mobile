@@ -135,6 +135,7 @@ export function TemplateForm({ initial, onSubmit }: Props) {
       <Button
         label={t("templates.form.advanced")}
         variant="ghost"
+        size="md"
         onPress={() => setAdvancedOpen((v) => !v)}
       />
 
