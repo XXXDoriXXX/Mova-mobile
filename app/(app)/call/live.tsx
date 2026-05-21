@@ -178,7 +178,13 @@ export default function LiveCallScreen() {
     );
   }
 
-  const showConnectingState = status === "connecting" && bubbles.length === 0;
+  // Keep the ringing-loader on screen until we have a real interlocutor
+  // (status === "active") or we already have transcript bubbles. The
+  // `bubbles.length` escape hatch covers race cases where the very first
+  // transcript outraced the `call.answered` event — the chat should win
+  // since there is real content to render.
+  const showConnectingState =
+    (status === "connecting" || status === "ringing") && bubbles.length === 0;
   const reconnecting = status === "reconnecting";
 
   return (

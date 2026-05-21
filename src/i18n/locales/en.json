@@ -339,6 +339,10 @@
         "title": "Couldn't connect",
         "body": "Our service didn't answer in time. Likely a temporary glitch — give it another try."
       },
+      "noAnswer": {
+        "title": "Nobody picked up",
+        "body": "We rang for almost a minute with no answer. Try again later."
+      },
       "balance": {
         "title": "Out of balance",
         "body": "Top up to keep talking."

@@ -40,6 +40,7 @@ export function CallConnecting() {
   const { t } = useTranslation();
   const theme = useTheme();
   const wsConnected = useCallStore((s) => s.wsConnected);
+  const status = useCallStore((s) => s.status);
   const startedAt = useCallStore((s) => s.connectStartedAt);
 
   const [now, setNow] = useState(Date.now());
@@ -49,13 +50,25 @@ export function CallConnecting() {
   }, []);
 
   const elapsedMs = startedAt ? now - startedAt : 0;
-  const phase: Phase = !wsConnected
-    ? "handshake"
-    : elapsedMs < 5_000
-      ? "dialing"
-      : elapsedMs < 12_000
-        ? "ringing"
-        : "stalled";
+  // Prefer the authoritative status when it's available:
+  //   - `ringing` → backend confirmed the dial fired and we're waiting
+  //     for the phone to pick up. Use the time elapsed inside ringing to
+  //     decide between dialing copy (early) and stalled copy (very late).
+  //   - otherwise → derive from WS connectivity + elapsed time as before.
+  const phase: Phase =
+    status === "ringing"
+      ? elapsedMs < 5_000
+        ? "dialing"
+        : elapsedMs < 25_000
+          ? "ringing"
+          : "stalled"
+      : !wsConnected
+        ? "handshake"
+        : elapsedMs < 5_000
+          ? "dialing"
+          : elapsedMs < 12_000
+            ? "ringing"
+            : "stalled";
 
   // Pulsing circle scale — driven on the UI thread so it doesn't tick
   // with React's render cadence.

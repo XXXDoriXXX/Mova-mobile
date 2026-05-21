@@ -5,6 +5,7 @@ import type { CallErrorCode } from "@/realtime/error-codes";
 export type CallStatus =
   | "idle"
   | "connecting"
+  | "ringing"
   | "active"
   | "reconnecting"
   | "ended";
@@ -137,7 +138,8 @@ export const useCallStore = create<CallState>((set) => ({
       // connecting phase so the UI can compute elapsed-time-based
       // copy ("still ringing…") and the watchdog can time out.
       const connectStartedAt =
-        status === "connecting" && prev.connectStartedAt === null
+        (status === "connecting" || status === "ringing") &&
+        prev.connectStartedAt === null
           ? Date.now()
           : status === "active" || status === "ended"
             ? null
