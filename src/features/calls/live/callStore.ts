@@ -45,6 +45,15 @@ export type UsageTick = {
 
 type CallState = {
   status: CallStatus;
+  /** Whether the WebSocket transport itself is currently connected.
+   *  Distinct from `status` (which tracks the call lifecycle): we can
+   *  have `wsConnected: true` while still in `status: "connecting"`
+   *  because the call is waiting on backend dial + livekit handshake. */
+  wsConnected: boolean;
+  /** ms-since-epoch when the screen first started the connect flow.
+   *  Used by the live screen to compute the "phase" copy
+   *  ("ringing", "still ringing…") and to gate the connect-timeout. */
+  connectStartedAt: number | null;
   bubbles: Bubble[];
   suggestions: CallSuggestion[];
   aiThinking: boolean;
@@ -58,6 +67,7 @@ type CallState = {
 
   reset: () => void;
   setStatus: (status: CallStatus) => void;
+  setWsConnected: (connected: boolean) => void;
   setActiveStyleId: (styleId: string | null) => void;
   setActiveVoice: (voice: string | null) => void;
   setLastStreamId: (id: string | null) => void;
@@ -91,6 +101,8 @@ const PARTIAL_AI_ID = "__partial_ai__";
 
 export const useCallStore = create<CallState>((set) => ({
   status: "idle",
+  wsConnected: false,
+  connectStartedAt: null,
   bubbles: [],
   suggestions: [],
   aiThinking: false,
@@ -105,6 +117,8 @@ export const useCallStore = create<CallState>((set) => ({
   reset: () =>
     set({
       status: "idle",
+      wsConnected: false,
+      connectStartedAt: null,
       bubbles: [],
       suggestions: [],
       aiThinking: false,
@@ -117,7 +131,20 @@ export const useCallStore = create<CallState>((set) => ({
       endInfo: null,
     }),
 
-  setStatus: (status) => set({ status }),
+  setStatus: (status) =>
+    set((prev) => {
+      // Stamp the connect-start time the first time we enter the
+      // connecting phase so the UI can compute elapsed-time-based
+      // copy ("still ringing…") and the watchdog can time out.
+      const connectStartedAt =
+        status === "connecting" && prev.connectStartedAt === null
+          ? Date.now()
+          : status === "active" || status === "ended"
+            ? null
+            : prev.connectStartedAt;
+      return { status, connectStartedAt };
+    }),
+  setWsConnected: (connected) => set({ wsConnected: connected }),
   setActiveStyleId: (styleId) => set({ activeStyleId: styleId }),
   setActiveVoice: (voice) => set({ activeVoice: voice }),
   setLastStreamId: (id) => set({ lastStreamId: id }),

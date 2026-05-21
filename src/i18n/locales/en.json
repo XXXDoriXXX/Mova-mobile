@@ -312,7 +312,54 @@
     "whoYou": "You",
     "composerHint": "AI will speak your message",
     "errorRecoverable": "{{message}}",
-    "errorTerminal": "{{message}}"
+    "errorTerminal": "{{message}}",
+    "connectPhases": {
+      "handshake": {
+        "title": "Connecting to server",
+        "body": "Opening a secure channel for your call"
+      },
+      "dialing": {
+        "title": "Dialing",
+        "body": "Spinning up the AI voice and opening the line"
+      },
+      "ringing": {
+        "title": "Ringing",
+        "body": "Hold on a moment while it connects."
+      },
+      "stalled": {
+        "title": "This is taking longer than usual",
+        "body": "If nothing changes we'll let you try again."
+      }
+    },
+    "fatalCode": "Code: {{code}}",
+    "fatalRetry": "Try again",
+    "fatalClose": "Close",
+    "fatalReasons": {
+      "connectTimeout": {
+        "title": "Couldn't connect",
+        "body": "Our service didn't answer in time. Likely a temporary glitch — give it another try."
+      },
+      "balance": {
+        "title": "Out of balance",
+        "body": "Top up to keep talking."
+      },
+      "livekit": {
+        "title": "Lost the line",
+        "body": "We lost the link to the telephony provider. Try dialing again."
+      },
+      "agent": {
+        "title": "AI agent dropped",
+        "body": "The voice assistant disappeared mid-call. Usually temporary."
+      },
+      "callTimeout": {
+        "title": "Call time limit reached",
+        "body": "The call hit the maximum allowed duration and ended automatically."
+      },
+      "generic": {
+        "title": "Something went wrong",
+        "body": "Our team is already on it. Try again — it usually works the second time."
+      }
+    }
   },
   "history": {
     "title": "History",
