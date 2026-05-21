@@ -223,7 +223,11 @@ export default function LiveCallScreen() {
         <>
           <Transcript bubbles={bubbles} aiThinking={aiThinking} />
           <SuggestionChips items={suggestions} onPick={handleSuggestion} />
-          <MessageInput onSend={handleSend} disabled={status !== "active"} />
+          {/* Allow typing as soon as the call has any signal of life. Only
+              hard-disable on the terminal `ended` state — `reconnecting`
+              would otherwise lock the composer during a brief WS flap with
+              no chance to recover the typed text. */}
+          <MessageInput onSend={handleSend} disabled={status === "ended"} />
         </>
       )}
     </Screen>
