@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,6 +10,7 @@ import { IconButton } from "@/components/IconButton";
 import { KeyboardScreen } from "@/components/KeyboardScreen";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
+import { confirm } from "@/feedback/dialogStore";
 import { toast } from "@/feedback/toast";
 import { useTheme } from "@/theme/ThemeProvider";
 import { createStyle, deleteStyle, listStyles, updateStyle } from "@/api/styles";
@@ -73,28 +74,26 @@ export default function StyleEditScreen() {
     }
   }
 
-  function onDelete() {
+  async function onDelete() {
     if (!initial) return;
-    Alert.alert(t("styles.form.deleteConfirm"), undefined, [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("common.delete"),
-        style: "destructive",
-        onPress: async () => {
-          setDeleting(true);
-          try {
-            await deleteStyle(initial.id);
-            invalidate();
-            toast.success(t("styles.form.deleted"));
-            router.back();
-          } catch {
-            toast.error(t("styles.form.saveError"));
-          } finally {
-            setDeleting(false);
-          }
-        },
-      },
-    ]);
+    const ok = await confirm({
+      title: t("styles.form.deleteConfirm"),
+      confirmLabel: t("common.delete"),
+      destructive: true,
+      icon: "trash-outline",
+    });
+    if (!ok) return;
+    setDeleting(true);
+    try {
+      await deleteStyle(initial.id);
+      invalidate();
+      toast.success(t("styles.form.deleted"));
+      router.back();
+    } catch {
+      toast.error(t("styles.form.saveError"));
+    } finally {
+      setDeleting(false);
+    }
   }
 
   if (!isNew && stylesQuery.isLoading) {

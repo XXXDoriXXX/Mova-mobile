@@ -8,6 +8,7 @@ import { Button } from "@/components/Button";
 import { Chip } from "@/components/Chip";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
+import { useUnsavedChanges } from "@/feedback/useUnsavedChanges";
 import { useTheme } from "@/theme/ThemeProvider";
 import { extractErrorPayload } from "@/api/client";
 import type { Template } from "@/types/api";
@@ -32,7 +33,7 @@ export function TemplateForm({ initial, onSubmit }: Props) {
     setError,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<TemplateFormValues>({
     resolver: zodResolver(templateFormSchema),
     defaultValues: {
@@ -41,6 +42,17 @@ export function TemplateForm({ initial, onSubmit }: Props) {
       systemPrompt: initial?.systemPrompt ?? "",
       language: initial?.language ?? "uk",
     },
+  });
+
+  // Guard against accidental data loss. The hook intercepts back gestures
+  // + tab switches + `router.back()` and asks the user to confirm before
+  // tossing the in-progress edits. Submitting clears `isDirty` so the
+  // exit path after a successful save is unblocked.
+  useUnsavedChanges({
+    dirty: isDirty && !submitting,
+    title: t("common.discardChangesTitle"),
+    body: t("common.discardChangesBody"),
+    confirmLabel: t("common.discard"),
   });
 
   const language = watch("language");

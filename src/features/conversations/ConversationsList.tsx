@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { Alert, FlatList, Pressable, RefreshControl, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -7,13 +7,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Avatar } from "@/components/Avatar";
+import { EmptyState } from "@/components/EmptyState";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
+import { actionSheet, confirm } from "@/feedback/dialogStore";
 import { toast } from "@/feedback/toast";
 import { useTheme } from "@/theme/ThemeProvider";
 import { deleteConversation, listConversations } from "@/api/conversations";
 import type { Conversation } from "@/types/api";
 import { formatDuration, formatRelativeFromNow } from "@/utils/format";
+import { triggerHaptic } from "@/utils/haptics";
 import { formatPhoneForDisplay } from "@/utils/phone";
 
 import { ConversationsSkeleton } from "./ConversationsSkeleton";
@@ -59,17 +62,6 @@ export function ConversationsList({ onOpen, status }: Props) {
     onError: () => toast.error(t("conversation.deleteError")),
   });
 
-  function confirmDelete(c: Conversation) {
-    Alert.alert(t("conversation.deleteConfirm"), undefined, [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("conversation.delete"),
-        style: "destructive",
-        onPress: () => deleteMut.mutate(c.id),
-      },
-    ]);
-  }
-
   const items = query.data?.pages.flatMap((p) => p.items) ?? [];
 
   function quickRecall(c: Conversation) {
@@ -77,6 +69,31 @@ export function ConversationsList({ onOpen, status }: Props) {
       pathname: "/call/pre",
       params: { prefillPhone: c.targetPhone },
     });
+  }
+
+  // Long-press opens an ActionSheet with the three meaningful actions
+  // for a past call — recall, open, delete. Replaces the flat
+  // long-press-to-delete shortcut which was easy to fire accidentally.
+  async function openActions(c: Conversation) {
+    const chosen = await actionSheet({
+      title: formatPhoneForDisplay(c.targetPhone),
+      actions: [
+        { id: "recall", label: t("history.recall"), icon: "call-outline" },
+        { id: "open", label: t("history.open"), icon: "chatbubbles-outline" },
+        { id: "delete", label: t("conversation.delete"), icon: "trash-outline", destructive: true },
+      ],
+    });
+    if (chosen === "recall") quickRecall(c);
+    else if (chosen === "open") onOpen(c.id);
+    else if (chosen === "delete") {
+      const ok = await confirm({
+        title: t("conversation.deleteConfirm"),
+        confirmLabel: t("conversation.delete"),
+        destructive: true,
+        icon: "trash-outline",
+      });
+      if (ok) deleteMut.mutate(c.id);
+    }
   }
 
   const renderItem = useCallback(
@@ -97,7 +114,7 @@ export function ConversationsList({ onOpen, status }: Props) {
         >
         <Pressable
           onPress={() => onOpen(item.id)}
-          onLongPress={() => confirmDelete(item)}
+          onLongPress={() => openActions(item)}
           style={({ pressed }) => ({
             flexDirection: "row",
             alignItems: "center",
@@ -154,23 +171,13 @@ export function ConversationsList({ onOpen, status }: Props) {
   if (query.isLoading) return <ConversationsSkeleton />;
   if (items.length === 0) {
     return (
-      <View
-        style={{
-          paddingVertical: theme.spacing.xl,
-          paddingHorizontal: theme.spacing.lg,
-          backgroundColor: theme.colors.surface,
-          borderRadius: theme.radii.xxl,
-          borderWidth: 1,
-          borderColor: theme.colors.border,
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
-        <Ionicons name="time-outline" size={28} color={theme.colors.textMuted} />
-        <Text color="textMuted" align="center">
-          {t("history.empty")}
-        </Text>
-      </View>
+      <EmptyState
+        icon="time-outline"
+        title={t("history.empty")}
+        body={t("history.emptyBody")}
+        ctaLabel={t("home.startCallCta")}
+        onCta={() => router.push("/call/pre")}
+      />
     );
   }
 
@@ -188,7 +195,10 @@ export function ConversationsList({ onOpen, status }: Props) {
       refreshControl={
         <RefreshControl
           refreshing={query.isRefetching && !query.isFetchingNextPage}
-          onRefresh={() => query.refetch()}
+          onRefresh={() => {
+            triggerHaptic("light");
+            void query.refetch();
+          }}
           tintColor={theme.colors.text}
         />
       }

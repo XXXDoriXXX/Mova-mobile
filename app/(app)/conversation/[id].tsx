@@ -1,4 +1,12 @@
-import { Alert, Share, ScrollView, View } from "react-native";
+import { useRef, useState } from "react";
+import {
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  Share,
+  ScrollView,
+  View,
+} from "react-native";
+import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   useInfiniteQuery,
@@ -14,6 +22,7 @@ import { Button } from "@/components/Button";
 import { Chip } from "@/components/Chip";
 import { IconButton } from "@/components/IconButton";
 import { Pill } from "@/components/Pill";
+import { confirm } from "@/feedback/dialogStore";
 import { toast } from "@/feedback/toast";
 import { Screen } from "@/components/Screen";
 import { Spinner } from "@/components/Spinner";
@@ -50,6 +59,18 @@ export default function ConversationDetailScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
+
+  // Scroll tracking — surfaces a floating "scroll to bottom" chip when
+  // the user has wandered up the transcript by more than 600 px. Long
+  // transcripts on a phone benefit from a fast way back to the latest.
+  const scrollRef = useRef<ScrollView>(null);
+  const [showJumpToBottom, setShowJumpToBottom] = useState(false);
+  function handleScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
+    const { contentSize, contentOffset, layoutMeasurement } = e.nativeEvent;
+    const distanceFromBottom =
+      contentSize.height - contentOffset.y - layoutMeasurement.height;
+    setShowJumpToBottom(distanceFromBottom > 600);
+  }
 
   const convQuery = useQuery({
     queryKey: ["conversation", id],
@@ -97,15 +118,14 @@ export default function ConversationDetailScreen() {
       messages,
     });
 
-  function confirmDelete() {
-    Alert.alert(t("conversation.deleteConfirm"), undefined, [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("conversation.delete"),
-        style: "destructive",
-        onPress: () => deleteMut.mutate(),
-      },
-    ]);
+  async function confirmDelete() {
+    const ok = await confirm({
+      title: t("conversation.deleteConfirm"),
+      confirmLabel: t("conversation.delete"),
+      destructive: true,
+      icon: "trash-outline",
+    });
+    if (ok) deleteMut.mutate();
   }
 
   const aiChips = [c.initialLlmProvider, c.initialTtsProvider, c.initialVoice].filter(
@@ -115,6 +135,9 @@ export default function ConversationDetailScreen() {
   return (
     <Screen>
       <ScrollView
+        ref={scrollRef}
+        onScroll={handleScroll}
+        scrollEventThrottle={64}
         contentContainerStyle={{
           gap: theme.spacing.md,
           paddingTop: 4,
@@ -235,6 +258,31 @@ export default function ConversationDetailScreen() {
           />
         ) : null}
       </ScrollView>
+      {showJumpToBottom ? (
+        <Animated.View
+          entering={FadeInDown.duration(200).springify().damping(14)}
+          exiting={FadeOutDown.duration(140)}
+          style={{
+            position: "absolute",
+            right: 18,
+            bottom: 22,
+            zIndex: 100,
+          }}
+          pointerEvents="box-none"
+        >
+          <IconButton
+            tone="ink"
+            shadow
+            size={48}
+            onPress={() =>
+              scrollRef.current?.scrollToEnd({ animated: true })
+            }
+            accessibilityLabel={t("conversation.jumpToBottom")}
+          >
+            <Ionicons name="arrow-down" size={20} color={theme.colors.primaryText} />
+          </IconButton>
+        </Animated.View>
+      ) : null}
     </Screen>
   );
 }

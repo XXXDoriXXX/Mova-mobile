@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, BackHandler, Pressable, View } from "react-native";
+import { BackHandler, Pressable, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,6 +14,7 @@ import { Screen } from "@/components/Screen";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
+import { confirm } from "@/feedback/dialogStore";
 import { toast } from "@/feedback/toast";
 import { useAuthStore } from "@/auth/store";
 import { useCallStore } from "@/features/calls/live/callStore";
@@ -106,17 +107,18 @@ export default function LiveCallScreen() {
     send({ type: "user.accept_suggestion", data: { suggestionId: s.id } });
   }
 
-  function handleEnd() {
-    // Confirm before terminating — the End button is at the screen edge and
-    // single-tap dismissals during a live call are unrecoverable.
-    Alert.alert(t("live.endCallConfirmTitle"), undefined, [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("live.endCall"),
-        style: "destructive",
-        onPress: () => send({ type: "user.end_call" }),
-      },
-    ]);
+  async function handleEnd() {
+    // Confirm before terminating — single-tap dismissals during a live
+    // call are unrecoverable, so we always gate this through the brand
+    // confirm sheet.
+    const ok = await confirm({
+      title: t("live.endCallConfirmTitle"),
+      body: t("live.endCallConfirmBody"),
+      confirmLabel: t("live.endCall"),
+      destructive: true,
+      icon: "call",
+    });
+    if (ok) send({ type: "user.end_call" });
   }
 
   // Android hardware back during an active call must NOT silently leave the
