@@ -45,3 +45,21 @@ export function dayPartFor(date: Date = new Date()): DayPart {
   if (h < 23) return "evening";
   return "night";
 }
+
+/**
+ * Builds the i18n key for the greeting line. Twenty per-cent of the time
+ * we pick the `_alt` variant (each day-part has a playful B-side, e.g.
+ * "Каву вже випили?" instead of "Доброго ранечку") — small surprises
+ * make the app feel alive without the prankster lever ever pulling
+ * something annoying.
+ *
+ * Stable per render (caller doesn't pass `Math.random()`); accept an
+ * optional random seed for tests.
+ */
+export function greetingKey(
+  part: DayPart = dayPartFor(),
+  random: number = Math.random(),
+): string {
+  const useAlt = random < 0.2;
+  return useAlt ? `home.greeting_${part}_alt` : `home.greeting_${part}`;
+}

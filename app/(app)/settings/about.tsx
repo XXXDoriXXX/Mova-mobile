@@ -1,22 +1,28 @@
-import { Linking, ScrollView, View } from "react-native";
+import { useRef, useState } from "react";
+import { Linking, Pressable, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import Constants from "expo-constants";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 import { IconButton } from "@/components/IconButton";
 import { Row } from "@/components/Row";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
+import { triggerHaptic } from "@/utils/haptics";
 
 const SUPPORT_EMAIL = "support@mova.app";
 const BACKEND_REPO = "https://github.com/XXXDoriXXX/MOVA";
 
 /**
  * Static about screen. Brand block at top (display headline + tagline +
- * version), support rows below. Long-press on the title returns to the
- * onboarding wizard — kept hidden because it's a power-user shortcut.
+ * version), support rows below.
+ *
+ * Easter egg: tap the MOVA logotype 7 times in quick succession to reveal
+ * the telephone-cat mascot. The tap window resets after a second of
+ * idleness so accidental triple-taps don't burn the count.
  */
 export default function AboutScreen() {
   const { t } = useTranslation();
@@ -24,6 +30,23 @@ export default function AboutScreen() {
   const router = useRouter();
   const version = Constants.expoConfig?.version ?? "—";
   const buildVersion = Constants.expoConfig?.runtimeVersion ?? version;
+
+  const [eggUnlocked, setEggUnlocked] = useState(false);
+  const tapCount = useRef(0);
+  const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function bumpTitle() {
+    if (eggUnlocked) return;
+    tapCount.current += 1;
+    if (tapTimer.current) clearTimeout(tapTimer.current);
+    tapTimer.current = setTimeout(() => {
+      tapCount.current = 0;
+    }, 900);
+    if (tapCount.current >= 7) {
+      triggerHaptic("success");
+      setEggUnlocked(true);
+    }
+  }
 
   function openMail() {
     const subject = encodeURIComponent("Mova feedback");
@@ -61,9 +84,11 @@ export default function AboutScreen() {
           <Text variant="label" color="textMuted">
             {t("settings.title")}
           </Text>
-          <Text variant="display" style={{ fontSize: 56, lineHeight: 56 }}>
-            MOVA
-          </Text>
+          <Pressable onPress={bumpTitle} accessibilityRole="text">
+            <Text variant="display" style={{ fontSize: 56, lineHeight: 56 }}>
+              MOVA
+            </Text>
+          </Pressable>
           <Text variant="bodyLarge" color="textMuted" style={{ marginTop: 4 }}>
             {t("settings.aboutTagline")}
           </Text>
@@ -71,6 +96,25 @@ export default function AboutScreen() {
             {t("settings.aboutVersion", { version, build: String(buildVersion) })}
           </Text>
         </View>
+
+        {eggUnlocked ? (
+          <Animated.View
+            entering={FadeIn.duration(280)}
+            style={{
+              backgroundColor: theme.colors.accent,
+              borderRadius: theme.radii.xxl,
+              padding: theme.spacing.lg,
+              gap: 4,
+            }}
+          >
+            <Text variant="label" color="accentText" style={{ opacity: 0.7 }}>
+              🐈 СЕКРЕТНО
+            </Text>
+            <Text variant="bodyLarge" color="accentText" weight="bold">
+              {t("settings.easterEgg")}
+            </Text>
+          </Animated.View>
+        ) : null}
 
         <View style={{ gap: 8 }}>
           <Text variant="label" color="textMuted" style={{ textTransform: "uppercase" }}>
