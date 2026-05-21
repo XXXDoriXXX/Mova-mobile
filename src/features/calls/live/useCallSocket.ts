@@ -3,11 +3,22 @@ import { useEffect, useRef } from "react";
 import { triggerHaptic } from "@/utils/haptics";
 import { createCallSocket, onServerEvent, type CallSocket } from "@/realtime/socket";
 import type { ClientCommand, ServerEvent } from "@/realtime/protocol";
-import { isRecoverable } from "@/realtime/error-codes";
+import { CallErrorCode, isRecoverable } from "@/realtime/error-codes";
 
 import { useCallStore } from "./callStore";
 
 const PING_INTERVAL_MS = 20_000;
+
+/**
+ * If we don't receive `call.connected` within this window after mount,
+ * something on the backend chain is dead (worker crashed, livekit
+ * SIP can't dial, agent never joined the room…). We surface a fatal
+ * error so the user has a clear exit + retry instead of staring at
+ * the loader forever.
+ *
+ * 25s is generous: a real PSTN dial-then-pickup is usually 5–15s.
+ */
+const CONNECT_TIMEOUT_MS = 25_000;
 
 export function useCallSocket(opts: {
   conversationId: string;
@@ -32,11 +43,13 @@ export function useCallSocket(opts: {
 
     socket.on("connect", () => {
       const s = useCallStore.getState();
+      s.setWsConnected(true);
       if (s.status === "reconnecting") s.setStatus("active");
     });
 
     socket.io.on("reconnect_attempt", () => {
       const s = useCallStore.getState();
+      s.setWsConnected(false);
       if (s.status !== "ended") s.setStatus("reconnecting");
       // Refresh handshake auth on every reconnect attempt so the server can
       // replay events since `lastStreamId`. Without this, a reconnect
@@ -51,6 +64,7 @@ export function useCallSocket(opts: {
 
     socket.on("disconnect", () => {
       const s = useCallStore.getState();
+      s.setWsConnected(false);
       if (s.status !== "ended") s.setStatus("reconnecting");
     });
 
@@ -64,7 +78,25 @@ export function useCallSocket(opts: {
       sendRef.current?.({ type: "ping" });
     }, PING_INTERVAL_MS);
 
+    // Connect watchdog. Fires once after CONNECT_TIMEOUT_MS; if the
+    // call still hasn't transitioned to "active" (i.e. backend never
+    // emitted `call.connected`) we synthesise a fatal error using
+    // AGENT_LOST — that's the closest existing code, and the screen
+    // formats the message via i18n so the user sees something useful.
+    const connectWatchdog = setTimeout(() => {
+      const s = useCallStore.getState();
+      if (s.status === "connecting" && !s.fatalError && !s.endInfo) {
+        s.setFatalError({
+          code: CallErrorCode.AGENT_LOST,
+          message: "CONNECT_TIMEOUT", // i18n key sentinel, resolved in the UI
+          recoverable: false,
+        });
+        triggerHaptic("error");
+      }
+    }, CONNECT_TIMEOUT_MS);
+
     return () => {
+      clearTimeout(connectWatchdog);
       clearInterval(pingTimer);
       unsubscribe();
       socket.removeAllListeners();
