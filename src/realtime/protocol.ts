@@ -18,8 +18,12 @@ export const WS_PROTOCOL_VERSION = "1" as const;
 // ─────────────────────────────────────────────────────
 
 const envelope = z.object({
-  /** Unique event id — used by clients as `lastEventId` on reconnect. */
-  id: z.string().uuid(),
+  /**
+   * Opaque event id — used by us as `lastStreamId` on reconnect. Producer-
+   * defined format: Redis Stream entries are `<ms>-<seq>`, synthetic events
+   * are UUIDs, gateway-local events are socket.id. Treat as opaque.
+   */
+  id: z.string().min(1),
   /** ISO 8601 timestamp (UTC) of when the event was produced server-side. */
   timestamp: z.string().datetime(),
 });
@@ -46,7 +50,9 @@ export const ServerEvent = {
   transcriptFinal: envelope.extend({
     type: z.literal("transcript.final"),
     data: z.object({
-      messageId: z.string().uuid(),
+      // Opaque: producer currently sends the stream-id (`<ms>-<seq>`), not
+      // a UUID. Constraining to UUID dropped every transcript event.
+      messageId: z.string().min(1),
       text: z.string(),
     }),
   }),
@@ -65,7 +71,7 @@ export const ServerEvent = {
   aiTextFinal: envelope.extend({
     type: z.literal("ai.text.final"),
     data: z.object({
-      messageId: z.string().uuid(),
+      messageId: z.string().min(1),
       text: z.string(),
       source: z.object({
         provider: z.string(),
@@ -77,7 +83,7 @@ export const ServerEvent = {
   aiTtsStart: envelope.extend({
     type: z.literal("ai.tts.start"),
     data: z.object({
-      messageId: z.string().uuid(),
+      messageId: z.string().min(1),
       voice: z.string(),
     }),
   }),
@@ -85,7 +91,7 @@ export const ServerEvent = {
   aiTtsEnd: envelope.extend({
     type: z.literal("ai.tts.end"),
     data: z.object({
-      messageId: z.string().uuid(),
+      messageId: z.string().min(1),
       status: z.enum(["completed", "interrupted", "failed"]),
     }),
   }),
@@ -93,11 +99,11 @@ export const ServerEvent = {
   suggestionsNew: envelope.extend({
     type: z.literal("suggestions.new"),
     data: z.object({
-      parentMessageId: z.string().uuid(),
+      parentMessageId: z.string().min(1),
       items: z
         .array(
           z.object({
-            id: z.string().uuid(),
+            id: z.string().min(1),
             text: z.string().min(1).max(120),
           }),
         )
