@@ -128,6 +128,21 @@ export function useCallSocket(opts: {
 
 function routeEvent(event: ServerEvent) {
   const store = useCallStore.getState();
+
+  // Defensive transition: if we're still in `connecting` and any real event
+  // arrives, the call is provably active even if we missed `call.connected`
+  // (e.g. it was buffered before our handler attached, or the gateway emitted
+  // it with a non-conforming id under an older build). Without this the
+  // composer stays disabled and chips never render even though the wire is
+  // healthy. `call.ended` and `pong` are excluded — they aren't liveness.
+  if (
+    store.status === "connecting" &&
+    event.type !== "call.ended" &&
+    event.type !== "pong"
+  ) {
+    store.setStatus("active");
+  }
+
   switch (event.type) {
     case "call.connected":
       store.setStatus("active");
