@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
+import { Chip } from "@/components/Chip";
 import { IconButton } from "@/components/IconButton";
 import { KeyboardScreen } from "@/components/KeyboardScreen";
 import { Spinner } from "@/components/Spinner";
@@ -163,19 +164,41 @@ export default function TemplateEditScreen() {
         <TemplateForm initial={data} onSubmit={onSubmit} />
       )}
 
+      {/* Secondary actions live in a chip row below the form so they
+          don't compete with the form's primary submit button. Delete is
+          last + red text — destructive but quiet. */}
       {!isNew && !readOnly && data ? (
-        <View style={{ gap: theme.spacing.sm, marginTop: theme.spacing.lg }}>
-          <Button
-            label={t("templates.form.setDefaultCta")}
-            variant="secondary"
-            loading={busy === "default"}
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 8,
+            marginTop: theme.spacing.md,
+          }}
+        >
+          <Chip
+            label={
+              data.isDefault
+                ? t("templates.badgeDefault")
+                : t("templates.form.setDefaultCta")
+            }
+            leading={
+              <Ionicons
+                name={data.isDefault ? "star" : "star-outline"}
+                size={14}
+                color={theme.colors.text}
+              />
+            }
+            selected={data.isDefault}
+            disabled={data.isDefault || busy === "default"}
             onPress={onSetDefault}
-            disabled={data.isDefault}
           />
-          <Button
+          <Chip
             label={t("common.delete")}
-            variant="ghost"
-            loading={busy === "delete"}
+            leading={
+              <Ionicons name="trash-outline" size={14} color={theme.colors.danger} />
+            }
+            disabled={busy === "delete"}
             onPress={onDelete}
           />
         </View>

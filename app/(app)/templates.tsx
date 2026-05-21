@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
-import { Button } from "@/components/Button";
 import { IconButton } from "@/components/IconButton";
 import { Screen } from "@/components/Screen";
 import { Spinner } from "@/components/Spinner";
@@ -73,13 +72,6 @@ export default function TemplatesScreen() {
           </Text>
           <Text variant="title">{t("templates.title")}</Text>
         </View>
-
-        <Button
-          label={t("templates.newCta")}
-          variant="accent"
-          leading={<Ionicons name="add" size={16} color={theme.colors.accentText} />}
-          onPress={() => router.push("/template/new")}
-        />
 
         {query.isLoading ? (
           <Spinner />

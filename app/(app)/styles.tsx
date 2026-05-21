@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
-import { Button } from "@/components/Button";
 import { Chip } from "@/components/Chip";
 import { IconButton } from "@/components/IconButton";
 import { Row } from "@/components/Row";
@@ -133,12 +132,11 @@ export default function StylesScreen() {
               <Text variant="label" color="textMuted" style={{ textTransform: "uppercase" }}>
                 {t("styles.customSection")}
               </Text>
-              <Button
-                label={t("styles.newCta")}
-                variant="accent"
-                leading={<Ionicons name="add" size={16} color={theme.colors.accentText} />}
-                onPress={() => router.push("/style/new")}
-              />
+              {(stylesQuery.data?.custom ?? []).length === 0 ? (
+                <Text variant="caption" color="textMuted">
+                  {t("styles.customEmpty")}
+                </Text>
+              ) : null}
               <View style={{ gap: 8 }}>
                 {(stylesQuery.data?.custom ?? []).map((s) => {
                   const isPreferred = preferredId === s.id;
