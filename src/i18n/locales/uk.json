@@ -59,6 +59,8 @@
     "balanceFreeQuota": "{{used}} з {{total}} безкоштовних секунд цього місяця",
     "balanceAmount": "₴ {{amount}}",
     "balanceMinutes": "≈ {{minutes}} хв розмови",
+    "balanceRingLeftLabel": "ЛИШИЛОСЬ",
+    "balanceRingMinutesLabel": "ХВИЛИН",
     "startCallCta": "Дзвонимо",
     "recentTitle": "Що було недавно",
     "recentEmpty": "Жодного дзвінка. Тиша.",

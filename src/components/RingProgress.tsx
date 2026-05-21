@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+import { View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
 import { useTheme } from "@/theme/ThemeProvider";
@@ -14,12 +16,17 @@ type Props = {
   stroke?: string;
   /** Stroke width in dp. */
   width?: number;
+  /** Optional content rendered absolutely-positioned at the centre of the
+   *  ring. Used by BalanceWidget to put the % / minutes-left label inside
+   *  the arc so the indicator carries its own legend. */
+  children?: ReactNode;
 };
 
 /**
- * Circular progress arc — used on the home "voice training" card and
- * billing "free minutes used" indicator. Renders a single SVG so it
- * stays crisp on every density without a bitmap mask.
+ * Circular progress arc — used on the home balance card and billing
+ * indicators. Renders a single SVG so it stays crisp on every density
+ * without a bitmap mask. When `children` are supplied, they're centred
+ * inside the ring on a transparent overlay layer.
  */
 export function RingProgress({
   size = 52,
@@ -27,6 +34,7 @@ export function RingProgress({
   track,
   stroke,
   width = 6,
+  children,
 }: Props) {
   const theme = useTheme();
   const trackColor = track ?? "rgba(255,255,255,0.18)";
@@ -38,27 +46,45 @@ export function RingProgress({
   const offset = c * (1 - clamped);
 
   return (
-    <Svg width={size} height={size}>
-      <Circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        stroke={trackColor}
-        strokeWidth={width}
-        fill="none"
-      />
-      <Circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        stroke={strokeColor}
-        strokeWidth={width}
-        fill="none"
-        strokeLinecap="round"
-        strokeDasharray={`${c} ${c}`}
-        strokeDashoffset={offset}
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
-      />
-    </Svg>
+    <View style={{ width: size, height: size }}>
+      <Svg width={size} height={size}>
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          stroke={trackColor}
+          strokeWidth={width}
+          fill="none"
+        />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          stroke={strokeColor}
+          strokeWidth={width}
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray={`${c} ${c}`}
+          strokeDashoffset={offset}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+      </Svg>
+      {children ? (
+        <View
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {children}
+        </View>
+      ) : null}
+    </View>
   );
 }
