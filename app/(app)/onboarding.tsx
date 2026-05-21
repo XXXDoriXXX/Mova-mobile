@@ -19,6 +19,12 @@ import { useOnboardingStore } from "@/onboarding/store";
 
 const TOTAL_STEPS = 4;
 
+/**
+ * Welcome wizard for new users. Three feature slides followed by a
+ * preferred-style picker, then writes both to the backend and lands on
+ * /home. Skippable at any step — the user can come back via Settings
+ * → About (long-press).
+ */
 export default function OnboardingScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -71,19 +77,20 @@ export default function OnboardingScreen() {
 
   return (
     <Screen>
-      <View
-        style={{ flex: 1, justifyContent: "space-between", padding: theme.spacing.md }}
-      >
-        {/* Header with Skip and step dots */}
+      <View style={{ flex: 1, justifyContent: "space-between", paddingVertical: theme.spacing.md }}>
         <View
-          style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
         >
           <View style={{ flexDirection: "row", gap: 6 }}>
             {Array.from({ length: TOTAL_STEPS }).map((_, idx) => (
               <View
                 key={idx}
                 style={{
-                  width: idx === step ? 24 : 8,
+                  width: idx === step ? 28 : 8,
                   height: 8,
                   borderRadius: 4,
                   backgroundColor:
@@ -93,14 +100,12 @@ export default function OnboardingScreen() {
             ))}
           </View>
           <Pressable onPress={skip} hitSlop={8}>
-            <Text variant="label" color="textMuted">
+            <Text variant="button" color="textMuted">
               {t("onboarding.skip")}
             </Text>
           </Pressable>
         </View>
 
-        {/* Slide body — keyed so Reanimated re-mounts on step change and
-            entering/exiting fire a smooth fade. */}
         {step < 3 ? (
           <Animated.View
             key={`slide-${step}`}
@@ -110,25 +115,25 @@ export default function OnboardingScreen() {
           >
             <View
               style={{
-                width: 96,
-                height: 96,
-                borderRadius: 48,
-                backgroundColor: theme.colors.surface,
+                width: 110,
+                height: 110,
+                borderRadius: 55,
+                backgroundColor: theme.colors.accent,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
               <Ionicons
                 name={slides[step]!.icon}
-                size={44}
-                color={theme.colors.primary}
+                size={48}
+                color={theme.colors.accentText}
               />
             </View>
-            <Text variant="title" align="center">
+            <Text variant="display" align="center" style={{ fontSize: 38, lineHeight: 38 }}>
               {slides[step]!.title}
             </Text>
             <Text
-              variant="body"
+              variant="bodyLarge"
               color="textMuted"
               align="center"
               style={{ maxWidth: 320 }}
@@ -152,7 +157,7 @@ export default function OnboardingScreen() {
                 style={{
                   flexDirection: "row",
                   flexWrap: "wrap",
-                  gap: theme.spacing.sm,
+                  gap: 8,
                   justifyContent: "center",
                 }}
               >
@@ -169,16 +174,17 @@ export default function OnboardingScreen() {
           </Animated.View>
         )}
 
-        {/* Footer */}
         <View style={{ gap: theme.spacing.sm }}>
           {step < TOTAL_STEPS - 1 ? (
             <Button
               label={t("onboarding.next")}
+              variant="primary"
               onPress={() => setStep((s) => s + 1)}
             />
           ) : (
             <Button
               label={t("onboarding.done")}
+              variant="accent"
               loading={finishMut.isPending}
               onPress={() => finishMut.mutate()}
             />

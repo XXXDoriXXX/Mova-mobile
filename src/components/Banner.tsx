@@ -13,8 +13,22 @@ type Props = {
   action?: ReactNode;
 };
 
-const TONE_COLOR: Record<BannerTone, keyof import("@/theme/colors").Palette> = {
-  info: "primary",
+/**
+ * Soft inline notice. The fill is a tinted card rather than a stark
+ * coloured block — matches the brand's quiet, paper-like feel. Reserve
+ * `danger` for genuine blockers (signed-out, failed payment); `warning`
+ * for soft warnings (low balance); `info` for the "applies next call"
+ * footnote on the in-call settings drawer.
+ */
+const TONE_BG: Record<BannerTone, string> = {
+  info: "rgba(15,58,46,0.06)",
+  success: "rgba(31,138,76,0.10)",
+  warning: "rgba(199,119,0,0.10)",
+  danger: "rgba(229,72,61,0.08)",
+};
+
+const TONE_TEXT: Record<BannerTone, keyof import("@/theme/colors").Palette> = {
+  info: "text",
   success: "success",
   warning: "warning",
   danger: "danger",
@@ -22,24 +36,23 @@ const TONE_COLOR: Record<BannerTone, keyof import("@/theme/colors").Palette> = {
 
 export function Banner({ tone = "info", title, message, action }: Props) {
   const theme = useTheme();
-  const colorKey = TONE_COLOR[tone];
   return (
     <View
       style={{
         padding: theme.spacing.lg,
-        borderRadius: theme.radii.md,
-        borderWidth: 1,
-        borderColor: theme.colors[colorKey],
-        backgroundColor: theme.colors.surface,
+        borderRadius: theme.radii.lg,
+        backgroundColor: TONE_BG[tone],
         gap: theme.spacing.sm,
       }}
     >
       {title ? (
-        <Text variant="subtitle" style={{ color: theme.colors[colorKey] }}>
+        <Text variant="subtitle" style={{ color: theme.colors[TONE_TEXT[tone]] }}>
           {title}
         </Text>
       ) : null}
-      <Text variant="body">{message}</Text>
+      <Text variant="body" color={tone === "info" ? "text" : (TONE_TEXT[tone] as never)}>
+        {message}
+      </Text>
       {action}
     </View>
   );

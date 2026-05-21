@@ -1,52 +1,26 @@
 import { Tabs } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
-import { useTheme } from "@/theme/ThemeProvider";
+import { TabBar } from "@/components/TabBar";
 
+/**
+ * Hosts the three primary destinations (home / history / settings) plus
+ * every route that is reachable by navigation but should not appear in
+ * the tab bar (`href: null`). The bar itself is the floating dark pill
+ * defined in `src/components/TabBar.tsx`.
+ */
 export default function AppTabsLayout() {
-  const theme = useTheme();
   const { t } = useTranslation();
 
   return (
     <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.textMuted,
-        tabBarStyle: {
-          backgroundColor: theme.colors.background,
-          borderTopColor: theme.colors.border,
-        },
-      }}
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <TabBar {...props} />}
     >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: t("tabs.home"),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="history"
-        options={{
-          title: t("tabs.history"),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="time-outline" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: t("tabs.settings"),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" color={color} size={size} />
-          ),
-        }}
-      />
+      <Tabs.Screen name="home" options={{ title: t("tabs.home") }} />
+      <Tabs.Screen name="history" options={{ title: t("tabs.history") }} />
+      <Tabs.Screen name="settings" options={{ title: t("tabs.settings") }} />
+
       {/* Routes accessible via navigation but hidden from the tab bar */}
       <Tabs.Screen name="billing" options={{ href: null }} />
       <Tabs.Screen name="templates" options={{ href: null }} />

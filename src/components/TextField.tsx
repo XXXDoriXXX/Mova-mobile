@@ -15,6 +15,12 @@ export type TextFieldProps = Omit<TextInputProps, "style"> & {
   helperText?: string;
 };
 
+/**
+ * Form text field. Renders as a soft beige pill — borderless until
+ * focus, then promoted to an ink hairline. Error state paints a red
+ * hairline regardless of focus. Matches the in-call composer footprint
+ * used by `CallSettingsDrawer`.
+ */
 export const TextField = forwardRef<TextInput, TextFieldProps>(
   function TextField(
     { label, error, helperText, onFocus, onBlur, ...rest },
@@ -22,23 +28,22 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(
   ) {
     const theme = useTheme();
     const [focused, setFocused] = useState(false);
-    // Visual states (in order of priority):
-    //  - error      → red 1px border
-    //  - focused    → primary 2px border (no layout shift; we compensate with
-    //                 negative-margin? actually just keep padding constant by
-    //                 letting RN render an extra pixel — acceptable)
-    //  - default    → muted 1px border
+
     const borderColor = error
       ? theme.colors.danger
       : focused
-        ? theme.colors.primary
-        : theme.colors.border;
-    const borderWidth = focused && !error ? 2 : 1;
+        ? theme.colors.text
+        : "transparent";
+    const borderWidth = error || focused ? 1.5 : 0;
 
     return (
       <View style={styles.wrapper}>
         {label ? (
-          <Text variant="label" style={{ marginBottom: theme.spacing.xs }}>
+          <Text
+            variant="label"
+            color="textMuted"
+            style={{ marginBottom: 6, textTransform: "uppercase" }}
+          >
             {label}
           </Text>
         ) : null}
@@ -47,13 +52,13 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(
           placeholderTextColor={theme.colors.textMuted}
           style={[
             styles.input,
-            theme.typography.body,
+            theme.typography.bodyLarge,
             {
-              backgroundColor: theme.colors.surface,
+              backgroundColor: theme.colors.surfaceMuted,
               color: theme.colors.text,
               borderColor,
               borderWidth,
-              borderRadius: theme.radii.md,
+              borderRadius: theme.radii.lg,
             },
           ]}
           onFocus={(e) => {
@@ -70,7 +75,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(
           <Text
             variant="caption"
             color="danger"
-            style={{ marginTop: theme.spacing.xs }}
+            style={{ marginTop: 6 }}
           >
             {error}
           </Text>
@@ -78,7 +83,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(
           <Text
             variant="caption"
             color="textMuted"
-            style={{ marginTop: theme.spacing.xs }}
+            style={{ marginTop: 6 }}
           >
             {helperText}
           </Text>
@@ -91,8 +96,8 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(
 const styles = StyleSheet.create({
   wrapper: { width: "100%" },
   input: {
-    minHeight: 52,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    minHeight: 54,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
   },
 });

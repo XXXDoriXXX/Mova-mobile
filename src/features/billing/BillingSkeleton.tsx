@@ -1,26 +1,19 @@
 import { View } from "react-native";
 
-import { Card } from "@/components/Card";
 import { Skeleton } from "@/components/Skeleton";
 import { useTheme } from "@/theme/ThemeProvider";
 
+/**
+ * Placeholders for the Billing → Overview tab. Two stacked surfaces: a
+ * forest balance card and a white plan card. Matches the real layout so
+ * the screen doesn't jump when data resolves.
+ */
 export function BillingOverviewSkeleton() {
   const theme = useTheme();
   return (
     <View style={{ gap: theme.spacing.md }}>
-      <Card>
-        <View style={{ gap: theme.spacing.sm }}>
-          <Skeleton width={80} height={12} />
-          <Skeleton width={140} height={32} />
-          <Skeleton width={180} height={12} />
-        </View>
-      </Card>
-      <Card>
-        <View style={{ gap: theme.spacing.xs }}>
-          <Skeleton width={120} height={14} />
-          <Skeleton width="80%" height={12} />
-        </View>
-      </Card>
+      <Skeleton height={110} radius={theme.radii.xxl} />
+      <Skeleton height={90} radius={theme.radii.xxl} />
     </View>
   );
 }

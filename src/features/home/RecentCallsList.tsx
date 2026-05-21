@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
-import { Card } from "@/components/Card";
+import { Avatar } from "@/components/Avatar";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import type { Conversation } from "@/types/api";
@@ -14,13 +14,20 @@ type Props = {
   items: Conversation[];
 };
 
-const STATUS_ICON: Record<Conversation["status"], string> = {
-  pending: "•",
-  active: "●",
-  ended: "✓",
-  failed: "⚠",
+const STATUS_ICON: Record<Conversation["status"], keyof typeof Ionicons.glyphMap> = {
+  pending: "ellipse-outline",
+  active: "radio",
+  ended: "checkmark-circle",
+  failed: "alert-circle",
 };
 
+/**
+ * Recent-calls list shown on the home screen and the history tab.
+ *
+ * Each row is a tappable card with the contact identity on the left and a
+ * round dial-back affordance on the right. Status is conveyed by a small
+ * icon, not by colour alone (helps with colour-blindness).
+ */
 export function RecentCallsList({ items }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -28,92 +35,115 @@ export function RecentCallsList({ items }: Props) {
 
   if (items.length === 0) {
     return (
-      <Card>
-        <View style={{ alignItems: "center", gap: theme.spacing.sm }}>
-          <Ionicons
-            name="call-outline"
-            size={32}
-            color={theme.colors.textMuted}
-          />
-          <Text color="textMuted" align="center">
-            {t("home.recentEmpty")}
-          </Text>
-        </View>
-      </Card>
+      <View
+        style={{
+          paddingVertical: theme.spacing.xl,
+          paddingHorizontal: theme.spacing.lg,
+          backgroundColor: theme.colors.surface,
+          borderRadius: theme.radii.xxl,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <Ionicons name="call-outline" size={28} color={theme.colors.textMuted} />
+        <Text color="textMuted" align="center">
+          {t("home.recentEmpty")}
+        </Text>
+      </View>
     );
   }
 
   return (
     <View style={{ gap: theme.spacing.sm }}>
       {items.map((c) => (
-        <Card key={c.id} style={{ paddingVertical: theme.spacing.md }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: theme.spacing.sm,
-            }}
-          >
-            <Pressable
-              style={{ flex: 1 }}
-              onPress={() =>
-                router.push({
-                  pathname: "/conversation/[id]",
-                  params: { id: c.id },
-                })
-              }
-            >
-              <Text variant="subtitle">
-                {formatPhoneForDisplay(c.targetPhone)}
-              </Text>
-              <Text variant="caption" color="textMuted">
-                {formatRelativeFromNow(c.startedAt)}
-                {c.durationSeconds > 0
-                  ? ` · ${formatDuration(c.durationSeconds)}`
-                  : ""}
-              </Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t("history.recall")}
-              onPress={() =>
-                router.push({
-                  pathname: "/call/pre",
-                  params: { prefillPhone: c.targetPhone },
-                })
-              }
-              hitSlop={8}
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: theme.colors.surfaceMuted,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Ionicons
-                name="call-outline"
-                size={18}
-                color={theme.colors.primary}
-              />
-            </Pressable>
-            <Text
-              variant="title"
-              color={
-                c.status === "failed"
-                  ? "danger"
-                  : c.status === "active"
-                    ? "success"
-                    : "textMuted"
-              }
-            >
-              {STATUS_ICON[c.status]}
-            </Text>
-          </View>
-        </Card>
+        <RecentRow
+          key={c.id}
+          item={c}
+          onOpen={() =>
+            router.push({
+              pathname: "/conversation/[id]",
+              params: { id: c.id },
+            })
+          }
+          onRecall={() =>
+            router.push({
+              pathname: "/call/pre",
+              params: { prefillPhone: c.targetPhone },
+            })
+          }
+        />
       ))}
     </View>
+  );
+}
+
+type RowProps = {
+  item: Conversation;
+  onOpen: () => void;
+  onRecall: () => void;
+};
+
+function RecentRow({ item, onOpen, onRecall }: RowProps) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const phone = formatPhoneForDisplay(item.targetPhone);
+  const statusColor =
+    item.status === "failed"
+      ? theme.colors.danger
+      : item.status === "active"
+        ? theme.colors.success
+        : theme.colors.textMuted;
+
+  return (
+    <Pressable
+      onPress={onOpen}
+      style={({ pressed }) => ({
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        backgroundColor: theme.colors.surface,
+        borderRadius: theme.radii.xl,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        opacity: pressed ? 0.85 : 1,
+      })}
+    >
+      <Avatar name={phone} size={42} />
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text variant="bodyLarge" weight="bold">
+          {phone}
+        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Ionicons name={STATUS_ICON[item.status]} size={12} color={statusColor} />
+          <Text variant="caption" color="textMuted">
+            {formatRelativeFromNow(item.startedAt)}
+            {item.durationSeconds > 0
+              ? ` · ${formatDuration(item.durationSeconds)}`
+              : ""}
+          </Text>
+        </View>
+      </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t("history.recall")}
+        onPress={onRecall}
+        hitSlop={8}
+        style={({ pressed }) => ({
+          width: 38,
+          height: 38,
+          borderRadius: 19,
+          backgroundColor: theme.colors.primary,
+          alignItems: "center",
+          justifyContent: "center",
+          opacity: pressed ? 0.8 : 1,
+        })}
+      >
+        <Ionicons name="call" size={16} color={theme.colors.primaryText} />
+      </Pressable>
+    </Pressable>
   );
 }
