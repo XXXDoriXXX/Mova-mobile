@@ -108,6 +108,13 @@ function resolveCopy(t: (k: string) => string, error: CallError) {
       body: t("live.fatalReasons.connectTimeout.body"),
     };
   }
+  if (error.message === "NO_ANSWER") {
+    return {
+      icon: "call-outline" as const,
+      title: t("live.fatalReasons.noAnswer.title"),
+      body: t("live.fatalReasons.noAnswer.body"),
+    };
+  }
   switch (error.code) {
     case CallErrorCode.BALANCE_EXHAUSTED:
       return {

@@ -40,6 +40,16 @@ export const ServerEvent = {
     }),
   }),
 
+  /** Phone on the other end actually picked up. Distinct from
+   *  call.connected (agent/WS ready). UI swaps the ringing-loader for
+   *  the chat on this event. */
+  callAnswered: envelope.extend({
+    type: z.literal("call.answered"),
+    data: z.object({
+      participantIdentity: z.string().min(1),
+    }),
+  }),
+
   /** Partial STT result. May arrive multiple times before a final. */
   transcriptPartial: envelope.extend({
     type: z.literal("transcript.partial"),
@@ -167,6 +177,7 @@ export const ServerEvent = {
 /** Discriminated union of every server event. */
 export const ServerEventSchema = z.discriminatedUnion("type", [
   ServerEvent.callConnected,
+  ServerEvent.callAnswered,
   ServerEvent.transcriptPartial,
   ServerEvent.transcriptFinal,
   ServerEvent.aiThinking,

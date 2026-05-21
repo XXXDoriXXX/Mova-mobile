@@ -10,15 +10,20 @@ import { useCallStore } from "./callStore";
 const PING_INTERVAL_MS = 20_000;
 
 /**
- * If we don't receive `call.connected` within this window after mount,
- * something on the backend chain is dead (worker crashed, livekit
- * SIP can't dial, agent never joined the room…). We surface a fatal
- * error so the user has a clear exit + retry instead of staring at
- * the loader forever.
+ * Two-stage watchdog windows for the loader screen:
  *
- * 25s is generous: a real PSTN dial-then-pickup is usually 5–15s.
+ *   - HANDSHAKE_TIMEOUT_MS — no `call.connected` within this window means
+ *     the backend chain is dead (worker crashed, livekit SIP couldn't
+ *     dial, agent never joined the room). Fatal-out so the user can
+ *     retry instead of staring at a "connecting" spinner forever.
+ *
+ *   - ANSWER_TIMEOUT_MS — `call.connected` arrived but `call.answered`
+ *     never did, i.e. the phone is ringing and ringing. Real PSTN call
+ *     timeouts are 30–60s (after which voicemail or carrier drops it),
+ *     so we give 60s here and only then fatal with NO_ANSWER copy.
  */
-const CONNECT_TIMEOUT_MS = 25_000;
+const HANDSHAKE_TIMEOUT_MS = 25_000;
+const ANSWER_TIMEOUT_MS = 60_000;
 
 export function useCallSocket(opts: {
   conversationId: string;
@@ -78,25 +83,39 @@ export function useCallSocket(opts: {
       sendRef.current?.({ type: "ping" });
     }, PING_INTERVAL_MS);
 
-    // Connect watchdog. Fires once after CONNECT_TIMEOUT_MS; if the
-    // call still hasn't transitioned to "active" (i.e. backend never
-    // emitted `call.connected`) we synthesise a fatal error using
-    // AGENT_LOST — that's the closest existing code, and the screen
-    // formats the message via i18n so the user sees something useful.
-    const connectWatchdog = setTimeout(() => {
+    // Handshake watchdog — fatal if we never made it past `connecting`.
+    const handshakeWatchdog = setTimeout(() => {
       const s = useCallStore.getState();
       if (s.status === "connecting" && !s.fatalError && !s.endInfo) {
         s.setFatalError({
           code: CallErrorCode.AGENT_LOST,
-          message: "CONNECT_TIMEOUT", // i18n key sentinel, resolved in the UI
+          message: "CONNECT_TIMEOUT",
           recoverable: false,
         });
         triggerHaptic("error");
       }
-    }, CONNECT_TIMEOUT_MS);
+    }, HANDSHAKE_TIMEOUT_MS);
+
+    // Answer watchdog — backend dialed fine but nobody picked up. We
+    // wait a full minute to cover the typical PSTN ring window before
+    // ending the call locally with a `NO_ANSWER` reason; sending
+    // `user.end_call` ensures the trunk leg is hung up too.
+    const answerWatchdog = setTimeout(() => {
+      const s = useCallStore.getState();
+      if (s.status === "ringing" && !s.fatalError && !s.endInfo) {
+        sendRef.current?.({ type: "user.end_call" });
+        s.setFatalError({
+          code: CallErrorCode.AGENT_LOST,
+          message: "NO_ANSWER",
+          recoverable: false,
+        });
+        triggerHaptic("warning");
+      }
+    }, ANSWER_TIMEOUT_MS);
 
     return () => {
-      clearTimeout(connectWatchdog);
+      clearTimeout(handshakeWatchdog);
+      clearTimeout(answerWatchdog);
       clearInterval(pingTimer);
       unsubscribe();
       socket.removeAllListeners();
@@ -129,15 +148,16 @@ export function useCallSocket(opts: {
 function routeEvent(event: ServerEvent) {
   const store = useCallStore.getState();
 
-  // Defensive transition: if we're still in `connecting` and any real event
-  // arrives, the call is provably active even if we missed `call.connected`
-  // (e.g. it was buffered before our handler attached, or the gateway emitted
-  // it with a non-conforming id under an older build). Without this the
-  // composer stays disabled and chips never render even though the wire is
-  // healthy. `call.ended` and `pong` are excluded — they aren't liveness.
+  // Defensive transition: transcripts / AI / suggestions / usage events
+  // can only fire AFTER the SIP leg picked up, so they prove the call is
+  // live even if `call.answered` was missed (race, buffered emit, old
+  // build). Bumps us straight to `active`. `pong` and `call.ended` aren't
+  // liveness; `call.connected` and `call.answered` have their own handlers.
   if (
-    store.status === "connecting" &&
+    (store.status === "connecting" || store.status === "ringing") &&
     event.type !== "call.ended" &&
+    event.type !== "call.connected" &&
+    event.type !== "call.answered" &&
     event.type !== "pong"
   ) {
     store.setStatus("active");
@@ -145,6 +165,12 @@ function routeEvent(event: ServerEvent) {
 
   switch (event.type) {
     case "call.connected":
+      // Agent + WS are ready. The phone hasn't picked up yet — stay in
+      // the ringing state and let `call.answered` (or any real signal
+      // above) advance us to `active`.
+      if (store.status === "connecting") store.setStatus("ringing");
+      break;
+    case "call.answered":
       store.setStatus("active");
       triggerHaptic("success");
       break;
