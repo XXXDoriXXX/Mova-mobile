@@ -267,7 +267,7 @@
     "title": "Call",
     "phoneLabel": "Phone number",
     "phonePlaceholder": "+380...",
-    "phoneError": "Use international format +380...",
+    "phoneError": "Use +380... or a provider short code (101 — Zadarma test)",
     "templateLabel": "Scenario",
     "styleLabel": "Conversation style",
     "noTemplate": "No template",

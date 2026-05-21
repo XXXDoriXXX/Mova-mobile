@@ -267,7 +267,7 @@
     "title": "Куди дзвонимо?",
     "phoneLabel": "Номер",
     "phonePlaceholder": "+380...",
-    "phoneError": "Очікую +380... або інший код країни",
+    "phoneError": "Очікую +380... або сервісний код (101 — тест Zadarma)",
     "templateLabel": "Сценарій",
     "styleLabel": "Стиль",
     "noTemplate": "Без сценарію",
