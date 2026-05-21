@@ -22,7 +22,7 @@ import { useAuthStore } from "@/auth/store";
 import { ContactsPicker } from "@/features/calls/ContactsPicker";
 import { StylePicker } from "@/features/calls/StylePicker";
 import { TemplatePicker } from "@/features/calls/TemplatePicker";
-import { isE164 } from "@/utils/phone";
+import { isDialable } from "@/utils/phone";
 
 /**
  * Pre-call configuration. Brand header (back + page title), phone input
@@ -58,7 +58,7 @@ export default function PreCallScreen() {
     queryFn: getBillingSummary,
   });
 
-  const phoneOk = isE164(phone);
+  const phoneOk = isDialable(phone);
 
   const secondsRemaining = (() => {
     const b = billingQuery.data;
