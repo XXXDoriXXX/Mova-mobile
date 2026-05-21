@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
@@ -9,6 +9,7 @@ import { Button } from "@/components/Button";
 import { Row } from "@/components/Row";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
+import { confirm } from "@/feedback/dialogStore";
 import { toast } from "@/feedback/toast";
 import { useTheme } from "@/theme/ThemeProvider";
 import { logout as logoutRequest } from "@/api/auth";
@@ -40,18 +41,16 @@ export default function SettingsScreen() {
   const [editingAppearance, setEditingAppearance] = useState(false);
   const onboardingStatus = useOnboardingStore((s) => s.status);
 
-  function handleReplayOnboarding() {
+  async function handleReplayOnboarding() {
     if (onboardingStatus === "unknown") return;
-    Alert.alert(t("settings.replayOnboardingTitle"), undefined, [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("settings.replayOnboardingConfirm"),
-        onPress: () => {
-          useOnboardingStore.setState({ status: "needed" });
-          router.replace("/onboarding");
-        },
-      },
-    ]);
+    const ok = await confirm({
+      title: t("settings.replayOnboardingTitle"),
+      confirmLabel: t("settings.replayOnboardingConfirm"),
+      icon: "play-circle-outline",
+    });
+    if (!ok) return;
+    useOnboardingStore.setState({ status: "needed" });
+    router.replace("/onboarding");
   }
 
   async function handleLogout() {

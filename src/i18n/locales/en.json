@@ -13,6 +13,9 @@
     "offline": "Server unreachable, try again later",
     "offlineBanner": "No network connection",
     "onlineRestored": "Back online",
+    "discard": "Discard",
+    "discardChangesTitle": "Discard changes?",
+    "discardChangesBody": "Your edits will be lost. We did warn you 😉",
     "empty": "Nothing here yet"
   },
   "welcome": {
@@ -59,6 +62,7 @@
     "startCallCta": "Start a call",
     "recentTitle": "Recent calls",
     "recentEmpty": "No calls yet",
+    "recentEmptyBody": "Make your first one — the next one will be easier",
     "viewAll": "View all →",
     "heroVerb": "we talk",
     "userFallback": "MOVA",
@@ -165,7 +169,8 @@
     "delete": "Delete",
     "deleteSuccess": "Call deleted",
     "deleteError": "Couldn't delete",
-    "interrupted": "(interrupted)"
+    "interrupted": "(interrupted)",
+    "jumpToBottom": "Jump to latest"
   },
   "templates": {
     "title": "Templates",
@@ -277,12 +282,15 @@
   "live": {
     "connecting": "Calling…",
     "reconnecting": "Reconnecting…",
+    "bannerTitle": "Call in progress",
+    "bannerCta": "Return to call",
     "transcript": "Transcript",
     "suggestionsLabel": "Suggestions",
     "messagePlaceholder": "Type a message…",
     "say": "Say",
     "endCall": "End",
     "endCallConfirmTitle": "End the call?",
+    "endCallConfirmBody": "The conversation will end. You can redial from history.",
     "balanceTick": "{{minutes}}:{{seconds}} · ₴ {{balance}}",
     "secondsLeft": "{{seconds}}s left",
     "endingTitle": "Call ended",
@@ -303,9 +311,11 @@
   "history": {
     "title": "History",
     "empty": "No calls yet",
+    "emptyBody": "Your conversations will show up here",
     "transcriptTab": "Transcript",
     "metaTab": "Details",
     "recall": "Call again",
+    "open": "Open conversation",
     "share": "Share",
     "copy": "Copy",
     "loading": "Loading transcript…",

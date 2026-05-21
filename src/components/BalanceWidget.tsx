@@ -1,14 +1,12 @@
 import { Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { AnimatedNumber } from "./AnimatedNumber";
 import { RingProgress } from "./RingProgress";
 import { Text } from "./Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import type { BillingSummary } from "@/types/api";
-import {
-  estimateMinutesFromBalance,
-  formatCentsAsUah,
-} from "@/utils/format";
+import { estimateMinutesFromBalance } from "@/utils/format";
 
 type Props = { summary: BillingSummary; onPress?: () => void };
 
@@ -40,9 +38,12 @@ function Inner({ summary }: { summary: BillingSummary }) {
   const theme = useTheme();
 
   const isFree = summary.plan.code === "free";
-  const headline = isFree
-    ? `${summary.freeSecondsRemaining}s`
-    : t("home.balanceAmount", { amount: formatCentsAsUah(summary.balanceCents) });
+  // Headline is computed inside the JSX so the AnimatedNumber gets to
+  // interpolate between renders rather than us baking the formatted
+  // string and forcing a hard re-render on every balance refetch.
+  const numericHeadline = isFree
+    ? summary.freeSecondsRemaining
+    : summary.balanceCents / 100;
 
   const sub = isFree
     ? t("home.balanceFreeQuota", {
@@ -82,9 +83,21 @@ function Inner({ summary }: { summary: BillingSummary }) {
         <Text variant="label" color="textOnInverse" style={{ opacity: 0.65 }}>
           {t("home.balanceTitle")}
         </Text>
-        <Text variant="title" color="textOnInverse">
-          {headline}
-        </Text>
+        <AnimatedNumber
+          value={numericHeadline}
+          format={(n) =>
+            isFree
+              ? `${Math.max(0, Math.round(n))}s`
+              : t("home.balanceAmount", {
+                  amount: n.toLocaleString("uk-UA", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }),
+                })
+          }
+          variant="title"
+          color="textOnInverse"
+        />
         <Text variant="caption" color="textOnInverse" style={{ opacity: 0.65 }}>
           {sub}
         </Text>
