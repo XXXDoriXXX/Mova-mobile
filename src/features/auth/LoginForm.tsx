@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/Button";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
+import { triggerHaptic } from "@/utils/haptics";
 import { useTheme } from "@/theme/ThemeProvider";
 import { login as loginRequest } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
@@ -39,7 +40,9 @@ export function LoginForm() {
     try {
       const resp = await loginRequest(values);
       await setSession({ user: resp.user, tokens: resp.tokens });
+      triggerHaptic("success");
     } catch (err) {
+      triggerHaptic("error");
       const mapped = mapError(err);
       if (mapped.emailError)
         setError("email", { message: mapped.emailError });

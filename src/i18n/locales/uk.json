@@ -12,6 +12,7 @@
     "error": "Халепа",
     "offline": "Сервер не відповідає. Заварює каву, мабуть.",
     "offlineBanner": "Інтернет десь загубився",
+    "onlineRestored": "Звʼязок відновлено",
     "empty": "Тут хоч кулі катай"
   },
   "welcome": {
@@ -75,6 +76,7 @@
     "title": "Налаштування",
     "comingSoon": "Скоро буде",
     "logout": "Вийти",
+    "logoutSuccess": "До зустрічі!",
     "sectionAccount": "Акаунт",
     "sectionContent": "Як AI говоритиме",
     "sectionBilling": "Гроші",
@@ -82,6 +84,7 @@
     "styles": "Стилі",
     "billing": "Баланс і поповнення",
     "language": "Мова",
+    "profileSaved": "Профіль збережено",
     "editProfile": "Профіль",
     "editProfilePhone": "Номер телефону",
     "editProfileNameRequired": "А імʼя?",
@@ -97,6 +100,7 @@
     "deleteAccountPassword": "Пароль",
     "deleteAccountConfirm": "Так, прощаємось",
     "deleteAccountWrongPassword": "Пароль не той. Може, передумали?",
+    "deleteAccountSuccess": "Шкода вас втрачати. Дані видалимо за 30 днів.",
     "styleProfile": "Адаптація під вас",
     "styleProfileSubtitle": "AI запамʼятовує, як ви пишете",
     "styleProfileDescription": "Коли ви друкуєте під час дзвінка, AI підглядає (з вашого дозволу) і починає писати у вашому стилі.",
@@ -159,6 +163,8 @@
     "endReasonAdmin": "Завершено модератором",
     "deleteConfirm": "Видалити цей дзвінок?",
     "delete": "Видалити",
+    "deleteSuccess": "Дзвінок видалено",
+    "deleteError": "Не вдалось видалити",
     "interrupted": "(перервано на півслові)"
   },
   "templates": {
@@ -185,7 +191,13 @@
       "duplicateCta": "Скопіювати, щоб редагувати",
       "setDefaultCta": "Зробити основним",
       "errorPromptInjection": "Цей промпт заблоковано системою безпеки. Спробуйте обережніше.",
-      "deleteConfirm": "Видалити шаблон?"
+      "deleteConfirm": "Видалити шаблон?",
+      "created": "Шаблон створено",
+      "updated": "Шаблон оновлено",
+      "deleted": "Шаблон видалено",
+      "duplicated": "Готова копія — редагуйте",
+      "defaultSet": "Тепер цей шаблон — основний",
+      "saveError": "Не вдалось зберегти. Спробуйте ще"
     }
   },
   "styles": {
@@ -203,7 +215,11 @@
       "instructionsHint": "Англійською — опишіть, як саме має говорити AI",
       "submitCreate": "Створити",
       "submitUpdate": "Зберегти",
-      "deleteConfirm": "Видалити стиль?"
+      "deleteConfirm": "Видалити стиль?",
+      "created": "Стиль створено",
+      "updated": "Стиль оновлено",
+      "deleted": "Стиль видалено",
+      "saveError": "Не вдалось зберегти. Спробуйте ще"
     }
   },
   "billing": {
@@ -232,7 +248,9 @@
     "usageTotal": "Усього",
     "usageSecondsShort": "с",
     "usageSource_free": "безкоштовно",
-    "usageSource_paid": "оплачено"
+    "usageSource_paid": "оплачено",
+    "planSwitched": "Тариф змінено",
+    "planSwitchError": "Не вдалось змінити тариф"
   },
   "preCall": {
     "title": "Куди дзвонимо?",
@@ -294,7 +312,14 @@
     "filterAll": "Усі",
     "filterEnded": "Завершені",
     "filterActive": "Зараз",
-    "filterFailed": "Із зірванням"
+    "filterFailed": "Із зірванням",
+    "copied": "Скопійовано в буфер",
+    "statToday_one": "{{count}} сьогодні",
+    "statToday_few": "{{count}} сьогодні",
+    "statToday_many": "{{count}} сьогодні",
+    "statToday_other": "{{count}} сьогодні",
+    "statToday": "{{count}} сьогодні",
+    "statWeek": "{{count}} за тиждень"
   },
   "liveSettings": {
     "title": "Налаштування дзвінка",

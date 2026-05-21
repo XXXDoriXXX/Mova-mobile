@@ -8,6 +8,7 @@ import { Chip } from "@/components/Chip";
 import { Modal } from "@/components/Modal";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
+import { toast } from "@/feedback/toast";
 import { useTheme } from "@/theme/ThemeProvider";
 import { patchMe } from "@/api/auth";
 import { extractErrorPayload } from "@/api/client";
@@ -51,6 +52,7 @@ export function EditProfileModal({ visible, onClose }: Props) {
       if (updated.language !== i18n.language) {
         void i18n.changeLanguage(updated.language);
       }
+      toast.success(t("settings.profileSaved"));
       onClose();
     },
     onError: (err) => {

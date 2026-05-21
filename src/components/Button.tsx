@@ -1,14 +1,15 @@
 import type { ReactNode } from "react";
 import {
   ActivityIndicator,
-  Pressable,
   type PressableProps,
   StyleSheet,
   View,
 } from "react-native";
 
+import { PressableScale } from "./PressableScale";
 import { Text } from "./Text";
 import { useTheme } from "@/theme/ThemeProvider";
+import type { HapticKind } from "@/utils/haptics";
 
 export type ButtonVariant =
   | "primary"   // ink solid pill — default CTA
@@ -29,6 +30,10 @@ export type ButtonProps = Omit<PressableProps, "style" | "children"> & {
   leading?: ReactNode;
   /** Optional trailing icon. Useful for "→" affordances. */
   trailing?: ReactNode;
+  /** Override the haptic kind. Defaults to "light"; destructive
+   *  buttons get "warning"; accent (primary "happy path" CTAs) get
+   *  a slightly heavier "selection" tick. Pass null to suppress. */
+  haptic?: HapticKind | null;
 };
 
 /**
@@ -46,6 +51,7 @@ export function Button({
   leading,
   trailing,
   disabled,
+  haptic,
   ...rest
 }: ButtonProps) {
   const theme = useTheme();
@@ -72,23 +78,30 @@ export function Button({
     ? { minHeight: 54, paddingHorizontal: 22, paddingVertical: 14 }
     : { minHeight: 44, paddingHorizontal: 18, paddingVertical: 10 };
 
+  // Pick a haptic appropriate to the variant unless one was passed in.
+  const resolvedHaptic: HapticKind | null = haptic === undefined
+    ? (variant === "danger" ? "warning"
+       : variant === "accent" ? "selection"
+       : "light")
+    : haptic;
+
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled, busy: loading }}
       disabled={isDisabled}
-      style={({ pressed }) => [
-        styles.base,
-        sizing,
-        {
-          backgroundColor: bg(pressed),
-          borderColor,
-          borderWidth: borderColor === "transparent" ? 0 : 1,
-          borderRadius: theme.radii.pill,
-          opacity: isDisabled ? 0.55 : 1,
-          alignSelf: fullWidth ? "stretch" : "auto",
-        },
-      ]}
+      haptic={isDisabled ? null : resolvedHaptic}
+      scaleTo={0.97}
+      style={{
+        ...styles.base,
+        ...sizing,
+        backgroundColor: bg(false),
+        borderColor,
+        borderWidth: borderColor === "transparent" ? 0 : 1,
+        borderRadius: theme.radii.pill,
+        opacity: isDisabled ? 0.55 : 1,
+        alignSelf: fullWidth ? "stretch" : "auto",
+      }}
       {...rest}
     >
       <View style={styles.content}>
@@ -104,7 +117,7 @@ export function Button({
           </>
         )}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 

@@ -11,6 +11,7 @@ import { IconButton } from "@/components/IconButton";
 import { KeyboardScreen } from "@/components/KeyboardScreen";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
+import { toast } from "@/feedback/toast";
 import { useTheme } from "@/theme/ThemeProvider";
 import {
   createTemplate,
@@ -50,8 +51,10 @@ export default function TemplateEditScreen() {
     mutationFn: createTemplate,
     onSuccess: () => {
       invalidate();
+      toast.success(t("templates.form.created"));
       router.back();
     },
+    onError: () => toast.error(t("templates.form.saveError")),
   });
 
   const updateMut = useMutation({
@@ -59,8 +62,10 @@ export default function TemplateEditScreen() {
       updateTemplate(vars.id, vars.values),
     onSuccess: () => {
       invalidate();
+      toast.success(t("templates.form.updated"));
       router.back();
     },
+    onError: () => toast.error(t("templates.form.saveError")),
   });
 
   const [busy, setBusy] = useState<"duplicate" | "default" | "delete" | null>(
@@ -81,7 +86,10 @@ export default function TemplateEditScreen() {
     try {
       const dup = await duplicateTemplate(query.data.id);
       invalidate();
+      toast.success(t("templates.form.duplicated"));
       router.replace(`/template/${dup.id}`);
+    } catch {
+      toast.error(t("templates.form.saveError"));
     } finally {
       setBusy(null);
     }
@@ -93,6 +101,9 @@ export default function TemplateEditScreen() {
     try {
       await setDefaultTemplate(query.data.id);
       invalidate();
+      toast.success(t("templates.form.defaultSet"));
+    } catch {
+      toast.error(t("templates.form.saveError"));
     } finally {
       setBusy(null);
     }
@@ -110,6 +121,7 @@ export default function TemplateEditScreen() {
           try {
             await deleteTemplate(query.data!.id);
             invalidate();
+            toast.success(t("templates.form.deleted"));
             router.back();
           } finally {
             setBusy(null);

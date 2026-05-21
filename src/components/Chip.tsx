@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, View, type PressableProps } from "react-native";
+import { StyleSheet, View, type PressableProps } from "react-native";
 
+import { PressableScale } from "./PressableScale";
 import { Text } from "./Text";
 import { useTheme } from "@/theme/ThemeProvider";
+import type { HapticKind } from "@/utils/haptics";
 
 export type ChipTone = "neutral" | "accent" | "danger";
 
@@ -14,12 +16,17 @@ export type ChipProps = Omit<PressableProps, "style" | "children"> & {
   tone?: ChipTone;
   leading?: ReactNode;
   trailing?: ReactNode;
+  /** Override the haptic. Defaults to `selection` for filter chips and
+   *  `light` for action chips — close to the iOS picker tick. */
+  haptic?: HapticKind | null;
 };
 
 /**
  * Pill-shaped tag. Inactive = white card with hairline border, active =
  * ink fill with inverse text (or lime/red when `tone` overrides). Use
- * for filters, quick replies, multi-select tags.
+ * for filters, quick replies, multi-select tags. Tapping a chip fires a
+ * `selection` haptic by default — the same tick iOS uses for pickers
+ * so the user's wrist feels the choice landing.
  */
 export function Chip({
   label,
@@ -28,6 +35,7 @@ export function Chip({
   leading,
   trailing,
   disabled,
+  haptic = "selection",
   ...rest
 }: ChipProps) {
   const theme = useTheme();
@@ -50,20 +58,20 @@ export function Chip({
   })();
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityState={{ selected, disabled: !!disabled }}
       disabled={disabled}
-      style={({ pressed }) => [
-        styles.chip,
-        {
-          backgroundColor: bg,
-          borderColor: border,
-          borderWidth: border === "transparent" ? 0 : 1,
-          borderRadius: theme.radii.pill,
-          opacity: disabled ? 0.5 : pressed ? 0.88 : 1,
-        },
-      ]}
+      haptic={disabled ? null : haptic}
+      scaleTo={0.94}
+      style={{
+        ...styles.chip,
+        backgroundColor: bg,
+        borderColor: border,
+        borderWidth: border === "transparent" ? 0 : 1,
+        borderRadius: theme.radii.pill,
+        opacity: disabled ? 0.5 : 1,
+      }}
       {...rest}
     >
       <View style={styles.row}>
@@ -73,7 +81,7 @@ export function Chip({
         </Text>
         {trailing}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 
