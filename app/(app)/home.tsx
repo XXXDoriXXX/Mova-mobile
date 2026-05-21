@@ -70,6 +70,11 @@ export default function HomeScreen() {
     setRefreshing(false);
   }, [billingQuery, recentQuery]);
 
+  // Picked once per mount so the playful "_alt" variant doesn't reshuffle
+  // mid-session every time React re-renders this screen. MUST stay above
+  // any early returns so React's hook order is stable across renders.
+  const greetingI18nKey = useMemo(() => greetingKey(), []);
+
   const coldStart =
     !cachedUser && billingQuery.isPending && recentQuery.isPending;
   if (coldStart) {
@@ -90,10 +95,6 @@ export default function HomeScreen() {
 
   const locale = i18n.language === "en" ? enUS : ukLocale;
   const datePill = format(new Date(), "EEEE, d MMM yyyy", { locale });
-  // Picked once per mount so the playful "_alt" variant doesn't reshuffle
-  // mid-session every time React re-renders this screen.
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const greetingI18nKey = useMemo(() => greetingKey(), []);
 
   return (
     <Screen>
