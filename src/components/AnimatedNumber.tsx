@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { TextStyle } from "react-native";
-import { useSharedValue, withTiming, runOnJS } from "react-native-reanimated";
 
 import { Text, type TextProps } from "./Text";
 
@@ -19,10 +18,12 @@ type Props = Omit<TextProps, "children"> & {
  * call duration, second counters — anywhere a number changes and a
  * sudden jump would look jarring.
  *
- * Uses Reanimated under the hood (UI-thread interpolation) and
- * commits the displayed string back to React state at ~60Hz via
- * `runOnJS`. The cost is one re-render per animation tick on this
- * component only — fine for low-frequency UI counters.
+ * Implementation: a plain JS `requestAnimationFrame` driver that
+ * walks the displayed value from `previous` to `value` over
+ * `durationMs`. We deliberately avoid Reanimated worklets here — the
+ * formatter is a JS closure that doesn't survive worklet
+ * serialisation, and the cost of re-rendering this single component
+ * at 60Hz is negligible compared to debugging closure-capture bugs.
  */
 export function AnimatedNumber({
   value,
@@ -31,28 +32,46 @@ export function AnimatedNumber({
   style,
   ...rest
 }: Props) {
-  const [display, setDisplay] = useState(() => format(value));
-  const shared = useSharedValue(value);
+  const [display, setDisplay] = useState(value);
+  const from = useRef(value);
+  const startedAt = useRef(0);
+  const rafId = useRef<number | null>(null);
 
   useEffect(() => {
-    shared.value = withTiming(value, { duration: durationMs }, () => {
-      // Final settle to make sure rounding lands on the exact value.
-      runOnJS(setDisplay)(format(value));
-    });
-    // Stream interpolated values via a derived-value subscription so
-    // the displayed text updates each frame, not just at the end.
-    const id = setInterval(() => {
-      const current = shared.value;
-      setDisplay(format(current));
-      if (current === value) clearInterval(id);
-    }, 32);
-    return () => clearInterval(id);
+    // Stash the visible value at the moment a new target arrives so the
+    // tween starts from where the user actually saw the number, not
+    // from the last raw `value` prop (which could already have moved).
+    from.current = display;
+    startedAt.current = Date.now();
+
+    const tick = () => {
+      const elapsed = Date.now() - startedAt.current;
+      const t = Math.min(1, elapsed / Math.max(1, durationMs));
+      // ease-out cubic — fast start, gentle settle.
+      const eased = 1 - Math.pow(1 - t, 3);
+      const next = from.current + (value - from.current) * eased;
+      setDisplay(t >= 1 ? value : next);
+      if (t < 1) {
+        rafId.current = requestAnimationFrame(tick);
+      } else {
+        rafId.current = null;
+      }
+    };
+
+    if (rafId.current !== null) cancelAnimationFrame(rafId.current);
+    rafId.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafId.current !== null) cancelAnimationFrame(rafId.current);
+      rafId.current = null;
+    };
+    // `display` is intentionally excluded — we read it as a snapshot
+    // at the start of each tween, not as a reactive dep.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, durationMs]);
 
   return (
     <Text {...rest} style={style}>
-      {display}
+      {format(display)}
     </Text>
   );
 }
