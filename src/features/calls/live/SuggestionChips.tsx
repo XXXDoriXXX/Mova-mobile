@@ -24,6 +24,10 @@ export function SuggestionChips({ items, onPick }: Props) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
+      // Keep the row at intrinsic chip height — otherwise the
+      // horizontal scroller stretches vertically and the chips fill
+      // it (alignItems: stretch defaults).
+      style={{ flexGrow: 0 }}
       contentContainerStyle={{
         gap: 8,
         paddingHorizontal: theme.spacing.page,

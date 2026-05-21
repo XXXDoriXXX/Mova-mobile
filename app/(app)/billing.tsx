@@ -33,6 +33,10 @@ export default function BillingScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("overview");
+  // Lets the Overview tab pre-fill the top-up amount when the user
+  // taps one of the quick-amount chips. Cleared once the Top-up form
+  // mounts (the form reads it on mount, then forgets).
+  const [topupPrefill, setTopupPrefill] = useState<number | null>(null);
 
   const summaryQuery = useQuery({
     queryKey: ["billing", "me"],
@@ -101,6 +105,11 @@ export default function BillingScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          // `flexGrow: 0` keeps the tab row at its intrinsic height
+          // inside the screen's column flex container. Without it,
+          // the horizontal scroller fills available height and the
+          // chips inside stretch vertically.
+          style={{ flexGrow: 0 }}
           contentContainerStyle={{ gap: 8, paddingVertical: 4 }}
         >
           {(
@@ -131,7 +140,14 @@ export default function BillingScreen() {
             summaryQuery.isLoading || !summaryQuery.data ? (
               <BillingOverviewSkeleton />
             ) : (
-              <BillingOverview summary={summaryQuery.data} />
+              <BillingOverview
+                summary={summaryQuery.data}
+                onOpenPlan={() => setTab("plan")}
+                onPickQuickTopup={(amount) => {
+                  setTopupPrefill(amount);
+                  setTab("topup");
+                }}
+              />
             )
           ) : null}
 
@@ -149,7 +165,11 @@ export default function BillingScreen() {
           ) : null}
 
           {tab === "topup" ? (
-            <TopupForm onSuccess={handleTopupSuccess} />
+            <TopupForm
+              onSuccess={handleTopupSuccess}
+              initialAmountUah={topupPrefill ?? undefined}
+              onConsumePrefill={() => setTopupPrefill(null)}
+            />
           ) : null}
 
           {tab === "history" ? (

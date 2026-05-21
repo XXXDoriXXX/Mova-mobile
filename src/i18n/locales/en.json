@@ -256,7 +256,12 @@
     "usageSource_free": "free",
     "usageSource_paid": "paid",
     "planSwitched": "Plan switched",
-    "planSwitchError": "Couldn't switch plan"
+    "planSwitchError": "Couldn't switch plan",
+    "weekSummaryTitle": "Last 7 days",
+    "weekCalls": "Calls",
+    "weekMinutes": "Minutes",
+    "weekSpend": "Spent",
+    "weekEmpty": "Nothing yet. Make a call and this will come alive."
   },
   "preCall": {
     "title": "Call",
