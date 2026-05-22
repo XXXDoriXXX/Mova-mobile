@@ -61,6 +61,11 @@ type CallState = {
   usageTick: UsageTick | null;
   activeStyleId: string | null;
   activeVoice: string | null;
+  activeLlmProvider: string | null;
+  activeLlmModel: string | null;
+  activeSttProvider: string | null;
+  activeSttModel: string | null;
+  activeTtsProvider: string | null;
   lastStreamId: string | null;
   toastError: CallError | null;
   fatalError: CallError | null;
@@ -71,6 +76,9 @@ type CallState = {
   setWsConnected: (connected: boolean) => void;
   setActiveStyleId: (styleId: string | null) => void;
   setActiveVoice: (voice: string | null) => void;
+  setActiveLlm: (provider: string | null, model: string | null) => void;
+  setActiveStt: (provider: string | null, model: string | null) => void;
+  setActiveTts: (provider: string | null, voice: string | null) => void;
   setLastStreamId: (id: string | null) => void;
 
   setInterlocutorPartial: (text: string) => void;
@@ -110,6 +118,11 @@ export const useCallStore = create<CallState>((set) => ({
   usageTick: null,
   activeStyleId: null,
   activeVoice: null,
+  activeLlmProvider: null,
+  activeLlmModel: null,
+  activeSttProvider: null,
+  activeSttModel: null,
+  activeTtsProvider: null,
   lastStreamId: null,
   toastError: null,
   fatalError: null,
@@ -126,6 +139,11 @@ export const useCallStore = create<CallState>((set) => ({
       usageTick: null,
       activeStyleId: null,
       activeVoice: null,
+      activeLlmProvider: null,
+      activeLlmModel: null,
+      activeSttProvider: null,
+      activeSttModel: null,
+      activeTtsProvider: null,
       lastStreamId: null,
       toastError: null,
       fatalError: null,
@@ -149,6 +167,12 @@ export const useCallStore = create<CallState>((set) => ({
   setWsConnected: (connected) => set({ wsConnected: connected }),
   setActiveStyleId: (styleId) => set({ activeStyleId: styleId }),
   setActiveVoice: (voice) => set({ activeVoice: voice }),
+  setActiveLlm: (provider, model) =>
+    set({ activeLlmProvider: provider, activeLlmModel: model }),
+  setActiveStt: (provider, model) =>
+    set({ activeSttProvider: provider, activeSttModel: model }),
+  setActiveTts: (provider, voice) =>
+    set({ activeTtsProvider: provider, activeVoice: voice }),
   setLastStreamId: (id) => set({ lastStreamId: id }),
 
   setInterlocutorPartial: (text) =>

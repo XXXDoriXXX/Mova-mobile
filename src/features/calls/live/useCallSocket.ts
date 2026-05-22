@@ -221,10 +221,41 @@ function routeEvent(event: ServerEvent) {
         planCode: event.data.planCode,
       });
       break;
-    case "call.config.changed":
+    case "call.config.changed": {
+      // styleId rides on the LLM event (resolved server-side from
+      // template / preference). Apply unconditionally — it's the only
+      // surface where mid-call style change reaches us.
       if (event.data.styleId) store.setActiveStyleId(event.data.styleId);
-      if (event.data.voice) store.setActiveVoice(event.data.voice);
+      // Provider snapshots are typed via `providerType`. Apply each to
+      // its own slot so the in-call info strip can render the full
+      // active stack ("Deepgram · GPT-4o · ElevenLabs (Rachel)") instead
+      // of just the voice the user happened to switch last.
+      switch (event.data.providerType) {
+        case "llm":
+          store.setActiveLlm(
+            event.data.provider ?? null,
+            event.data.model ?? null,
+          );
+          break;
+        case "stt":
+          store.setActiveStt(
+            event.data.provider ?? null,
+            event.data.model ?? null,
+          );
+          break;
+        case "tts":
+          store.setActiveTts(
+            event.data.provider ?? null,
+            event.data.voice ?? null,
+          );
+          break;
+        default:
+          // Legacy / untyped change events (e.g. user.change_voice from
+          // an older agent build) — fall back to voice-only.
+          if (event.data.voice) store.setActiveVoice(event.data.voice);
+      }
       break;
+    }
     case "call.error": {
       const err = {
         code: event.data.code,
