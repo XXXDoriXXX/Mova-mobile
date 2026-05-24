@@ -392,6 +392,7 @@
   "liveCandidate": {
     "autoLabel": "Speaking in",
     "manualLabel": "Reply ready",
+    "generating": "Generating reply…",
     "send": "Speak",
     "sendNow": "Speak now",
     "cancel": "Cancel"

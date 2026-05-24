@@ -217,18 +217,31 @@ function routeEvent(event: ServerEvent) {
       store.setPendingAiReply(null);
       break;
     }
-    case "ai.text.candidate":
-      // Replace any existing candidate — backend only sends a new one
-      // after the previous resolved (accept/cancel/timeout), but be
-      // defensive against out-of-order delivery.
+    case "ai.text.candidate": {
+      // The backend re-emits the same candidateId repeatedly while the
+      // reply streams in (streaming=true, text grows), then once more with
+      // streaming=false to start the countdown. Keep the original
+      // receivedAt across streaming chunks and only stamp it (to drive the
+      // local countdown ring) on the final emit.
+      const prev = store.pendingAiReply;
+      const sameCandidate = prev?.candidateId === event.data.candidateId;
+      const justFinalized =
+        !event.data.streaming && (!sameCandidate || !!prev?.streaming);
       store.setPendingAiReply({
         candidateId: event.data.candidateId,
         text: event.data.text,
         autoAcceptInMs: event.data.autoAcceptInMs,
-        receivedAt: Date.now(),
+        streaming: event.data.streaming,
+        receivedAt: justFinalized
+          ? Date.now()
+          : sameCandidate
+            ? prev!.receivedAt
+            : Date.now(),
       });
-      triggerHaptic("light");
+      // Haptic once, when the card first appears for a new candidate.
+      if (!sameCandidate) triggerHaptic("light");
       break;
+    }
     case "ai.tts.start":
       // Server-side audio playback over SIP; UI gets the voice for context.
       store.setActiveVoice(event.data.voice);

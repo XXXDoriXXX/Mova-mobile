@@ -396,6 +396,7 @@
   "liveCandidate": {
     "autoLabel": "Озвучу через",
     "manualLabel": "Готова відповідь",
+    "generating": "Генерую відповідь…",
     "send": "Озвучити",
     "sendNow": "Озвучити зараз",
     "cancel": "Скасувати"
