@@ -314,7 +314,7 @@
     "aiProbeLabel": "Перевіряю чи нас чути",
     "aiFallbackLabel": "Заповнюю паузу",
     "lowQuotaWarning": "Залишилось {{seconds}}с безкоштовного часу",
-    "whoYou": "Ви",
+    "whoYou": "Ви · озвучено ШІ",
     "composerHint": "AI прочитає це вголос",
     "errorRecoverable": "{{message}}",
     "errorTerminal": "{{message}}",
