@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -40,9 +40,19 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
   const activeStyleId = useCallStore((s) => s.activeStyleId);
   const activeVoice = useCallStore((s) => s.activeVoice);
   const activeTtsProvider = useCallStore((s) => s.activeTtsProvider);
+  const autoMode = useCallStore((s) => s.autoMode);
+  const setAutoModeStore = useCallStore((s) => s.setAutoMode);
   const userPreferredTtsProvider = useAuthStore(
     (s) => s.user?.preferredTtsProvider ?? null,
   );
+
+  function handleToggleAuto(next: boolean) {
+    // Optimistic local flip — the gate is just a UI toggle on the
+    // backend (sets a flag, no provider work), so we don't need to
+    // wait for confirmation. WS publish in-flight will catch up.
+    setAutoModeStore(next);
+    send({ type: "user.set_auto_mode", data: { enabled: next } });
+  }
 
   const stylesQuery = useQuery({
     queryKey: ["styles"],
@@ -130,6 +140,63 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
       scrollable={false}
     >
       <ScrollView style={{ maxHeight: 540 }} contentContainerStyle={{ gap: theme.spacing.lg }}>
+        {/* Auto-mode — single most important control on this screen.
+            Flipping it OFF turns the call into "tap to speak" mode:
+            every AI reply waits for the user's explicit Send tap. */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 12,
+            padding: 12,
+            borderRadius: theme.radii.xl,
+            borderWidth: 1,
+            borderColor: autoMode ? theme.colors.accent : theme.colors.border,
+            backgroundColor: autoMode
+              ? theme.colors.surface
+              : theme.colors.surfaceMuted,
+          }}
+        >
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text variant="label" weight="bold">
+              {t("liveSettings.autoModeLabel")}
+            </Text>
+            <Text variant="caption" color="textMuted">
+              {autoMode
+                ? t("liveSettings.autoModeOnHint")
+                : t("liveSettings.autoModeOffHint")}
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => handleToggleAuto(!autoMode)}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: autoMode }}
+            hitSlop={8}
+            style={{
+              width: 48,
+              height: 28,
+              borderRadius: 14,
+              backgroundColor: autoMode
+                ? theme.colors.accent
+                : theme.colors.surfaceMuted,
+              borderWidth: autoMode ? 0 : 1,
+              borderColor: theme.colors.border,
+              padding: 3,
+              justifyContent: "center",
+              alignItems: autoMode ? "flex-end" : "flex-start",
+            }}
+          >
+            <View
+              style={{
+                width: 22,
+                height: 22,
+                borderRadius: 11,
+                backgroundColor: autoMode ? theme.colors.accentText : "#fff",
+              }}
+            />
+          </Pressable>
+        </View>
+
         {/* Style — applies immediately */}
         <View style={{ gap: theme.spacing.sm }}>
           <Text variant="label">{t("liveSettings.style")}</Text>

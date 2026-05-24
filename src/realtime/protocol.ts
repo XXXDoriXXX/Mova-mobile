@@ -90,6 +90,22 @@ export const ServerEvent = {
     }),
   }),
 
+  /** Pre-TTS preview — the LLM produced a reply, mobile shows it and
+   *  the user accepts (or auto-mode timer elapses) before audio plays.
+   *  autoAcceptInMs is null in manual mode. */
+  aiTextCandidate: envelope.extend({
+    type: z.literal("ai.text.candidate"),
+    data: z.object({
+      candidateId: z.string().min(1),
+      text: z.string(),
+      source: z.object({
+        provider: z.string(),
+        model: z.string(),
+      }),
+      autoAcceptInMs: z.number().int().nonnegative().nullable(),
+    }),
+  }),
+
   aiTtsStart: envelope.extend({
     type: z.literal("ai.tts.start"),
     data: z.object({
@@ -183,6 +199,7 @@ export const ServerEventSchema = z.discriminatedUnion("type", [
   ServerEvent.aiThinking,
   ServerEvent.aiTextPartial,
   ServerEvent.aiTextFinal,
+  ServerEvent.aiTextCandidate,
   ServerEvent.aiTtsStart,
   ServerEvent.aiTtsEnd,
   ServerEvent.suggestionsNew,
@@ -235,6 +252,26 @@ export const ClientCommand = {
     data: z.object({ styleId: z.string().min(1).max(80) }),
   }),
 
+  /** Promote pending AI candidate to TTS playback. Sent by mobile on
+   *  "Send" tap or when the auto-mode countdown ring elapses. */
+  acceptAiReply: z.object({
+    type: z.literal("user.accept_ai_reply"),
+    data: z.object({ candidateId: z.string().min(1) }),
+  }),
+
+  /** Drop pending AI candidate — agent does NOT speak it. */
+  cancelAiReply: z.object({
+    type: z.literal("user.cancel_ai_reply"),
+    data: z.object({ candidateId: z.string().min(1) }),
+  }),
+
+  /** Per-call toggle: when true, candidates auto-accept after a brief
+   *  preview; when false, every reply waits for explicit accept. */
+  setAutoMode: z.object({
+    type: z.literal("user.set_auto_mode"),
+    data: z.object({ enabled: z.boolean() }),
+  }),
+
   endCall: z.object({
     type: z.literal("user.end_call"),
   }),
@@ -251,6 +288,9 @@ export const ClientCommandSchema = z.discriminatedUnion("type", [
   ClientCommand.changeVoice,
   ClientCommand.changeModel,
   ClientCommand.changeStyle,
+  ClientCommand.acceptAiReply,
+  ClientCommand.cancelAiReply,
+  ClientCommand.setAutoMode,
   ClientCommand.endCall,
   ClientCommand.ping,
 ]);
