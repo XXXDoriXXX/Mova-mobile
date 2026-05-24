@@ -1,16 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Banner } from "@/components/Banner";
-import { Button } from "@/components/Button";
 import { Chip } from "@/components/Chip";
 import { Modal } from "@/components/Modal";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
-import { TextField } from "@/components/TextField";
 import { useTheme } from "@/theme/ThemeProvider";
 import { listStyles } from "@/api/styles";
 import { listVoices, type VoiceOption, type VoiceProvider } from "@/api/voices";
@@ -25,24 +23,6 @@ type Props = {
   onClose: () => void;
   send: (cmd: ClientCommand) => void;
 };
-
-type LlmOption = { provider: string; model: string; label: string };
-
-// Gemini ids tracked here are what's stable as of early 2026; the @ai-sdk/google
-// client passes the model id straight through, so anything Google publishes
-// later (e.g. a `gemini-3.x-…`) just works via the "Custom model" input below.
-const LLM_OPTIONS: readonly LlmOption[] = [
-  { provider: "openai", model: "gpt-4o-mini", label: "OpenAI · 4o-mini" },
-  { provider: "openai", model: "gpt-4o", label: "OpenAI · 4o" },
-  { provider: "gemini", model: "gemini-2.5-flash-lite", label: "Gemini · 2.5 Flash-Lite" },
-  { provider: "gemini", model: "gemini-2.5-flash", label: "Gemini · 2.5 Flash" },
-  { provider: "gemini", model: "gemini-2.5-pro", label: "Gemini · 2.5 Pro" },
-  { provider: "anthropic", model: "claude-3-5-sonnet", label: "Anthropic · Sonnet" },
-  { provider: "groq", model: "llama-3.1-70b-versatile", label: "Groq · Llama-70B" },
-] as const;
-
-const PROVIDERS_FOR_CUSTOM = ["openai", "gemini", "anthropic", "groq"] as const;
-type ProviderId = (typeof PROVIDERS_FOR_CUSTOM)[number];
 
 /**
  * Mid-call settings drawer. Exposes the three WS commands the backend
@@ -63,9 +43,6 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
   const userPreferredTtsProvider = useAuthStore(
     (s) => s.user?.preferredTtsProvider ?? null,
   );
-  const [chosenLlm, setChosenLlm] = useState<{ provider: string; model: string } | null>(null);
-  const [customProvider, setCustomProvider] = useState<ProviderId>("gemini");
-  const [customModel, setCustomModel] = useState("");
 
   const stylesQuery = useQuery({
     queryKey: ["styles"],
@@ -143,30 +120,6 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
     } catch {
       toast.error(t("liveSettings.saveFailed"));
     }
-  }
-
-  async function handleLlm(provider: string, model: string) {
-    setChosenLlm({ provider, model });
-    send({
-      type: "user.change_model",
-      data: { providerType: "llm", provider, model },
-    });
-    try {
-      const updated = await patchMe({
-        preferredLlmProvider: provider,
-        preferredLlmModel: model,
-      });
-      useAuthStore.getState().setUser(updated);
-      toast.success(t("liveSettings.savedForNextCall"));
-    } catch {
-      toast.error(t("liveSettings.saveFailed"));
-    }
-  }
-
-  function applyCustom() {
-    const model = customModel.trim();
-    if (!model) return;
-    handleLlm(customProvider, model);
   }
 
   return (
@@ -265,88 +218,15 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
           )}
         </View>
 
-        {/* LLM model — applies next call */}
-        <View style={{ gap: theme.spacing.sm }}>
-          <Text variant="label">{t("liveSettings.model")}</Text>
-          <Text variant="caption" color="textMuted">
-            {t("liveSettings.modelHint")}
-          </Text>
-          <View style={{ gap: theme.spacing.xs }}>
-            {LLM_OPTIONS.map((opt) => {
-              const selected =
-                chosenLlm?.provider === opt.provider &&
-                chosenLlm?.model === opt.model;
-              return (
-                <Pressable
-                  key={`${opt.provider}-${opt.model}`}
-                  onPress={() => handleLlm(opt.provider, opt.model)}
-                  style={({ pressed }) => ({
-                    paddingHorizontal: 14,
-                    paddingVertical: 12,
-                    borderRadius: theme.radii.lg,
-                    borderWidth: 1,
-                    borderColor: selected
-                      ? theme.colors.primary
-                      : theme.colors.border,
-                    backgroundColor: selected
-                      ? theme.colors.surfaceMuted
-                      : theme.colors.surface,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    opacity: pressed ? 0.85 : 1,
-                  })}
-                >
-                  <Text variant="bodyLarge" weight={selected ? "bold" : "medium"}>
-                    {opt.label}
-                  </Text>
-                  {selected ? (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={20}
-                      color={theme.colors.primary}
-                    />
-                  ) : null}
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* Custom model — pin any model id the backend accepts. Useful when
-            a provider releases a new generation that doesn't have a preset
-            in the list above. The string goes straight through to the
-            provider SDK on the worker side. */}
-        <View style={{ gap: theme.spacing.sm }}>
-          <Text variant="label">{t("liveSettings.customModel")}</Text>
-          <Text variant="caption" color="textMuted">
-            {t("liveSettings.customModelHint")}
-          </Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.xs }}>
-            {PROVIDERS_FOR_CUSTOM.map((p) => (
-              <Chip
-                key={p}
-                label={p}
-                selected={customProvider === p}
-                onPress={() => setCustomProvider(p)}
-              />
-            ))}
-          </View>
-          <TextField
-            placeholder={t("liveSettings.customModelPlaceholder")}
-            value={customModel}
-            onChangeText={setCustomModel}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          <Button
-            label={t("liveSettings.customModelApply")}
-            variant="secondary"
-            size="md"
-            disabled={!customModel.trim()}
-            onPress={applyCustom}
-          />
-        </View>
+        {/* LLM model + custom model pickers intentionally removed —
+            agent-worker's ProviderRegistry now auto-picks the best
+            healthy LLM per turn (Phase-9 health-based selection).
+            Surfacing a manual override on the drawer was a footgun:
+            users picked a model, the upstream went degraded, registry
+            silently fell back to the next-best, and the drawer's
+            "selected" indicator stayed wrong. Backend WS controls
+            `user.change_model` are still wired for future hot-swap
+            but mobile doesn't expose them. */}
 
         <Banner tone="info" message={t("liveSettings.nextCallNote")} />
       </ScrollView>
