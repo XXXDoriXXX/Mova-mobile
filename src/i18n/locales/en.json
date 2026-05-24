@@ -314,7 +314,7 @@
     "aiProbeLabel": "Checking if anyone's there",
     "aiFallbackLabel": "Filling the silence",
     "lowQuotaWarning": "{{seconds}}s of free time left",
-    "whoYou": "You",
+    "whoYou": "You · voiced by AI",
     "composerHint": "AI will speak your message",
     "errorRecoverable": "{{message}}",
     "errorTerminal": "{{message}}",
