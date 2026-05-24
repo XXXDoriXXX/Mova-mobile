@@ -40,9 +40,13 @@ export type PendingAiReply = {
   text: string;
   /** ms until auto-accept; null in manual mode (no timer). */
   autoAcceptInMs: number | null;
-  /** Wall-clock ms when we received this candidate — drives the
-   *  countdown ring locally without depending on a server tick. */
+  /** Wall-clock ms when the FINAL candidate landed — drives the countdown
+   *  ring locally without depending on a server tick. Only meaningful once
+   *  streaming=false. */
   receivedAt: number;
+  /** True while the reply is still being generated server-side (text grows
+   *  with each event). No countdown runs until this flips to false. */
+  streaming: boolean;
 };
 
 export type CallError = {

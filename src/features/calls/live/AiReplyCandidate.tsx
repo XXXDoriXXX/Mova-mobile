@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, View } from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
 import Animated, {
   Easing,
   FadeIn,
@@ -49,7 +49,11 @@ type Props = {
 export function AiReplyCandidate({ candidate, onAccept, onCancel }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const isAuto = candidate.autoAcceptInMs != null;
+  // While streaming, the reply text is still arriving — no countdown runs
+  // and the badge shows a generating spinner. Auto-accept only applies to a
+  // finalized candidate with a non-null window.
+  const isStreaming = candidate.streaming;
+  const isAuto = !isStreaming && candidate.autoAcceptInMs != null;
 
   // Local tick — only used to drive the textual "Xs" countdown next to
   // the ring. The ring itself runs on the UI thread (see below) and
@@ -150,7 +154,20 @@ export function AiReplyCandidate({ candidate, onAccept, onCancel }: Props) {
             justifyContent: "center",
           }}
         >
-          {isAuto ? (
+          {isStreaming ? (
+            <View
+              style={{
+                width: RING_SIZE,
+                height: RING_SIZE,
+                borderRadius: RING_SIZE / 2,
+                backgroundColor: theme.colors.surfaceMuted,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <ActivityIndicator size="small" color={theme.colors.accent} />
+            </View>
+          ) : isAuto ? (
             <>
               <Svg
                 width={RING_SIZE}
@@ -214,12 +231,14 @@ export function AiReplyCandidate({ candidate, onAccept, onCancel }: Props) {
             color="textMuted"
             style={{ textTransform: "uppercase", fontSize: 10, letterSpacing: 0.6 }}
           >
-            {isAuto
-              ? t("liveCandidate.autoLabel")
-              : t("liveCandidate.manualLabel")}
+            {isStreaming
+              ? t("liveCandidate.generating")
+              : isAuto
+                ? t("liveCandidate.autoLabel")
+                : t("liveCandidate.manualLabel")}
           </Text>
           <Text variant="body" color="text" numberOfLines={4}>
-            {candidate.text}
+            {candidate.text || "…"}
           </Text>
         </View>
       </View>
