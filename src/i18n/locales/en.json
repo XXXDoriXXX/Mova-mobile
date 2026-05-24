@@ -400,6 +400,7 @@
     "customModelPlaceholder": "e.g. gemini-3.0-flash-lite",
     "customModelApply": "Apply",
     "savedForNextCall": "Saved — applies on your next call",
+    "voicesEmpty": "No voices available. Check provider keys in the admin panel.",
     "saveFailed": "Could not save the setting"
   },
   "onboarding": {
