@@ -211,8 +211,24 @@ function routeEvent(event: ServerEvent) {
             ? "fallback"
             : "normal";
       store.commitAiFinal(event.data.messageId, event.data.text, kind);
+      // Clear any pending candidate — the final landed, the preview
+      // card has done its job. (Backend always emits final AFTER
+      // accept, so a stale pending here would be a duplicate.)
+      store.setPendingAiReply(null);
       break;
     }
+    case "ai.text.candidate":
+      // Replace any existing candidate — backend only sends a new one
+      // after the previous resolved (accept/cancel/timeout), but be
+      // defensive against out-of-order delivery.
+      store.setPendingAiReply({
+        candidateId: event.data.candidateId,
+        text: event.data.text,
+        autoAcceptInMs: event.data.autoAcceptInMs,
+        receivedAt: Date.now(),
+      });
+      triggerHaptic("light");
+      break;
     case "ai.tts.start":
       // Server-side audio playback over SIP; UI gets the voice for context.
       store.setActiveVoice(event.data.voice);

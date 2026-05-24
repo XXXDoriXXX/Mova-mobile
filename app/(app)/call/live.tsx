@@ -28,6 +28,7 @@ import { CallEnding } from "@/features/calls/live/CallEnding";
 import { CallFatal } from "@/features/calls/live/CallFatal";
 import { CallSettingsDrawer } from "@/features/calls/live/CallSettingsDrawer";
 import { CallStatusBanner } from "@/features/calls/live/CallStatusBanner";
+import { AiReplyCandidate } from "@/features/calls/live/AiReplyCandidate";
 import { MessageInput } from "@/features/calls/live/MessageInput";
 import { SuggestionChips } from "@/features/calls/live/SuggestionChips";
 import { Transcript } from "@/features/calls/live/Transcript";
@@ -61,6 +62,8 @@ export default function LiveCallScreen() {
     ),
   );
   const usageTick = useCallStore((s) => s.usageTick);
+  const pendingAiReply = useCallStore((s) => s.pendingAiReply);
+  const setPendingAiReply = useCallStore((s) => s.setPendingAiReply);
   const toastError = useCallStore((s) => s.toastError);
   const fatalError = useCallStore((s) => s.fatalError);
   const endInfo = useCallStore((s) => s.endInfo);
@@ -113,6 +116,19 @@ export default function LiveCallScreen() {
     useCallStore.getState().pushUserTyped(s.content);
     useCallStore.getState().removeSuggestion(s.id);
     send({ type: "user.accept_suggestion", data: { suggestionId: s.id } });
+  }
+
+  function handleAcceptAiReply(candidateId: string) {
+    // Optimistic clear so the preview card dismisses instantly; backend
+    // will follow up with the canonical ai.text.final event which lands
+    // the bubble in chat. Idempotent on the backend — if the user
+    // double-taps, the second accept is a no-op.
+    setPendingAiReply(null);
+    send({ type: "user.accept_ai_reply", data: { candidateId } });
+  }
+  function handleCancelAiReply(candidateId: string) {
+    setPendingAiReply(null);
+    send({ type: "user.cancel_ai_reply", data: { candidateId } });
   }
 
   async function handleEnd() {
@@ -264,6 +280,17 @@ export default function LiveCallScreen() {
       ) : (
         <>
           <Transcript bubbles={bubbles} aiThinking={aiThinking} />
+          {/* AI candidate preview — the LLM produced a reply but the
+              user hasn't accepted yet. Shows above the suggestion
+              chips so the user's eye lands on it first. Countdown
+              ring sweeps in auto mode; Send/Cancel buttons either way. */}
+          {pendingAiReply ? (
+            <AiReplyCandidate
+              candidate={pendingAiReply}
+              onAccept={handleAcceptAiReply}
+              onCancel={handleCancelAiReply}
+            />
+          ) : null}
           <SuggestionChips items={suggestions} onPick={handleSuggestion} />
           {/* Allow typing as soon as the call has any signal of life. Only
               hard-disable on the terminal `ended` state — `reconnecting`

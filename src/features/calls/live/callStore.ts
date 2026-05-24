@@ -28,6 +28,23 @@ export type CallSuggestion = {
   content: string;
 };
 
+/**
+ * In-flight AI reply candidate awaiting user decision. Backend emits
+ * one of these on ai.text.candidate; mobile shows it as a preview
+ * card with a countdown ring (when autoAcceptInMs is non-null) and
+ * Send / Cancel actions. Replaced on every new candidate, cleared on
+ * accept/cancel/timeout.
+ */
+export type PendingAiReply = {
+  candidateId: string;
+  text: string;
+  /** ms until auto-accept; null in manual mode (no timer). */
+  autoAcceptInMs: number | null;
+  /** Wall-clock ms when we received this candidate — drives the
+   *  countdown ring locally without depending on a server tick. */
+  receivedAt: number;
+};
+
 export type CallError = {
   code: CallErrorCode;
   message: string;
@@ -64,6 +81,14 @@ type CallState = {
   suggestions: CallSuggestion[];
   aiThinking: boolean;
   usageTick: UsageTick | null;
+  /** Current AI candidate awaiting user accept/cancel. Drives the
+   *  "about to speak" preview card. Null when no candidate pending. */
+  pendingAiReply: PendingAiReply | null;
+  /** Per-call "auto-accept candidates after timer" toggle. Defaults
+   *  to true to preserve the conversational pace of the previous
+   *  always-auto behaviour. Settings drawer toggles it; flip syncs
+   *  to backend via user.set_auto_mode WS command. */
+  autoMode: boolean;
   activeStyleId: string | null;
   activeVoice: string | null;
   activeLlmProvider: string | null;
@@ -79,6 +104,8 @@ type CallState = {
   reset: () => void;
   setStatus: (status: CallStatus) => void;
   setWsConnected: (connected: boolean) => void;
+  setPendingAiReply: (reply: PendingAiReply | null) => void;
+  setAutoMode: (enabled: boolean) => void;
   setActiveStyleId: (styleId: string | null) => void;
   setActiveVoice: (voice: string | null) => void;
   setActiveLlm: (provider: string | null, model: string | null) => void;
@@ -121,6 +148,8 @@ export const useCallStore = create<CallState>((set) => ({
   suggestions: [],
   aiThinking: false,
   usageTick: null,
+  pendingAiReply: null,
+  autoMode: true,
   activeStyleId: null,
   activeVoice: null,
   activeLlmProvider: null,
@@ -142,6 +171,10 @@ export const useCallStore = create<CallState>((set) => ({
       suggestions: [],
       aiThinking: false,
       usageTick: null,
+      pendingAiReply: null,
+      // Don't reset autoMode — it's a per-session preference the user
+      // set in the drawer and expects to persist across reconnects
+      // within the same call. The next start() picks up the same value.
       activeStyleId: null,
       activeVoice: null,
       activeLlmProvider: null,
@@ -170,6 +203,8 @@ export const useCallStore = create<CallState>((set) => ({
       return { status, connectStartedAt };
     }),
   setWsConnected: (connected) => set({ wsConnected: connected }),
+  setPendingAiReply: (reply) => set({ pendingAiReply: reply }),
+  setAutoMode: (enabled) => set({ autoMode: enabled }),
   setActiveStyleId: (styleId) => set({ activeStyleId: styleId }),
   setActiveVoice: (voice) => set({ activeVoice: voice }),
   setActiveLlm: (provider, model) =>

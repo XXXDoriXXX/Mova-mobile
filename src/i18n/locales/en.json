@@ -389,6 +389,13 @@
     "statToday": "{{count}} today",
     "statWeek": "{{count}} this week"
   },
+  "liveCandidate": {
+    "autoLabel": "Speaking in",
+    "manualLabel": "Reply ready",
+    "send": "Speak",
+    "sendNow": "Speak now",
+    "cancel": "Cancel"
+  },
   "liveStatus": {
     "reconnecting": {
       "title": "Reconnecting",
@@ -441,6 +448,9 @@
   },
   "liveSettings": {
     "title": "Call settings",
+    "autoModeLabel": "Auto-speak",
+    "autoModeOnHint": "AI shows the reply and speaks it after 3s. Tap cancel — or speak now.",
+    "autoModeOffHint": "AI shows the reply — only spoken after your tap. Or type your own.",
     "style": "Conversation style",
     "styleHint": "Applies immediately, from the AI's next reply",
     "voice": "AI voice",
