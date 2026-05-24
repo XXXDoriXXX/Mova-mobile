@@ -311,6 +311,9 @@
     "live": "live",
     "whoInterlocutor": "Caller",
     "whoAi": "You · AI voice",
+    "aiProbeLabel": "Checking if anyone's there",
+    "aiFallbackLabel": "Filling the silence",
+    "lowQuotaWarning": "{{seconds}}s of free time left",
     "whoYou": "You",
     "composerHint": "AI will speak your message",
     "errorRecoverable": "{{message}}",
@@ -385,6 +388,56 @@
     "copied": "Copied to clipboard",
     "statToday": "{{count}} today",
     "statWeek": "{{count}} this week"
+  },
+  "liveStatus": {
+    "reconnecting": {
+      "title": "Reconnecting",
+      "body": "Network blipped — restoring the line. The conversation will resume the moment we're back."
+    },
+    "aiThinkingChat": "AI is thinking…",
+    "aiAboutToTimeout": "AI is slow to reply, give it a sec"
+  },
+  "callErrors": {
+    "generic": {
+      "title": "Something glitched",
+      "body": "I'll try to recover — if not, call again."
+    },
+    "STT_DEGRADED": {
+      "title": "Speech-to-text degraded",
+      "body": "STT signal is noisy. Switching to backup provider."
+    },
+    "STT_UNAVAILABLE": {
+      "title": "Can't hear the caller",
+      "body": "Speech-to-text is temporarily unavailable. Reconnecting."
+    },
+    "STT_STALLED": {
+      "title": "Transcription stalled",
+      "body": "Recognition froze for a moment. Hang on."
+    },
+    "LLM_DEGRADED": {
+      "title": "AI is slower than usual",
+      "body": "Primary model is degraded — falling back to a healthy one."
+    },
+    "LLM_UNAVAILABLE": {
+      "title": "AI temporarily unavailable",
+      "body": "Looking for a backup model. Say it again in a moment."
+    },
+    "TTS_DEGRADED": {
+      "title": "Switching voice",
+      "body": "Primary voice is degraded — switching to backup."
+    },
+    "PROMPT_INJECTION": {
+      "title": "Can't say that",
+      "body": "Text looks like a jailbreak attempt. Try rephrasing."
+    },
+    "CONTENT_BLOCKED": {
+      "title": "Blocked by moderation",
+      "body": "This message doesn't pass our safety filters."
+    },
+    "RATE_LIMITED": {
+      "title": "Too many requests",
+      "body": "Give me a few seconds to catch up."
+    }
   },
   "liveSettings": {
     "title": "Call settings",

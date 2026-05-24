@@ -16,6 +16,11 @@ export type Bubble = {
   content: string;
   partial: boolean;
   ts: number;
+  /** AI bubbles only. Distinguishes "real LLM reply" from synthetic
+   *  ones the agent speaks when the LLM stalls or the interlocutor
+   *  goes quiet. Drives a different bubble style + label so the user
+   *  doesn't mistake "Алло? Ви чуєте?" for a real question to answer. */
+  kind?: "normal" | "fallback" | "idle_probe";
 };
 
 export type CallSuggestion = {
@@ -85,7 +90,7 @@ type CallState = {
   commitInterlocutorFinal: (messageId: string, text: string) => void;
 
   setAiPartial: (text: string) => void;
-  commitAiFinal: (messageId: string, text: string) => void;
+  commitAiFinal: (messageId: string, text: string, kind?: Bubble["kind"]) => void;
   setAiThinking: (active: boolean) => void;
 
   pushUserTyped: (content: string) => void;
@@ -227,7 +232,7 @@ export const useCallStore = create<CallState>((set) => ({
       };
     }),
 
-  commitAiFinal: (messageId, text) =>
+  commitAiFinal: (messageId, text, kind) =>
     set((s) => {
       const others = s.bubbles.filter((b) => b.id !== PARTIAL_AI_ID);
       return {
@@ -239,6 +244,7 @@ export const useCallStore = create<CallState>((set) => ({
             content: text,
             partial: false,
             ts: Date.now(),
+            kind: kind ?? "normal",
           },
         ],
         aiThinking: false,

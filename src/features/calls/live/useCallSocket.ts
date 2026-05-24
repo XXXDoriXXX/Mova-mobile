@@ -197,9 +197,22 @@ function routeEvent(event: ServerEvent) {
     case "ai.text.partial":
       store.setAiPartial(event.data.text);
       break;
-    case "ai.text.final":
-      store.commitAiFinal(event.data.messageId, event.data.text);
+    case "ai.text.final": {
+      // The agent stamps `source.provider` as "fallback" when the LLM
+      // watchdog fires a placeholder line, or "idle_probe" when nobody's
+      // talked for too long and the agent says "are you there?". Both
+      // are synthetic — render them with a distinct bubble style so the
+      // user doesn't mistake "Алло?" for a real question to answer.
+      const provider = event.data.source?.provider ?? "";
+      const kind =
+        provider === "idle_probe"
+          ? "idle_probe"
+          : provider === "fallback"
+            ? "fallback"
+            : "normal";
+      store.commitAiFinal(event.data.messageId, event.data.text, kind);
       break;
+    }
     case "ai.tts.start":
       // Server-side audio playback over SIP; UI gets the voice for context.
       store.setActiveVoice(event.data.voice);
