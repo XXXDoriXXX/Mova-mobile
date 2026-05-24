@@ -404,6 +404,7 @@
     "customModelPlaceholder": "напр. gemini-3.0-flash-lite",
     "customModelApply": "Застосувати",
     "savedForNextCall": "Збережено — застосується з наступного дзвінка",
+    "voicesEmpty": "Немає доступних голосів. Перевір налаштування провайдерів у адмін-панелі.",
     "saveFailed": "Не вдалося зберегти налаштування"
   },
   "onboarding": {

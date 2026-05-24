@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,6 +13,7 @@ import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
 import { useTheme } from "@/theme/ThemeProvider";
 import { listStyles } from "@/api/styles";
+import { listVoices, type VoiceOption, type VoiceProvider } from "@/api/voices";
 import { patchMe } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
 import { toast } from "@/feedback/toast";
@@ -24,11 +25,6 @@ type Props = {
   onClose: () => void;
   send: (cmd: ClientCommand) => void;
 };
-
-// Voice + LLM presets the user can switch through during the call. They map
-// 1:1 to backend provider strings; kept small here because the LiveKit
-// agents need each to exist on the worker side.
-const VOICE_OPTIONS = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"] as const;
 
 type LlmOption = { provider: string; model: string; label: string };
 
@@ -63,6 +59,10 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
   const theme = useTheme();
   const activeStyleId = useCallStore((s) => s.activeStyleId);
   const activeVoice = useCallStore((s) => s.activeVoice);
+  const activeTtsProvider = useCallStore((s) => s.activeTtsProvider);
+  const userPreferredTtsProvider = useAuthStore(
+    (s) => s.user?.preferredTtsProvider ?? null,
+  );
   const [chosenLlm, setChosenLlm] = useState<{ provider: string; model: string } | null>(null);
   const [customProvider, setCustomProvider] = useState<ProviderId>("gemini");
   const [customModel, setCustomModel] = useState("");
@@ -73,21 +73,60 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
     enabled: visible,
   });
 
+  // Voice catalogue is server-curated (/v1/voices) so adding a Wavenet
+  // variant or rotating an ElevenLabs id doesn't require a mobile ship.
+  // 24h stale window is fine — the list changes infrequently.
+  const voicesQuery = useQuery({
+    queryKey: ["voices"],
+    queryFn: listVoices,
+    enabled: visible,
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+  // Group voices by provider so we can render labelled blocks. The
+  // tab that opens first defaults to whichever provider the user
+  // currently uses; falling back to the live-call provider, then
+  // "google" as the cheap-and-good baseline.
+  const voicesByProvider = useMemo(() => {
+    const map = new Map<VoiceProvider, VoiceOption[]>();
+    for (const v of voicesQuery.data ?? []) {
+      const arr = map.get(v.provider) ?? [];
+      arr.push(v);
+      map.set(v.provider, arr);
+    }
+    return map;
+  }, [voicesQuery.data]);
+  const initialProvider: VoiceProvider =
+    (userPreferredTtsProvider as VoiceProvider | null) ??
+    (activeTtsProvider as VoiceProvider | null) ??
+    "google";
+  const [voiceProviderTab, setVoiceProviderTab] = useState<VoiceProvider>(initialProvider);
+  // Sync the tab when the drawer reopens against a different active
+  // provider (e.g. the agent fell back to OpenAI mid-call). Without
+  // this the user opens the drawer and sees the previous tab's chips
+  // selected as "the current voice" — confusing.
+  useEffect(() => {
+    if (visible) setVoiceProviderTab(initialProvider);
+  }, [visible, initialProvider]);
+
   function handleStyle(styleId: string) {
     // Style is the one setting that takes effect mid-call — it only feeds
     // the suggestions generator, which picks it up on the next turn.
     send({ type: "user.change_style", data: { styleId } });
   }
 
-  // Voice and LLM model bind at LiveKit AgentSession creation; mid-call swap
-  // would tear down audio. We persist the choice to the user's profile via
-  // PATCH /users/me so the NEXT call boots with it; the WS command stays for
-  // audit + future hot-swap support. Toast tells the user the change is real
-  // but applies on the next call — no silent failure.
-  async function handleVoice(voice: string) {
-    send({ type: "user.change_voice", data: { voice } });
+  // Voice + LLM model bind at LiveKit AgentSession creation; mid-call
+  // swap would tear down audio. We persist BOTH the voice id AND its
+  // provider in one PATCH so the next call boots on a consistent
+  // (provider, voice) pair — picking a Wavenet voice without also
+  // setting preferredTtsProvider=google would resolve to the env
+  // default's provider with an unsupported voice id and fail.
+  async function handleVoice(voice: VoiceOption) {
+    send({ type: "user.change_voice", data: { voice: voice.id } });
     try {
-      const updated = await patchMe({ preferredVoice: voice });
+      const updated = await patchMe({
+        preferredVoice: voice.id,
+        preferredTtsProvider: voice.provider,
+      });
       useAuthStore.getState().setUser(updated);
       toast.success(t("liveSettings.savedForNextCall"));
     } catch {
@@ -157,22 +196,62 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
           )}
         </View>
 
-        {/* Voice — applies next call */}
+        {/* Voice — applies next call.
+            Two-tier picker: a row of provider tabs at the top
+            (which TTS engine), then the chip grid of that engine's
+            curated voices below. Tapping a chip persists both
+            preferredVoice AND preferredTtsProvider in one PATCH. */}
         <View style={{ gap: theme.spacing.sm }}>
           <Text variant="label">{t("liveSettings.voice")}</Text>
           <Text variant="caption" color="textMuted">
             {t("liveSettings.voiceHint")}
           </Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.sm }}>
-            {VOICE_OPTIONS.map((v) => (
-              <Chip
-                key={v}
-                label={v}
-                selected={activeVoice === v}
-                onPress={() => handleVoice(v)}
-              />
-            ))}
-          </View>
+          {voicesQuery.isLoading || !voicesQuery.data ? (
+            <Spinner size="small" />
+          ) : voicesByProvider.size === 0 ? (
+            <Text variant="caption" color="textMuted">
+              {t("liveSettings.voicesEmpty")}
+            </Text>
+          ) : (
+            <>
+              {/* Provider tabs. Only show providers that actually
+                  returned at least one curated voice. */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  gap: theme.spacing.xs,
+                }}
+              >
+                {[...voicesByProvider.keys()].map((p) => (
+                  <Chip
+                    key={p}
+                    label={p}
+                    selected={voiceProviderTab === p}
+                    onPress={() => setVoiceProviderTab(p)}
+                  />
+                ))}
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  gap: theme.spacing.sm,
+                }}
+              >
+                {(voicesByProvider.get(voiceProviderTab) ?? []).map((v) => (
+                  <Chip
+                    key={v.id}
+                    label={v.label}
+                    selected={
+                      activeVoice === v.id && activeTtsProvider === v.provider
+                    }
+                    onPress={() => handleVoice(v)}
+                  />
+                ))}
+              </View>
+            </>
+          )}
         </View>
 
         {/* LLM model — applies next call */}
