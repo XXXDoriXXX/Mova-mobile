@@ -4,8 +4,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
-
 import { AudioWave } from "@/components/AudioWave";
 import { Banner } from "@/components/Banner";
 import { FaceAvatar } from "@/components/FaceAvatar";
@@ -23,6 +21,7 @@ import { CallConnecting } from "@/features/calls/live/CallConnecting";
 import { CallEnding } from "@/features/calls/live/CallEnding";
 import { CallFatal } from "@/features/calls/live/CallFatal";
 import { CallSettingsDrawer } from "@/features/calls/live/CallSettingsDrawer";
+import { CallStatusBanner } from "@/features/calls/live/CallStatusBanner";
 import { MessageInput } from "@/features/calls/live/MessageInput";
 import { SuggestionChips } from "@/features/calls/live/SuggestionChips";
 import { Transcript } from "@/features/calls/live/Transcript";
@@ -72,12 +71,14 @@ export default function LiveCallScreen() {
 
   useEffect(() => {
     if (!toastError) return;
-    // Surface the recoverable error as a toast (with warning haptic) and
-    // mirror it in the call store so the inline banner shows for context.
+    // Recoverable error → fire the warning toast for the haptic punch
+    // (notification + vibration), but DON'T auto-clear the store error
+    // anymore. CallStatusBanner now renders it inline above the
+    // transcript and stays until the user dismisses it or a new event
+    // replaces it — the previous 4s auto-clear meant the message was
+    // usually gone before the user looked up from the chat.
     toast.warning(toastError.message);
-    const id = setTimeout(() => setToastError(null), 4000);
-    return () => clearTimeout(id);
-  }, [toastError, setToastError]);
+  }, [toastError]);
 
   // Fatal errors get a louder error toast — the screen reroutes anyway,
   // but the toast travels with the user to the next screen so they know
@@ -212,17 +213,23 @@ export default function LiveCallScreen() {
         send={send}
       />
 
-      {toastError ? (
-        <Animated.View
-          entering={FadeIn.duration(160)}
-          exiting={FadeOut.duration(200)}
-          style={{
-            paddingHorizontal: theme.spacing.page,
-            paddingVertical: theme.spacing.sm,
-          }}
-        >
-          <Banner tone="warning" message={toastError.message} />
-        </Animated.View>
+      {/* Persistent in-context banner. Owns its own visibility logic:
+          renders the reconnecting state when WS is bouncing, and the
+          recoverable-error banner with friendly UA copy otherwise.
+          Both are dismissible (where appropriate) and outlast the
+          transient toast that fires for haptics. */}
+      <CallStatusBanner />
+
+      {/* Low-quota warning. Fires only on the free plan in the last
+          ~30 seconds — leaves the user enough time to wrap up the
+          sentence instead of getting cut off mid-word by the balance
+          watchdog. Paid plans have a wallet, not a quota, so the
+          countdown is meaningless for them. */}
+      {usageTick?.planCode === "free" &&
+      typeof usageTick.secondsRemaining === "number" &&
+      usageTick.secondsRemaining > 0 &&
+      usageTick.secondsRemaining <= 30 ? (
+        <LowQuotaWarning seconds={usageTick.secondsRemaining} />
       ) : null}
 
       {showConnectingState ? (
@@ -510,6 +517,55 @@ function SpeakerStatus({
         </View>
         <AudioWave color={theme.colors.accent} count={12} height={20} />
       </View>
+    </View>
+  );
+}
+
+/**
+ * Free-plan-only countdown banner. Fires at ≤30s remaining so the
+ * user can say "let me call you back" instead of getting cut off
+ * mid-word by the balance watchdog. Uses the danger tone in the
+ * last 10s — psychologically the second-by-second countdown drives
+ * the urgency, but the colour drives the "this matters" eye-pull.
+ *
+ * On the paid plan this never renders — the user's wallet means the
+ * call ends when they hang up, not on a clock.
+ */
+function LowQuotaWarning({ seconds }: { seconds: number }) {
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const critical = seconds <= 10;
+  const palette = critical
+    ? {
+        bg: "rgba(229,72,61,0.12)",
+        border: theme.colors.danger,
+        fg: theme.colors.danger,
+      }
+    : {
+        bg: "rgba(199,119,0,0.10)",
+        border: theme.colors.warning,
+        fg: theme.colors.warning,
+      };
+  return (
+    <View
+      style={{
+        marginHorizontal: theme.spacing.page,
+        marginBottom: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: theme.radii.lg,
+        borderWidth: 1,
+        borderColor: palette.border,
+        backgroundColor: palette.bg,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+      }}
+    >
+      <Ionicons name="time-outline" size={16} color={palette.fg} />
+      <Text variant="caption" weight="bold" style={{ color: palette.fg, flex: 1 }}>
+        {t("live.lowQuotaWarning", { seconds })}
+      </Text>
     </View>
   );
 }
