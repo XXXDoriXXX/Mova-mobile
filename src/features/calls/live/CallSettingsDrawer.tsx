@@ -82,16 +82,27 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
     enabled: visible,
     staleTime: 24 * 60 * 60 * 1000,
   });
-  // Group voices by provider so we can render labelled blocks. The
-  // tab that opens first defaults to whichever provider the user
-  // currently uses; falling back to the live-call provider, then
-  // "google" as the cheap-and-good baseline.
+  // Group voices by provider so we can render labelled blocks. Within
+  // each provider we sort by language so the UA voices float to the
+  // top — this app is UA-first; multilingual voices come second
+  // (still useful for UA), English-only voices last. Stable secondary
+  // sort by label keeps the order predictable when prices/quality
+  // are equivalent within a language bucket.
   const voicesByProvider = useMemo(() => {
+    const rank: Record<string, number> = { "uk-UA": 0, multi: 1, "en-US": 2 };
     const map = new Map<VoiceProvider, VoiceOption[]>();
     for (const v of voicesQuery.data ?? []) {
       const arr = map.get(v.provider) ?? [];
       arr.push(v);
       map.set(v.provider, arr);
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => {
+        const ra = rank[a.language] ?? 99;
+        const rb = rank[b.language] ?? 99;
+        if (ra !== rb) return ra - rb;
+        return a.label.localeCompare(b.label);
+      });
     }
     return map;
   }, [voicesQuery.data]);
@@ -240,9 +251,9 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
                 }}
               >
                 {(voicesByProvider.get(voiceProviderTab) ?? []).map((v) => (
-                  <Chip
+                  <VoiceChip
                     key={v.id}
-                    label={v.label}
+                    voice={v}
                     selected={
                       activeVoice === v.id && activeTtsProvider === v.provider
                     }
@@ -340,5 +351,77 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
         <Banner tone="info" message={t("liveSettings.nextCallNote")} />
       </ScrollView>
     </Modal>
+  );
+}
+
+/**
+ * Voice picker chip with gender icon + language pill rendered inline.
+ *
+ * The base Chip exposes leading/trailing slots, so we just hand it a
+ * small Ionicon for gender and a tiny pill for the language tag. Both
+ * are cosmetic — saving still goes through the same handleVoice path
+ * that persists (preferredVoice, preferredTtsProvider) as a pair.
+ *
+ * Gender ⇒ icon:
+ *   female  → person  (the more rounded glyph in the Ionicon set)
+ *   male    → man
+ *   neutral → mic-circle-outline  (no gender → just "a voice")
+ *
+ * Language pill is shown only when the voice has a known regional
+ * code; multilingual voices skip it to keep the chip narrow.
+ */
+function VoiceChip({
+  voice,
+  selected,
+  onPress,
+}: {
+  voice: VoiceOption;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const theme = useTheme();
+  const iconName: keyof typeof Ionicons.glyphMap =
+    voice.gender === 'female'
+      ? 'person'
+      : voice.gender === 'male'
+        ? 'man'
+        : 'mic-circle-outline';
+  // When selected the chip flips to ink+light text; pick contrasting
+  // icon / pill colours so they read against either background.
+  const iconColor = selected ? theme.colors.primaryText : theme.colors.textMuted;
+  const pillBg = selected ? 'rgba(255,255,255,0.18)' : theme.colors.surfaceMuted;
+  const pillFg = selected ? theme.colors.primaryText : theme.colors.textMuted;
+  const showLangPill = voice.language === 'uk-UA' || voice.language === 'en-US';
+  const langLabel = voice.language === 'uk-UA' ? 'UA' : 'EN';
+  return (
+    <Chip
+      label={voice.label}
+      selected={selected}
+      onPress={onPress}
+      leading={<Ionicons name={iconName} size={14} color={iconColor} />}
+      trailing={
+        showLangPill ? (
+          <View
+            style={{
+              paddingHorizontal: 6,
+              paddingVertical: 1,
+              borderRadius: 999,
+              backgroundColor: pillBg,
+            }}
+          >
+            <Text
+              variant="label"
+              style={{
+                color: pillFg,
+                fontSize: 9,
+                letterSpacing: 0.6,
+              }}
+            >
+              {langLabel}
+            </Text>
+          </View>
+        ) : undefined
+      }
+    />
   );
 }
