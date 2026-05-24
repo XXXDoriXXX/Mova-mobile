@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { BackHandler, Pressable, View } from "react-native";
+import {
+  BackHandler,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  View,
+} from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -190,6 +196,22 @@ export default function LiveCallScreen() {
 
   return (
     <Screen padded={false}>
+      {/* KeyboardAvoidingView pushes the entire call layout up when the
+          soft keyboard opens, so the MessageInput at the bottom stays
+          visible above the keyboard instead of being covered by it.
+          Without this on Android the user has to tap an invisible input;
+          on iOS the keyboard sits on top of the composer at the screen
+          edge. `padding` behaviour on iOS adds bottom padding equal to
+          the keyboard height (the canonical fix), Android uses `height`
+          which resizes the available area to the same end effect.
+
+          Note: we wrap inside Screen (which is a SafeAreaView) so the
+          safe-area insets are computed BEFORE the keyboard adjustment —
+          the wrong order makes the layout jitter on the first focus. */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
       <Header
         durationSeconds={usageTick?.secondsElapsed ?? 0}
         secondsRemaining={
@@ -200,7 +222,12 @@ export default function LiveCallScreen() {
         reconnecting={reconnecting}
       />
 
-      <ActiveStackStrip onPress={() => setSettingsOpen(true)} />
+      {/* ActiveStackStrip (deepgram · gemini · elevenlabs · Sarah)
+          intentionally removed — exposing the live provider stack to
+          end-users was an info leak with zero upside: the registry
+          auto-picks the healthiest combo per turn, so the chip row
+          mostly read as system noise the user couldn't act on. Tap
+          target for the settings drawer is now the header pill itself. */}
 
       <SpeakerStatus
         speaking={interlocutorSpeaking}
@@ -245,6 +272,7 @@ export default function LiveCallScreen() {
           <MessageInput onSend={handleSend} disabled={status === "ended"} />
         </>
       )}
+      </KeyboardAvoidingView>
     </Screen>
   );
 }
@@ -358,117 +386,6 @@ function Header({
         />
       </IconButton>
     </View>
-  );
-}
-
-/**
- * Compact provider/model strip — "Deepgram · GPT-4o · ElevenLabs". Renders
- * only what we have so far (events arrive a couple of frames after the WS
- * handshake completes). Tap opens the settings drawer so the user can
- * change anything from here.
- *
- * The forest-pill design intentionally low-contrast — this is metadata,
- * not a primary action. Three short chips inside; if any slot is unknown,
- * we render a "…" placeholder so the layout doesn't jump when data lands.
- */
-function ActiveStackStrip({ onPress }: { onPress: () => void }) {
-  const theme = useTheme();
-  const llmProvider = useCallStore((s) => s.activeLlmProvider);
-  const llmModel = useCallStore((s) => s.activeLlmModel);
-  const sttProvider = useCallStore((s) => s.activeSttProvider);
-  const ttsProvider = useCallStore((s) => s.activeTtsProvider);
-  const activeVoice = useCallStore((s) => s.activeVoice);
-
-  // Render nothing until at least one slot is populated — avoids flashing
-  // an empty pill in the first ~200ms before snapshots land.
-  if (!llmProvider && !sttProvider && !ttsProvider) return null;
-
-  // Squeeze provider-prefixed model ids like "google/gemini-2.5-flash" →
-  // "gemini-2.5-flash"; the prefix is redundant with the provider chip
-  // next to it.
-  const trimModel = (m: string | null) => (m ? m.split("/").pop() ?? m : null);
-  const llmLabel = llmModel ? trimModel(llmModel) : llmProvider ?? "…";
-  const sttLabel = sttProvider ?? "…";
-  const ttsLabel = activeVoice
-    ? `${ttsProvider ?? ""}${ttsProvider ? " · " : ""}${activeVoice}`
-    : ttsProvider ?? "…";
-
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel="Налаштування дзвінка"
-      style={({ pressed }) => ({
-        marginHorizontal: theme.spacing.page,
-        marginBottom: 8,
-        opacity: pressed ? 0.85 : 1,
-      })}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 6,
-          backgroundColor: theme.colors.surface,
-          borderColor: theme.colors.border,
-          borderWidth: 1,
-          borderRadius: theme.radii.pill,
-          paddingHorizontal: 10,
-          paddingVertical: 6,
-        }}
-      >
-        <StackChip kind="ear" label={sttLabel} />
-        <Dot />
-        <StackChip kind="brain" label={llmLabel ?? "…"} />
-        <Dot />
-        <StackChip kind="voice" label={ttsLabel} />
-        <Ionicons
-          name="options"
-          size={12}
-          color={theme.colors.textMuted}
-          style={{ marginLeft: "auto" }}
-        />
-      </View>
-    </Pressable>
-  );
-}
-
-function StackChip({
-  kind,
-  label,
-}: {
-  kind: "ear" | "brain" | "voice";
-  label: string;
-}) {
-  const theme = useTheme();
-  const icon =
-    kind === "ear" ? "ear" : kind === "brain" ? "sparkles" : "mic";
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-      <Ionicons name={icon} size={11} color={theme.colors.textMuted} />
-      <Text
-        variant="label"
-        color="textMuted"
-        numberOfLines={1}
-        style={{ maxWidth: 110, fontSize: 11, letterSpacing: 0.2 }}
-      >
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-function Dot() {
-  const theme = useTheme();
-  return (
-    <View
-      style={{
-        width: 3,
-        height: 3,
-        borderRadius: 1.5,
-        backgroundColor: theme.colors.border,
-      }}
-    />
   );
 }
 
