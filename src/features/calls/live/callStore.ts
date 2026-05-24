@@ -203,7 +203,10 @@ export const useCallStore = create<CallState>((set) => ({
       return { status, connectStartedAt };
     }),
   setWsConnected: (connected) => set({ wsConnected: connected }),
-  setPendingAiReply: (reply) => set({ pendingAiReply: reply }),
+  setPendingAiReply: (reply) =>
+    // A non-null candidate means the AI finished generating — drop the
+    // "thinking" indicator so it doesn't linger behind the preview card.
+    set(reply ? { pendingAiReply: reply, aiThinking: false } : { pendingAiReply: reply }),
   setAutoMode: (enabled) => set({ autoMode: enabled }),
   setActiveStyleId: (styleId) => set({ activeStyleId: styleId }),
   setActiveVoice: (voice) => set({ activeVoice: voice }),
