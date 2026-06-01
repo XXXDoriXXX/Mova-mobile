@@ -191,8 +191,11 @@ function routeEvent(event: ServerEvent) {
     case "ai.thinking":
       // Empty payload — presence of the event toggles the indicator. We clear
       // it when the AI's next partial/final arrives (the partial setters do
-      // that themselves).
+      // that themselves). Also drop any previous candidate card: ai.thinking
+      // signals the AI is restarting work for a new turn, so the old preview
+      // is stale and would otherwise linger until the new candidate replaces it.
       store.setAiThinking(true);
+      store.setPendingAiReply(null);
       break;
     case "ai.text.partial":
       store.setAiPartial(event.data.text);
