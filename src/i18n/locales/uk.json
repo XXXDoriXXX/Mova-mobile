@@ -386,6 +386,24 @@
     "filterActive": "Зараз",
     "filterFailed": "Із зірванням",
     "copied": "Скопійовано в буфер",
+    "search": {
+      "placeholder": "Шукати по розмовах…",
+      "hintMinLength": "Введи 2+ символи щоб шукати",
+      "noResults": "Нічого не знайдено",
+      "error": "Не вдалося виконати пошук",
+      "untitled": "Розмова",
+      "durationLabel": "Тривалість {{value}}",
+      "periodAll": "За весь час",
+      "periodToday": "Сьогодні",
+      "periodWeek": "Тиждень",
+      "periodMonth": "Місяць",
+      "templateAny": "Будь-який шаблон",
+      "role": {
+        "interlocutor": "Співрозмовник",
+        "ai": "ШІ",
+        "user_typed": "Ви"
+      }
+    },
     "statToday_one": "{{count}} сьогодні",
     "statToday_few": "{{count}} сьогодні",
     "statToday_many": "{{count}} сьогодні",

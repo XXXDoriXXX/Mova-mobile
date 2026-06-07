@@ -387,7 +387,25 @@
     "filterFailed": "Failed",
     "copied": "Copied to clipboard",
     "statToday": "{{count}} today",
-    "statWeek": "{{count}} this week"
+    "statWeek": "{{count}} this week",
+    "search": {
+      "placeholder": "Search your calls…",
+      "hintMinLength": "Type at least 2 characters",
+      "noResults": "No matches",
+      "error": "Search failed",
+      "untitled": "Conversation",
+      "durationLabel": "Duration {{value}}",
+      "periodAll": "All time",
+      "periodToday": "Today",
+      "periodWeek": "Week",
+      "periodMonth": "Month",
+      "templateAny": "Any template",
+      "role": {
+        "interlocutor": "Caller",
+        "ai": "AI",
+        "user_typed": "You"
+      }
+    }
   },
   "liveCandidate": {
     "autoLabel": "Speaking in",

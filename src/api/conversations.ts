@@ -4,6 +4,7 @@ import type {
   ConversationStatus,
   CursorPage,
   Message,
+  SearchResultPage,
 } from "@/types/api";
 
 export type ListConversationsParams = {
@@ -42,4 +43,23 @@ export async function getConversationMessages(
 
 export async function deleteConversation(id: string): Promise<void> {
   await apiClient.delete(`/conversations/${id}`);
+}
+
+export type SearchConversationsParams = {
+  q: string;
+  from?: string;
+  to?: string;
+  templateId?: string;
+  cursor?: string;
+  limit?: number;
+};
+
+export async function searchConversations(
+  params: SearchConversationsParams,
+): Promise<SearchResultPage> {
+  const { data } = await apiClient.get<SearchResultPage>(
+    "/conversations/search",
+    { params },
+  );
+  return data;
 }

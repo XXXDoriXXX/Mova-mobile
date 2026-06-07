@@ -184,6 +184,29 @@ export type CursorPage<T> = {
   nextCursor: string | null;
 };
 
+export type SearchMatch = {
+  messageId: string;
+  role: "interlocutor" | "ai" | "user_typed";
+  snippet: string;
+  createdAt: string;
+};
+
+export type SearchHit = {
+  conversationId: string;
+  status: ConversationStatus;
+  startedAt: string;
+  endedAt: string | null;
+  durationSeconds: number;
+  templateId: string | null;
+  templateName: string | null;
+  matches: SearchMatch[];
+};
+
+export type SearchResultPage = {
+  items: SearchHit[];
+  nextCursor: string | null;
+};
+
 export type CallStartResponse = {
   conversationId: string;
   roomName: string;
