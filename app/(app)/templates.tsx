@@ -10,7 +10,7 @@ import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import { listTemplates } from "@/api/templates";
-import { TemplatesList } from "@/features/templates/TemplatesList";
+import { TemplatesList } from "@/features/templates";
 
 /**
  * Templates index. Shows the user's templates + system presets with a

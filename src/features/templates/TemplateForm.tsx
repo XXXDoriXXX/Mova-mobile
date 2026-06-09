@@ -10,14 +10,14 @@ import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
 import { useUnsavedChanges } from "@/feedback/useUnsavedChanges";
 import { useTheme } from "@/theme/ThemeProvider";
-import { extractErrorPayload } from "@/api/client";
 import type { Template } from "@/types/api";
 
+import { mapTemplateFormError } from "./application/mapTemplateFormError";
 import { templateFormSchema, type TemplateFormValues } from "./schemas";
 
 type Props = {
   initial?: Template;
-  onSubmit: (values: TemplateFormValues) => Promise<void>;
+  onSubmit: (values: TemplateFormValues) => Promise<{ ok: boolean; error?: unknown }>;
 };
 
 export function TemplateForm({ initial, onSubmit }: Props) {
@@ -44,10 +44,6 @@ export function TemplateForm({ initial, onSubmit }: Props) {
     },
   });
 
-  // Guard against accidental data loss. The hook intercepts back gestures
-  // + tab switches + `router.back()` and asks the user to confirm before
-  // tossing the in-progress edits. Submitting clears `isDirty` so the
-  // exit path after a successful save is unblocked.
   useUnsavedChanges({
     dirty: isDirty && !submitting,
     title: t("common.discardChangesTitle"),
@@ -61,13 +57,11 @@ export function TemplateForm({ initial, onSubmit }: Props) {
     setSubmitting(true);
     setBanner(null);
     try {
-      await onSubmit(values);
-    } catch (err) {
-      const payload = extractErrorPayload(err);
-      if (payload?.error === "PROMPT_INJECTION") {
-        setError("systemPrompt", {
-          message: t("templates.form.errorPromptInjection"),
-        });
+      const result = await onSubmit(values);
+      if (result.ok || !result.error) return;
+      const mapped = mapTemplateFormError(result.error);
+      if (mapped.kind === "field" && mapped.code === "promptInjection") {
+        setError("systemPrompt", { message: t("templates.form.errorPromptInjection") });
       } else {
         setBanner(t("auth.errorGeneric"));
       }
@@ -163,11 +157,7 @@ export function TemplateForm({ initial, onSubmit }: Props) {
       ) : null}
 
       <Button
-        label={
-          initial
-            ? t("templates.form.submitUpdate")
-            : t("templates.form.submitCreate")
-        }
+        label={initial ? t("templates.form.submitUpdate") : t("templates.form.submitCreate")}
         loading={submitting}
         onPress={handleSubmit(handle)}
       />

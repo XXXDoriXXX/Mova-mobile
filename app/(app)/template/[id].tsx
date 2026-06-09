@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
@@ -11,31 +10,14 @@ import { IconButton } from "@/components/IconButton";
 import { KeyboardScreen } from "@/components/KeyboardScreen";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
-import { confirm } from "@/feedback/dialogStore";
-import { toast } from "@/feedback/toast";
 import { useTheme } from "@/theme/ThemeProvider";
-import {
-  createTemplate,
-  deleteTemplate,
-  duplicateTemplate,
-  getTemplate,
-  setDefaultTemplate,
-  updateTemplate,
-} from "@/api/templates";
-import { TemplateForm } from "@/features/templates/TemplateForm";
-import type { TemplateFormValues } from "@/features/templates/schemas";
+import { getTemplate } from "@/api/templates";
+import { TemplateForm, useTemplateActions } from "@/features/templates";
 
-/**
- * Template editor — create / edit / duplicate / delete. System templates
- * are read-only; the only action exposed for them is "Duplicate" which
- * lands the user on the editable copy. Mutations invalidate the index
- * cache so the templates screen reflects the change on back.
- */
 export default function TemplateEditScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
   const isNew = !id || id === "new";
 
@@ -45,90 +27,7 @@ export default function TemplateEditScreen() {
     enabled: !isNew,
   });
 
-  const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: ["templates"] });
-
-  const createMut = useMutation({
-    mutationFn: createTemplate,
-    onSuccess: () => {
-      invalidate();
-      toast.success(t("templates.form.created"));
-      router.back();
-    },
-    onError: () => toast.error(t("templates.form.saveError")),
-  });
-
-  const updateMut = useMutation({
-    mutationFn: (vars: { id: string; values: TemplateFormValues }) =>
-      updateTemplate(vars.id, vars.values),
-    onSuccess: () => {
-      invalidate();
-      toast.success(t("templates.form.updated"));
-      router.back();
-    },
-    onError: () => toast.error(t("templates.form.saveError")),
-  });
-
-  const [busy, setBusy] = useState<"duplicate" | "default" | "delete" | null>(
-    null,
-  );
-
-  async function onSubmit(values: TemplateFormValues) {
-    if (isNew) {
-      await createMut.mutateAsync(values);
-    } else {
-      await updateMut.mutateAsync({ id: id as string, values });
-    }
-  }
-
-  async function onDuplicate() {
-    if (!query.data) return;
-    setBusy("duplicate");
-    try {
-      const dup = await duplicateTemplate(query.data.id);
-      invalidate();
-      toast.success(t("templates.form.duplicated"));
-      router.replace(`/template/${dup.id}`);
-    } catch {
-      toast.error(t("templates.form.saveError"));
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function onSetDefault() {
-    if (!query.data) return;
-    setBusy("default");
-    try {
-      await setDefaultTemplate(query.data.id);
-      invalidate();
-      toast.success(t("templates.form.defaultSet"));
-    } catch {
-      toast.error(t("templates.form.saveError"));
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function onDelete() {
-    if (!query.data) return;
-    const ok = await confirm({
-      title: t("templates.form.deleteConfirm"),
-      confirmLabel: t("common.delete"),
-      destructive: true,
-      icon: "trash-outline",
-    });
-    if (!ok) return;
-    setBusy("delete");
-    try {
-      await deleteTemplate(query.data.id);
-      invalidate();
-      toast.success(t("templates.form.deleted"));
-      router.back();
-    } finally {
-      setBusy(null);
-    }
-  }
+  const actions = useTemplateActions({ templateId: isNew ? null : (id as string) });
 
   if (!isNew && query.isLoading) {
     return (
@@ -165,9 +64,6 @@ export default function TemplateEditScreen() {
       </View>
 
       {readOnly && data ? (
-        // System templates can't be edited — show a read-only preview
-        // + a smaller "Duplicate" affordance. Without the preview the
-        // page would be a single huge button with nothing else.
         <View style={{ gap: theme.spacing.md }}>
           <View
             style={{
@@ -191,17 +87,14 @@ export default function TemplateEditScreen() {
             variant="primary"
             size="md"
             fullWidth={false}
-            loading={busy === "duplicate"}
-            onPress={onDuplicate}
+            loading={actions.busy === "duplicate"}
+            onPress={actions.duplicate}
           />
         </View>
       ) : (
-        <TemplateForm initial={data} onSubmit={onSubmit} />
+        <TemplateForm initial={data} onSubmit={actions.save} />
       )}
 
-      {/* Secondary actions live in a chip row below the form so they
-          don't compete with the form's primary submit button. Delete is
-          last + red text — destructive but quiet. */}
       {!isNew && !readOnly && data ? (
         <View
           style={{
@@ -225,16 +118,16 @@ export default function TemplateEditScreen() {
               />
             }
             selected={data.isDefault}
-            disabled={data.isDefault || busy === "default"}
-            onPress={onSetDefault}
+            disabled={data.isDefault || actions.busy === "default"}
+            onPress={actions.setAsDefault}
           />
           <Chip
             label={t("common.delete")}
             leading={
               <Ionicons name="trash-outline" size={14} color={theme.colors.danger} />
             }
-            disabled={busy === "delete"}
-            onPress={onDelete}
+            disabled={actions.busy === "delete"}
+            onPress={actions.remove}
           />
         </View>
       ) : null}
