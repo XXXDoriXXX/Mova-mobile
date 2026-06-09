@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   useFonts as useOnest,
   Onest_400Regular,
@@ -10,16 +11,10 @@ import {
   JetBrainsMono_600SemiBold,
 } from "@expo-google-fonts/jetbrains-mono";
 
-/**
- * Loads every typeface the design system references. `useFonts` returns
- * `[loaded, error]`; we expose only `loaded` since errors render the
- * system-font fallback gracefully — better than a black screen.
- *
- * Kept in one hook (not split per family) so the splash screen only hides
- * once everything is ready, eliminating a font-swap flash on first paint.
- */
+const FONT_LOAD_TIMEOUT_MS = 3_000;
+
 export function useAppFonts(): boolean {
-  const [loaded] = useOnest({
+  const [loaded, error] = useOnest({
     Onest_400Regular,
     Onest_500Medium,
     Onest_600SemiBold,
@@ -27,5 +22,21 @@ export function useAppFonts(): boolean {
     JetBrainsMono_500Medium,
     JetBrainsMono_600SemiBold,
   });
-  return loaded;
+  const [timedOut, setTimedOut] = useState(false);
+
+  useEffect(() => {
+    const id = setTimeout(() => setTimedOut(true), FONT_LOAD_TIMEOUT_MS);
+    return () => clearTimeout(id);
+  }, []);
+
+  const ready = loaded || error !== null || timedOut;
+
+  useEffect(() => {
+    if (!__DEV__) return;
+    if (loaded) console.log("[mova/fonts] loaded");
+    else if (error) console.warn("[mova/fonts] failed → system font:", error);
+    else if (timedOut) console.warn("[mova/fonts] timed out → system font");
+  }, [loaded, error, timedOut]);
+
+  return ready;
 }
