@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { Chip } from "@/components/Chip";
 
-import type { PeriodKey } from "./period";
+import type { PeriodKey } from "./application/period";
 
 type Props = {
   value: PeriodKey;

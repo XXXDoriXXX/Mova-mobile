@@ -12,11 +12,14 @@ import { TextField } from "@/components/TextField";
 import { useTheme } from "@/theme/ThemeProvider";
 import { listConversations } from "@/api/conversations";
 import { ConversationsList } from "@/features/conversations";
-import { PeriodFilter } from "@/features/history/PeriodFilter";
-import { SearchResultsList } from "@/features/history/SearchResultsList";
-import { TemplateFilter } from "@/features/history/TemplateFilter";
-import { rangeForPeriod, type PeriodKey } from "@/features/history/period";
-import { useDebouncedValue } from "@/features/history/useDebouncedValue";
+import {
+  PeriodFilter,
+  SearchResultsList,
+  TemplateFilter,
+  rangeForPeriod,
+  useDebouncedValue,
+  type PeriodKey,
+} from "@/features/history";
 import type { ConversationStatus } from "@/types/api";
 
 type Filter = "all" | ConversationStatus;
