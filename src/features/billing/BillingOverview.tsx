@@ -23,21 +23,6 @@ type Props = {
 
 const QUICK_TOPUPS = [50, 100, 200];
 
-/**
- * Billing → Overview tab content.
- *
- * Layout:
- *   1. Balance card (forest) — animated headline
- *   2. Plan card (white) — tappable; routes to the Plan tab
- *   3. Quick top-up row — three preset amounts as ink-pill chips
- *      that jump straight to the Top-up tab
- *   4. Last-7-days mini-stat: total seconds + paid spend, computed
- *      from the usage list (lazy-loaded once the screen opens)
- *
- * Previously this tab was just balance + plan and ~half the screen
- * was empty — adding two more sections fills the space with
- * actionable info instead of leaving the user staring at wallpaper.
- */
 export function BillingOverview({
   summary,
   onPickQuickTopup,
@@ -46,9 +31,6 @@ export function BillingOverview({
   const { t, i18n } = useTranslation();
   const theme = useTheme();
 
-  // Pull usage in the background so the "last week" tile has data
-  // by the time the user scrolls down. Cheap on cold start because
-  // the History tab uses the same query key.
   const usageQuery = useQuery({
     queryKey: ["billing", "usage"],
     queryFn: () => listUsage(),

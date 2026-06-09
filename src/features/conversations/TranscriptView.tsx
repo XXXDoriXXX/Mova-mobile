@@ -7,15 +7,6 @@ import type { Message } from "@/types/api";
 
 type Props = { messages: Message[] };
 
-/**
- * Static transcript view used on `/conversation/[id]`. Reuses the
- * lime/forest `Bubble` primitive that the live screen renders so the
- * post-call read-through matches what the user saw during the call.
- *
- *   - `interlocutor` → left, lime
- *   - `ai` / `user_typed` → right, forest
- *   - `system` → centred caption
- */
 export function TranscriptView({ messages }: Props) {
   const { t } = useTranslation();
   return (

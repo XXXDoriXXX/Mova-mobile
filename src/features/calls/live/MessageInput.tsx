@@ -15,12 +15,6 @@ type Props = {
   disabled?: boolean;
 };
 
-/**
- * In-call composer. Renders the white pill with a keypad icon, free-form
- * text and a lime send affordance — matches the design's "що сказати
- * голосом ШІ" composer footprint. Single self-contained card so it
- * floats above the transcript without competing with bubble colours.
- */
 export function MessageInput({ onSend, disabled }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();

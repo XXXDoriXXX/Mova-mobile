@@ -10,18 +10,6 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { useCallStore } from "@/features/calls/live/callStore";
 import { formatDuration } from "@/utils/format";
 
-/**
- * Floating "call in progress" banner that surfaces when the user is
- * inside an active call but currently looking at a different screen
- * (e.g. they navigated to /history mid-conversation, or the call
- * connected in the background). Tapping it jumps back to /call/live.
- *
- * Hidden when:
- *   - There's no active call (`status` is idle / ended / failed)
- *   - The user is already on /call/live (banner would be redundant)
- *
- * Positioned above the tab bar — uses the same bottom-inset math.
- */
 export function CallProgressBanner() {
   const { t } = useTranslation();
   const theme = useTheme();

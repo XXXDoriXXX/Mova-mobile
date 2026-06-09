@@ -16,13 +16,6 @@ type Props = {
   picking?: Plan["code"] | null;
 };
 
-/**
- * Plan cards. The active plan paints itself ink-dark with the brand
- * "Поточний" pill; the other plan stays white with a single chip-sized
- * CTA. We deliberately don't render a full-width button per card —
- * that would make every card look like a tap target rather than a
- * comparison row.
- */
 export function PlanPicker({ plans, currentCode, onPick, picking }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();

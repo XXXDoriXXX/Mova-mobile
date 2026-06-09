@@ -27,12 +27,6 @@ const REASON_KEYS: Record<string, string> = {
   admin: "conversation.endReasonAdmin",
 };
 
-/**
- * Post-call summary. A forest hero card with the duration in large mono,
- * the reason for the end as a pill, and the cost (paid plan only).
- * Recovery actions adapt to the reason: balance-exhausted promotes the
- * top-up CTA above "new call".
- */
 export function CallEnding({ info, onNewCall, onHistory }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();

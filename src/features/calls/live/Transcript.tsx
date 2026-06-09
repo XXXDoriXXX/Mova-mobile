@@ -22,27 +22,6 @@ import type { Bubble } from "./callStore";
 
 type Props = { bubbles: Bubble[]; aiThinking: boolean };
 
-/**
- * Live transcript scroll-view. Maps in-store bubble roles onto the
- * two-sided chat layout from the design:
- *
- *   - `interlocutor`           → left, lime (the remote person)
- *   - `ai` / `user`            → right, forest (your AI voice or typed line)
- *   - `system`                 → centred caption (call-state notices)
- *   - AI bubble `kind="idle_probe"` → ghost-style with a small "checking
- *     in…" label so the user understands the agent is probing silence,
- *     not asking a real question
- *   - AI bubble `kind="fallback"`   → ghost-style with "filler reply"
- *     label so a "Перепрошую, можете повторити?" doesn't read as a
- *     genuine follow-up to whatever the user just said
- *
- * Auto-scrolls to bottom on each new bubble so the latest exchange is
- * always in frame — there's no scrollback-while-active flow.
- *
- * AiThinking indicator uses three animated dots (typing-style) instead
- * of the previous static text — communicates "active work" across a
- * silent network without needing the user to read the words.
- */
 export function Transcript({ bubbles, aiThinking }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -78,11 +57,6 @@ export function Transcript({ bubbles, aiThinking }: Props) {
           );
         }
 
-        // Synthetic AI utterances (idle probe / silence-fallback) render
-        // with a muted "ghost" treatment + a one-line label above the
-        // bubble explaining what they are. Otherwise the user could
-        // mistake "Алло, чи мене чути?" for the AI actually asking them
-        // a follow-up question.
         if (b.role === "ai" && (b.kind === "idle_probe" || b.kind === "fallback")) {
           const labelKey =
             b.kind === "idle_probe"
@@ -162,15 +136,6 @@ export function Transcript({ bubbles, aiThinking }: Props) {
   );
 }
 
-/**
- * Three-dots typing indicator — the universal "the other side is
- * working on a reply" signal. Drives the animation on the UI thread
- * via shared values so it doesn't tick with React's render cadence
- * and doesn't drop frames if JS is busy parsing a transcript burst.
- *
- * Each dot animates opacity in a staggered loop (0 / 160 / 320 ms
- * offsets) so the row reads as a wave rather than a flicker.
- */
 function ThinkingDots({ label }: { label: string }) {
   const theme = useTheme();
   return (

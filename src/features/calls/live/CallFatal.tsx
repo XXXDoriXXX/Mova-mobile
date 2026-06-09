@@ -15,20 +15,6 @@ type Props = {
   onClose: () => void;
 };
 
-/**
- * Brand-styled fatal-error screen. Replaces the previous bare red
- * Banner so the user has:
- *
- *   1. A clear, friendly explanation of WHAT failed (different copy
- *      per error code — connect timeout reads very differently from
- *      "balance exhausted").
- *   2. A primary "Try again" action that restarts the call flow.
- *   3. A secondary ghost link back to the pre-call screen.
- *
- * Special-cases the synthetic CONNECT_TIMEOUT sentinel that
- * useCallSocket emits when no `call.connected` arrives in time, so
- * the copy can blame timing rather than a generic AGENT_LOST.
- */
 export function CallFatal({ error, onRetry, onClose }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();

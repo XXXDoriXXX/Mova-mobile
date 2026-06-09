@@ -27,11 +27,6 @@ type Entry = {
   e164: string | null;
 };
 
-/**
- * Pulls the device contact list, normalises each phone number to E.164, and
- * lets the user search and pick. We do NOT cache contacts — fetch on open,
- * release on close. Privacy: never persist the list to disk; never POST.
- */
 export function ContactsPicker({ visible, onClose, onPick }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();

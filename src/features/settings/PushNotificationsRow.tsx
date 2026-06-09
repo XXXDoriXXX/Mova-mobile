@@ -6,16 +6,6 @@ import { Spinner } from "@/components/Spinner";
 import { toast } from "@/feedback/toast";
 import { registerForPush } from "@/notifications/registration";
 
-/**
- * Self-contained settings entry for push notifications. The backend has no
- * endpoint to receive the token yet, so on success we surface a toast and
- * keep the token in memory only. Once `POST /users/me/push-tokens` exists,
- * forward the token from here.
- *
- * Three terminal states (granted / denied / unsupported) each produce a
- * different toast variant so the user knows what happened without a
- * follow-up alert dialog interrupting them.
- */
 export function PushNotificationsRow() {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);

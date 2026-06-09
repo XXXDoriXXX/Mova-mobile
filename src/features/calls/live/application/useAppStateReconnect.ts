@@ -3,14 +3,6 @@ import { AppState, type AppStateStatus } from "react-native";
 
 import { useCallStore } from "../callStore";
 
-/**
- * Reflects OS app-state changes into the call store. We do NOT proactively
- * disconnect the WS on background — socket.io's reconnect logic is robust and
- * a short background trip should usually survive. We DO surface the
- * uncertainty in the UI (status="reconnecting") so the user understands why
- * messages may pause. On foreground, the socket will be reconnected by its
- * own reconnect manager; if it had already died, this triggers a re-attempt.
- */
 export function useAppStateReconnect(): void {
   const lastStateRef = useRef<AppStateStatus>(AppState.currentState);
 
