@@ -3,7 +3,7 @@ import { Tabs } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { TabBar } from "@/components/TabBar";
-import { CallProgressBanner } from "@/features/calls/live/CallProgressBanner";
+import { CallProgressBanner } from "@/features/calls";
 
 /**
  * Hosts the three primary destinations (home / history / settings) plus

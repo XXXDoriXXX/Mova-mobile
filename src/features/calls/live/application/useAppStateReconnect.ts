@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 
-import { useCallStore } from "./callStore";
+import { useCallStore } from "../callStore";
 
 /**
  * Reflects OS app-state changes into the call store. We do NOT proactively

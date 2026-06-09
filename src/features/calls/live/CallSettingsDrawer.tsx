@@ -15,26 +15,16 @@ import { listVoices, type VoiceOption, type VoiceProvider } from "@/api/voices";
 import { patchMe } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
 import { toast } from "@/feedback/toast";
-import type { ClientCommand } from "@/realtime/protocol";
 import { useCallStore } from "./callStore";
+import type { CallControls } from "./application/useCallControls";
 
 type Props = {
   visible: boolean;
   onClose: () => void;
-  send: (cmd: ClientCommand) => void;
+  controls: CallControls;
 };
 
-/**
- * Mid-call settings drawer. Exposes the three WS commands the backend
- * supports during an active call:
- *   - user.change_style   (immediate; next suggestion turn picks it up)
- *   - user.change_voice   (effective on next call — server enforces)
- *   - user.change_model   (effective on next call — same caveat)
- *
- * The UI surfaces this distinction so users don't expect instant voice swap
- * mid-sentence.
- */
-export function CallSettingsDrawer({ visible, onClose, send }: Props) {
+export function CallSettingsDrawer({ visible, onClose, controls }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
   const activeStyleId = useCallStore((s) => s.activeStyleId);
@@ -47,11 +37,8 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
   );
 
   function handleToggleAuto(next: boolean) {
-    // Optimistic local flip — the gate is just a UI toggle on the
-    // backend (sets a flag, no provider work), so we don't need to
-    // wait for confirmation. WS publish in-flight will catch up.
     setAutoModeStore(next);
-    send({ type: "user.set_auto_mode", data: { enabled: next } });
+    controls.setAutoMode(next);
   }
 
   const stylesQuery = useQuery({
@@ -107,19 +94,11 @@ export function CallSettingsDrawer({ visible, onClose, send }: Props) {
   }, [visible, initialProvider]);
 
   function handleStyle(styleId: string) {
-    // Style is the one setting that takes effect mid-call — it only feeds
-    // the suggestions generator, which picks it up on the next turn.
-    send({ type: "user.change_style", data: { styleId } });
+    controls.changeStyle(styleId);
   }
 
-  // Voice + LLM model bind at LiveKit AgentSession creation; mid-call
-  // swap would tear down audio. We persist BOTH the voice id AND its
-  // provider in one PATCH so the next call boots on a consistent
-  // (provider, voice) pair — picking a Wavenet voice without also
-  // setting preferredTtsProvider=google would resolve to the env
-  // default's provider with an unsupported voice id and fail.
   async function handleVoice(voice: VoiceOption) {
-    send({ type: "user.change_voice", data: { voice: voice.id } });
+    controls.changeVoice(voice.id);
     try {
       const updated = await patchMe({
         preferredVoice: voice.id,

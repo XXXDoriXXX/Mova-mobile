@@ -19,9 +19,7 @@ import { listStyles } from "@/api/styles";
 import { getBillingSummary } from "@/api/billing";
 import { extractErrorPayload } from "@/api/client";
 import { useAuthStore } from "@/auth/store";
-import { ContactsPicker } from "@/features/calls/ContactsPicker";
-import { StylePicker } from "@/features/calls/StylePicker";
-import { TemplatePicker } from "@/features/calls/TemplatePicker";
+import { ContactsPicker, StylePicker, TemplatePicker } from "@/features/calls";
 import { isDialable } from "@/utils/phone";
 
 /**
