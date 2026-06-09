@@ -15,11 +15,13 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { logout as logoutRequest } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
 import { useOnboardingStore } from "@/onboarding/store";
-import { ChangePasswordModal } from "@/features/settings/ChangePasswordModal";
-import { DeleteAccountModal } from "@/features/settings/DeleteAccountModal";
-import { EditProfileModal } from "@/features/settings/EditProfileModal";
-import { AppearanceModal } from "@/features/settings/AppearanceModal";
-import { PushNotificationsRow } from "@/features/settings/PushNotificationsRow";
+import {
+  AppearanceModal,
+  ChangePasswordModal,
+  DeleteAccountModal,
+  EditProfileModal,
+  PushNotificationsRow,
+} from "@/features/settings";
 
 /**
  * Settings — grouped list of rows. Sections separated by visual spacing
