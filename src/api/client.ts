@@ -44,14 +44,32 @@ apiClient.interceptors.request.use((config) => {
   if (config.meta?.idempotencyKey) {
     config.headers.set("Idempotency-Key", config.meta.idempotencyKey);
   }
+  if (__DEV__) {
+    console.log(
+      `[mova/api] → ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`,
+    );
+  }
   return config;
 });
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (__DEV__) {
+      console.log(
+        `[mova/api] ← ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`,
+      );
+    }
+    return response;
+  },
   async (error: AxiosError<ApiErrorPayload>) => {
     const config = error.config as InternalAxiosRequestConfig | undefined;
     const status = error.response?.status;
+
+    if (__DEV__) {
+      console.log(
+        `[mova/api] ✗ ${error.code ?? status ?? "ERR"} ${config?.method?.toUpperCase()} ${config?.url} — ${error.message}`,
+      );
+    }
 
     if (
       status === 401 &&
