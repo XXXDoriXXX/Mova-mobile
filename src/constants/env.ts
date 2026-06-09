@@ -30,6 +30,9 @@ function inferDevLanHost(): { host: string; raw: string } | { host: null; raw: s
   if (!host || !/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/.test(host)) {
     return { host: null, raw: hostUri };
   }
+  if (host === "127.0.0.1" || host === "0.0.0.0" || host.startsWith("169.254.")) {
+    return { host: null, raw: hostUri };
+  }
   return { host, raw: hostUri };
 }
 
@@ -73,6 +76,12 @@ export const SENTRY_DSN: string | undefined =
 // `expo start` without --tunnel.
 if (__DEV__) {
   const probe = inferDevLanHost();
+  const usingLocalhost = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
+  const looksUnreachable =
+    usingLocalhost ||
+    (probe.raw?.startsWith("127.0.0.1") ?? false) ||
+    (probe.raw?.startsWith("0.0.0.0") ?? false);
+
   console.log(
     "[mova/env] resolved URLs:",
     JSON.stringify(
@@ -81,10 +90,25 @@ if (__DEV__) {
         WS_URL,
         metroHostUri: probe.raw,
         detectedLanIp: probe.host,
-        usingLocalhost: API_BASE_URL.includes("localhost"),
+        usingLocalhost,
       },
       null,
       2,
     ),
   );
+
+  if (looksUnreachable) {
+    console.warn(
+      [
+        "",
+        "⚠️  [mova/env] API_BASE_URL points at loopback — requests from a real device will hang.",
+        `   metroHostUri = ${probe.raw}`,
+        "   Pick one:",
+        "     a) Restart Metro on LAN:  `npx expo start --lan -c`",
+        "     b) USB-tethered Android:  `adb reverse tcp:3000 tcp:3000 && adb reverse tcp:3002 tcp:3002`",
+        "     c) Anywhere:              `npx expo start --tunnel`",
+        "",
+      ].join("\n"),
+    );
+  }
 }
