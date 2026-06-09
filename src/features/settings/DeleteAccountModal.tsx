@@ -1,49 +1,40 @@
 import { useState } from "react";
 import { View } from "react-native";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
-import { toast } from "@/feedback/toast";
 import { useTheme } from "@/theme/ThemeProvider";
-import { deleteAccount } from "@/api/auth";
-import { extractErrorPayload } from "@/api/client";
-import { useAuthStore } from "@/auth/store";
+
+import { useDeleteAccount } from "./application/useDeleteAccount";
 
 type Props = { visible: boolean; onClose: () => void };
 
 export function DeleteAccountModal({ visible, onClose }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const queryClient = useQueryClient();
-  const clear = useAuthStore((s) => s.clear);
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const mutation = useMutation({
-    mutationFn: () => deleteAccount(password),
-    onSuccess: async () => {
-      toast.success(t("settings.deleteAccountSuccess"));
-      queryClient.clear();
-      await clear();
-    },
-    onError: (err) => {
-      const payload = extractErrorPayload(err);
-      if (payload?.statusCode === 401) {
-        setError(t("settings.deleteAccountWrongPassword"));
-      } else {
-        setError(t("auth.errorGeneric"));
-      }
-    },
-  });
+  const { submitting, execute } = useDeleteAccount();
 
   function handleClose() {
     setPassword("");
     setError(null);
     onClose();
+  }
+
+  async function handleSubmit() {
+    setError(null);
+    const result = await execute(password);
+    if (result.ok) return;
+    setError(
+      result.kind === "wrongPassword"
+        ? t("settings.deleteAccountWrongPassword")
+        : t("auth.errorGeneric"),
+    );
   }
 
   return (
@@ -76,12 +67,9 @@ export function DeleteAccountModal({ visible, onClose }: Props) {
               label={t("settings.deleteAccountConfirm")}
               variant="danger"
               size="md"
-              loading={mutation.isPending}
+              loading={submitting}
               disabled={!password}
-              onPress={() => {
-                setError(null);
-                mutation.mutate();
-              }}
+              onPress={handleSubmit}
             />
           </View>
         </View>

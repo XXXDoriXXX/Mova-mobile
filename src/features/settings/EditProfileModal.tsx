@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { View } from "react-native";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
@@ -8,29 +7,27 @@ import { Chip } from "@/components/Chip";
 import { Modal } from "@/components/Modal";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
-import { toast } from "@/feedback/toast";
 import { useTheme } from "@/theme/ThemeProvider";
-import { patchMe } from "@/api/auth";
-import { extractErrorPayload } from "@/api/client";
 import { useAuthStore } from "@/auth/store";
-import { isE164 } from "@/utils/phone";
 import type { Language } from "@/types/api";
+
+import { useEditProfile } from "./application/useEditProfile";
+import { validateProfile } from "./application/validateProfile";
 
 type Props = { visible: boolean; onClose: () => void };
 
 export function EditProfileModal({ visible, onClose }: Props) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const theme = useTheme();
-  const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
-  const setUser = useAuthStore((s) => s.setUser);
 
   const [name, setName] = useState(user?.name ?? "");
   const [phone, setPhone] = useState(user?.phoneNumber ?? "");
   const [language, setLanguage] = useState<Language>(user?.language ?? "uk");
   const [error, setError] = useState<string | null>(null);
 
-  // Re-sync when modal opens with a fresh user snapshot.
+  const { submitting, execute } = useEditProfile();
+
   useEffect(() => {
     if (!visible || !user) return;
     setName(user.name);
@@ -39,42 +36,27 @@ export function EditProfileModal({ visible, onClose }: Props) {
     setError(null);
   }, [visible, user]);
 
-  const mutation = useMutation({
-    mutationFn: () =>
-      patchMe({
-        name: name.trim(),
-        phoneNumber: phone.trim() || undefined,
-        language,
-      }),
-    onSuccess: (updated) => {
-      setUser(updated);
-      queryClient.invalidateQueries({ queryKey: ["me"] });
-      if (updated.language !== i18n.language) {
-        void i18n.changeLanguage(updated.language);
-      }
-      toast.success(t("settings.profileSaved"));
-      onClose();
-    },
-    onError: (err) => {
-      const payload = extractErrorPayload(err);
-      const message = Array.isArray(payload?.message)
-        ? payload?.message.join(" ")
-        : payload?.message;
-      setError(message ?? t("auth.errorGeneric"));
-    },
-  });
-
-  function handleSubmit() {
+  async function handleSubmit() {
     setError(null);
-    if (!name.trim()) {
-      setError(t("settings.editProfileNameRequired"));
+    const validation = validateProfile(name, phone);
+    if (!validation.ok) {
+      setError(
+        validation.reason === "nameRequired"
+          ? t("settings.editProfileNameRequired")
+          : t("preCall.phoneError"),
+      );
       return;
     }
-    if (phone.trim() && !isE164(phone.trim())) {
-      setError(t("preCall.phoneError"));
-      return;
+    const result = await execute({
+      name: validation.name,
+      phone: validation.phone,
+      language,
+    });
+    if (result.ok) {
+      onClose();
+    } else {
+      setError(result.message);
     }
-    mutation.mutate();
   }
 
   return (
@@ -127,7 +109,7 @@ export function EditProfileModal({ visible, onClose }: Props) {
             <Button
               label={t("common.save")}
               size="md"
-              loading={mutation.isPending}
+              loading={submitting}
               onPress={handleSubmit}
             />
           </View>
