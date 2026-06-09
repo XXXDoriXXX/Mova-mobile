@@ -1,4 +1,4 @@
-import { rangeForPeriod } from "@/features/history/period";
+import { rangeForPeriod } from "@/features/history/application/period";
 
 describe("rangeForPeriod", () => {
   const now = new Date("2026-05-15T14:30:00Z");
