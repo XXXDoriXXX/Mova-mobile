@@ -13,11 +13,13 @@ import { Text } from "@/components/Text";
 import { toast } from "@/feedback/toast";
 import { useTheme } from "@/theme/ThemeProvider";
 import { getBillingSummary, listPlans, listUsage, subscribe } from "@/api/billing";
-import { BillingOverview } from "@/features/billing/BillingOverview";
-import { BillingOverviewSkeleton } from "@/features/billing/BillingSkeleton";
-import { PlanPicker } from "@/features/billing/PlanPicker";
-import { TopupForm } from "@/features/billing/TopupForm";
-import { UsageList } from "@/features/billing/UsageList";
+import {
+  BillingOverview,
+  BillingOverviewSkeleton,
+  PlanPicker,
+  TopupForm,
+  UsageList,
+} from "@/features/billing";
 import type { Plan } from "@/types/api";
 
 type Tab = "overview" | "plan" | "topup" | "history";
