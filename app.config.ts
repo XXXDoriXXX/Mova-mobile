@@ -57,5 +57,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     apiUrl: process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_API_URL,
     wsUrl: process.env.EXPO_PUBLIC_WS_URL ?? DEFAULT_WS_URL,
     sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+    googleOAuthWebClientId: process.env.EXPO_PUBLIC_GOOGLE_OAUTH_WEB_CLIENT_ID,
+    googleOAuthAndroidClientId: process.env.EXPO_PUBLIC_GOOGLE_OAUTH_ANDROID_CLIENT_ID,
+    googleOAuthIosClientId: process.env.EXPO_PUBLIC_GOOGLE_OAUTH_IOS_CLIENT_ID,
   },
 });

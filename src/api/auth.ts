@@ -27,6 +27,15 @@ export async function login(input: {
   return data;
 }
 
+export async function signInWithGoogle(idToken: string): Promise<AuthResponse> {
+  const { data } = await apiClient.post<AuthResponse>(
+    "/auth/google",
+    { idToken },
+    { meta: { skipAuth: true } },
+  );
+  return data;
+}
+
 export async function logout(): Promise<void> {
   // `POST /auth/logout` requires `{ refreshToken }` (LogoutDto). Best-effort —
   // callers always proceed to local clear even if this fails.
