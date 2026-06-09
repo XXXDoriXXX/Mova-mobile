@@ -3,9 +3,15 @@ import { useEffect, useRef } from "react";
 import { triggerHaptic } from "@/utils/haptics";
 import { createCallSocket, onServerEvent, type CallSocket } from "@/realtime/socket";
 import type { ClientCommand, ServerEvent } from "@/realtime/protocol";
-import { CallErrorCode, isRecoverable } from "@/realtime/error-codes";
+import { CallErrorCode } from "@/realtime/error-codes";
 
 import { useCallStore } from "../callStore";
+import {
+  computeNextCandidate,
+  mapAiTextFinalKind,
+  resolveCallError,
+  shouldAutoPromoteToActive,
+} from "./eventMappers";
 
 const PING_INTERVAL_MS = 20_000;
 
@@ -148,18 +154,7 @@ export function useCallSocket(opts: {
 function routeEvent(event: ServerEvent) {
   const store = useCallStore.getState();
 
-  // Defensive transition: transcripts / AI / suggestions / usage events
-  // can only fire AFTER the SIP leg picked up, so they prove the call is
-  // live even if `call.answered` was missed (race, buffered emit, old
-  // build). Bumps us straight to `active`. `pong` and `call.ended` aren't
-  // liveness; `call.connected` and `call.answered` have their own handlers.
-  if (
-    (store.status === "connecting" || store.status === "ringing") &&
-    event.type !== "call.ended" &&
-    event.type !== "call.connected" &&
-    event.type !== "call.answered" &&
-    event.type !== "pong"
-  ) {
+  if (shouldAutoPromoteToActive(store.status, event.type)) {
     store.setStatus("active");
   }
 
@@ -201,48 +196,24 @@ function routeEvent(event: ServerEvent) {
       store.setAiPartial(event.data.text);
       break;
     case "ai.text.final": {
-      // The agent stamps `source.provider` as "fallback" when the LLM
-      // watchdog fires a placeholder line, or "idle_probe" when nobody's
-      // talked for too long and the agent says "are you there?". Both
-      // are synthetic — render them with a distinct bubble style so the
-      // user doesn't mistake "Алло?" for a real question to answer.
-      const provider = event.data.source?.provider ?? "";
-      const kind =
-        provider === "idle_probe"
-          ? "idle_probe"
-          : provider === "fallback"
-            ? "fallback"
-            : "normal";
+      const kind = mapAiTextFinalKind(event.data.source?.provider);
       store.commitAiFinal(event.data.messageId, event.data.text, kind);
-      // Clear any pending candidate — the final landed, the preview
-      // card has done its job. (Backend always emits final AFTER
-      // accept, so a stale pending here would be a duplicate.)
       store.setPendingAiReply(null);
       break;
     }
     case "ai.text.candidate": {
-      // The backend re-emits the same candidateId repeatedly while the
-      // reply streams in (streaming=true, text grows), then once more with
-      // streaming=false to start the countdown. Keep the original
-      // receivedAt across streaming chunks and only stamp it (to drive the
-      // local countdown ring) on the final emit.
-      const prev = store.pendingAiReply;
-      const sameCandidate = prev?.candidateId === event.data.candidateId;
-      const justFinalized =
-        !event.data.streaming && (!sameCandidate || !!prev?.streaming);
-      store.setPendingAiReply({
-        candidateId: event.data.candidateId,
-        text: event.data.text,
-        autoAcceptInMs: event.data.autoAcceptInMs,
-        streaming: event.data.streaming,
-        receivedAt: justFinalized
-          ? Date.now()
-          : sameCandidate
-            ? prev!.receivedAt
-            : Date.now(),
-      });
-      // Haptic once, when the card first appears for a new candidate.
-      if (!sameCandidate) triggerHaptic("light");
+      const { next, isNewCandidate } = computeNextCandidate(
+        store.pendingAiReply,
+        {
+          candidateId: event.data.candidateId,
+          text: event.data.text,
+          autoAcceptInMs: event.data.autoAcceptInMs,
+          streaming: event.data.streaming,
+        },
+        Date.now(),
+      );
+      store.setPendingAiReply(next);
+      if (isNewCandidate) triggerHaptic("light");
       break;
     }
     case "ai.tts.start":
@@ -302,11 +273,11 @@ function routeEvent(event: ServerEvent) {
       break;
     }
     case "call.error": {
-      const err = {
+      const err = resolveCallError({
         code: event.data.code,
         message: event.data.message,
-        recoverable: event.data.recoverable ?? isRecoverable(event.data.code),
-      };
+        recoverable: event.data.recoverable,
+      });
       if (err.recoverable) store.setToastError(err);
       else store.setFatalError(err);
       break;
