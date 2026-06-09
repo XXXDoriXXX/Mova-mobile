@@ -25,22 +25,22 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     const inOnboarding = (segments as string[])[1] === "onboarding";
     const needsOnboarding = onboardingStatus === "needed";
 
+    const inAppGroup = segments[0] === "(app)";
+
     if (status === "guest" && !inAuthGroup) {
       if (__DEV__) console.log("[mova/gate] guest → /welcome");
       router.replace("/welcome");
       return;
     }
-    if (status === "authed") {
-      if (inAuthGroup) {
-        const target = needsOnboarding ? "/onboarding" : "/home";
-        if (__DEV__) console.log("[mova/gate] authed in (auth) →", target);
-        router.replace(target);
-        return;
-      }
-      if (needsOnboarding && !inOnboarding) {
-        if (__DEV__) console.log("[mova/gate] authed → /onboarding");
-        router.replace("/onboarding");
-      }
+    if (status === "authed" && !inAppGroup) {
+      const target = needsOnboarding ? "/onboarding" : "/home";
+      if (__DEV__) console.log("[mova/gate] authed outside (app) →", target);
+      router.replace(target);
+      return;
+    }
+    if (status === "authed" && needsOnboarding && !inOnboarding) {
+      if (__DEV__) console.log("[mova/gate] authed in (app) but needs onboarding → /onboarding");
+      router.replace("/onboarding");
     }
   }, [status, segments, router, onboardingStatus]);
 
