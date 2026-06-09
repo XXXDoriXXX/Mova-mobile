@@ -22,7 +22,9 @@ async function write(value: string): Promise<void> {
 
 /** True if the user has already finished onboarding on this device. */
 export async function isOnboardingCompleted(): Promise<boolean> {
-  return (await read()) === "1";
+  const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2_000));
+  const value = await Promise.race([read(), timeout]);
+  return value === "1";
 }
 
 export async function markOnboardingCompleted(): Promise<void> {

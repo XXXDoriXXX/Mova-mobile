@@ -32,8 +32,28 @@ export const useAuthStore = create<AuthState>((set) => ({
   refreshExpiresAt: null,
 
   async hydrate() {
-    const tokens = await loadTokens();
-    if (!tokens) {
+    if (__DEV__) console.log("[mova/auth] hydrate: start");
+    try {
+      const tokens = await loadTokens();
+      if (__DEV__) console.log("[mova/auth] hydrate: tokens", tokens ? "present" : "absent");
+      if (!tokens) {
+        set({
+          status: "guest",
+          accessToken: null,
+          refreshToken: null,
+          refreshExpiresAt: null,
+          user: null,
+        });
+        return;
+      }
+      set({
+        status: "authed",
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        refreshExpiresAt: tokens.refreshExpiresAt,
+      });
+    } catch (err) {
+      if (__DEV__) console.warn("[mova/auth] hydrate failed → forcing guest:", err);
       set({
         status: "guest",
         accessToken: null,
@@ -41,14 +61,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         refreshExpiresAt: null,
         user: null,
       });
-      return;
     }
-    set({
-      status: "authed",
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      refreshExpiresAt: tokens.refreshExpiresAt,
-    });
   },
 
   async setSession({ user, tokens }) {
