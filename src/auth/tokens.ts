@@ -39,19 +39,21 @@ async function removeItem(key: string): Promise<void> {
 }
 
 export async function loadTokens(): Promise<AuthTokens | null> {
-  const [accessToken, refreshToken, refreshExpiresAt] = await Promise.all([
-    getItem(ACCESS_KEY),
-    getItem(REFRESH_KEY),
-    getItem(REFRESH_EXPIRES_AT_KEY),
-  ]);
-  if (!accessToken || !refreshToken) return null;
-  return {
-    accessToken,
-    refreshToken,
-    // Older installs may not have a stored expiry — use epoch start as a
-    // safe "unknown" sentinel; consumers that care fall back to JWT decode.
-    refreshExpiresAt: refreshExpiresAt ?? new Date(0).toISOString(),
-  };
+  const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2_000));
+  const read = (async () => {
+    const [accessToken, refreshToken, refreshExpiresAt] = await Promise.all([
+      getItem(ACCESS_KEY),
+      getItem(REFRESH_KEY),
+      getItem(REFRESH_EXPIRES_AT_KEY),
+    ]);
+    if (!accessToken || !refreshToken) return null;
+    return {
+      accessToken,
+      refreshToken,
+      refreshExpiresAt: refreshExpiresAt ?? new Date(0).toISOString(),
+    };
+  })();
+  return Promise.race([read, timeout]);
 }
 
 export async function saveTokens(tokens: AuthTokens): Promise<void> {

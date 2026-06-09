@@ -19,21 +19,26 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   }, [hydrate, hydrateOnboarding]);
 
   useEffect(() => {
+    if (__DEV__) console.log("[mova/gate] status=", status, " onboarding=", onboardingStatus, " segment=", segments[0]);
     if (status === "unknown" || onboardingStatus === "unknown") return;
     const inAuthGroup = segments[0] === "(auth)";
     const inOnboarding = (segments as string[])[1] === "onboarding";
     const needsOnboarding = onboardingStatus === "needed";
 
     if (status === "guest" && !inAuthGroup) {
+      if (__DEV__) console.log("[mova/gate] guest → /welcome");
       router.replace("/welcome");
       return;
     }
     if (status === "authed") {
       if (inAuthGroup) {
-        router.replace(needsOnboarding ? "/onboarding" : "/home");
+        const target = needsOnboarding ? "/onboarding" : "/home";
+        if (__DEV__) console.log("[mova/gate] authed in (auth) →", target);
+        router.replace(target);
         return;
       }
       if (needsOnboarding && !inOnboarding) {
+        if (__DEV__) console.log("[mova/gate] authed → /onboarding");
         router.replace("/onboarding");
       }
     }
