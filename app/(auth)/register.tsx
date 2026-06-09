@@ -14,9 +14,7 @@ import { IconButton } from "@/components/IconButton";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
-import { AuthHeroHeader } from "@/features/auth/AuthHeroHeader";
-import { GoogleSignInButton } from "@/features/auth/GoogleSignInButton";
-import { RegisterForm } from "@/features/auth/RegisterForm";
+import { AuthHeroHeader, GoogleSignInButton, RegisterForm } from "@/features/auth";
 
 export default function RegisterScreen() {
   const { t } = useTranslation();

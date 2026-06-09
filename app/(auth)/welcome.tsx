@@ -13,9 +13,7 @@ import { useTranslation } from "react-i18next";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
-import { AuthHeroHeader } from "@/features/auth/AuthHeroHeader";
-import { GoogleSignInButton } from "@/features/auth/GoogleSignInButton";
-import { LoginForm } from "@/features/auth/LoginForm";
+import { AuthHeroHeader, GoogleSignInButton, LoginForm } from "@/features/auth";
 
 const TERMS_URL = "https://mova.app/legal/terms";
 const PRIVACY_URL = "https://mova.app/legal/privacy";

@@ -8,13 +8,10 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/Button";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
-import { triggerHaptic } from "@/utils/haptics";
 import { useTheme } from "@/theme/ThemeProvider";
-import { login as loginRequest } from "@/api/auth";
-import { useAuthStore } from "@/auth/store";
 
+import { useLoginUseCase } from "./application/useLoginUseCase";
 import { loginSchema, type LoginValues } from "./schemas";
-import { useAuthErrorMapper } from "./useAuthErrorMessage";
 
 type Props = {
   onError?: (message: string | null) => void;
@@ -23,11 +20,10 @@ type Props = {
 export function LoginForm({ onError }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const setSession = useAuthStore((s) => s.setSession);
-  const mapError = useAuthErrorMapper();
-  const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const passwordRef = useRef<TextInput>(null);
+
+  const { submitting, execute } = useLoginUseCase();
 
   const {
     control,
@@ -40,22 +36,14 @@ export function LoginForm({ onError }: Props) {
   });
 
   async function onSubmit(values: LoginValues) {
-    setSubmitting(true);
     onError?.(null);
-    try {
-      const resp = await loginRequest(values);
-      await setSession({ user: resp.user, tokens: resp.tokens });
-      triggerHaptic("success");
-    } catch (err) {
-      triggerHaptic("error");
-      const mapped = mapError(err);
-      if (mapped.emailError) setError("email", { message: mapped.emailError });
-      if (mapped.passwordError)
-        setError("password", { message: mapped.passwordError });
-      onError?.(mapped.banner ?? null);
-    } finally {
-      setSubmitting(false);
-    }
+    const result = await execute(values);
+    if (result.ok) return;
+    if (result.error.emailError)
+      setError("email", { message: result.error.emailError });
+    if (result.error.passwordError)
+      setError("password", { message: result.error.passwordError });
+    onError?.(result.error.banner ?? null);
   }
 
   return (

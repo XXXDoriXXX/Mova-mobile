@@ -9,13 +9,10 @@ import { Button } from "@/components/Button";
 import { Chip } from "@/components/Chip";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
-import { triggerHaptic } from "@/utils/haptics";
 import { useTheme } from "@/theme/ThemeProvider";
-import { persistLanguage, register as registerRequest } from "@/api/auth";
-import { useAuthStore } from "@/auth/store";
 
+import { useRegisterUseCase } from "./application/useRegisterUseCase";
 import { registerSchema, type RegisterValues } from "./schemas";
-import { useAuthErrorMapper } from "./useAuthErrorMessage";
 
 type Props = {
   onError?: (message: string | null) => void;
@@ -24,12 +21,11 @@ type Props = {
 export function RegisterForm({ onError }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const setSession = useAuthStore((s) => s.setSession);
-  const mapError = useAuthErrorMapper();
-  const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const passwordRef = useRef<TextInput>(null);
   const nameRef = useRef<TextInput>(null);
+
+  const { submitting, execute } = useRegisterUseCase();
 
   const {
     control,
@@ -42,29 +38,14 @@ export function RegisterForm({ onError }: Props) {
   });
 
   async function onSubmit(values: RegisterValues) {
-    setSubmitting(true);
     onError?.(null);
-    try {
-      const resp = await registerRequest({
-        email: values.email,
-        password: values.password,
-        name: values.name,
-      });
-      await setSession({ user: resp.user, tokens: resp.tokens });
-      triggerHaptic("success");
-      if (values.language && values.language !== resp.user.language) {
-        void persistLanguage(values.language);
-      }
-    } catch (err) {
-      triggerHaptic("error");
-      const mapped = mapError(err);
-      if (mapped.emailError) setError("email", { message: mapped.emailError });
-      if (mapped.passwordError)
-        setError("password", { message: mapped.passwordError });
-      onError?.(mapped.banner ?? null);
-    } finally {
-      setSubmitting(false);
-    }
+    const result = await execute(values);
+    if (result.ok) return;
+    if (result.error.emailError)
+      setError("email", { message: result.error.emailError });
+    if (result.error.passwordError)
+      setError("password", { message: result.error.passwordError });
+    onError?.(result.error.banner ?? null);
   }
 
   return (

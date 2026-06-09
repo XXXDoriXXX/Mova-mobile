@@ -1,25 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Pressable, View } from "react-native";
-import * as Google from "expo-auth-session/providers/google";
-import * as WebBrowser from "expo-web-browser";
-import Constants from "expo-constants";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
-import { signInWithGoogle } from "@/api/auth";
-import { useAuthStore } from "@/auth/store";
 
-WebBrowser.maybeCompleteAuthSession();
-
-type Extra = {
-  googleOAuthWebClientId?: string;
-  googleOAuthAndroidClientId?: string;
-  googleOAuthIosClientId?: string;
-};
-
-const extra = (Constants.expoConfig?.extra ?? {}) as Extra;
+import { useGoogleSignInUseCase } from "./application/useGoogleSignInUseCase";
 
 type Props = {
   onError?: (message: string) => void;
@@ -28,58 +15,17 @@ type Props = {
 export function GoogleSignInButton({ onError }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const setSession = useAuthStore((s) => s.setSession);
-  const [busy, setBusy] = useState(false);
-
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: extra.googleOAuthWebClientId,
-    androidClientId: extra.googleOAuthAndroidClientId,
-    iosClientId: extra.googleOAuthIosClientId,
-  });
+  const { ready, busy, error, start } = useGoogleSignInUseCase();
 
   useEffect(() => {
-    if (!response) return;
-    if (response.type !== "success") {
-      if (response.type === "error") {
-        onError?.(response.error?.message ?? "Google sign-in failed");
-      }
-      setBusy(false);
-      return;
-    }
-    const idToken = response.params.id_token;
-    if (!idToken) {
-      onError?.("Google response missing id_token");
-      setBusy(false);
-      return;
-    }
-    void (async () => {
-      try {
-        const resp = await signInWithGoogle(idToken);
-        await setSession({ user: resp.user, tokens: resp.tokens });
-      } catch (err) {
-        onError?.(err instanceof Error ? err.message : String(err));
-      } finally {
-        setBusy(false);
-      }
-    })();
-  }, [response, onError, setSession]);
+    if (error && onError) onError(error);
+  }, [error, onError]);
 
-  const disabled = !request || busy;
-
-  async function handlePress() {
-    if (!request) return;
-    setBusy(true);
-    try {
-      await promptAsync();
-    } catch (err) {
-      onError?.(err instanceof Error ? err.message : String(err));
-      setBusy(false);
-    }
-  }
+  const disabled = !ready || busy;
 
   return (
     <Pressable
-      onPress={handlePress}
+      onPress={() => void start()}
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={t("auth.googleSignIn")}
