@@ -1,97 +1,126 @@
-import { View } from "react-native";
+import { useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import * as WebBrowser from "expo-web-browser";
 import { useTranslation } from "react-i18next";
 
-import { Button } from "@/components/Button";
-import { Pill } from "@/components/Pill";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
+import { AuthHeroHeader } from "@/features/auth/AuthHeroHeader";
+import { GoogleSignInButton } from "@/features/auth/GoogleSignInButton";
+import { LoginForm } from "@/features/auth/LoginForm";
 
-type Feature = {
-  icon: keyof typeof Ionicons.glyphMap;
-  i18nKey: string;
-};
+const TERMS_URL = "https://mova.app/legal/terms";
+const PRIVACY_URL = "https://mova.app/legal/privacy";
 
-const FEATURES: Feature[] = [
-  { icon: "call-outline", i18nKey: "welcome.featureCalls" },
-  { icon: "chatbubbles-outline", i18nKey: "welcome.featureSuggestions" },
-  { icon: "color-palette-outline", i18nKey: "welcome.featureStyle" },
-];
-
-/**
- * Welcome / sign-in entry point. Hero typography (display + italic accent)
- * mirrors the home screen so the brand voice is set from the very first
- * frame. The CTAs are a lime primary ("Create account") + ghost secondary
- * ("Log in"), matching the warm-light palette.
- */
 export default function WelcomeScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const theme = useTheme();
+  const router = useRouter();
+  const [banner, setBanner] = useState<string | null>(null);
 
   return (
     <Screen>
-      <View style={{ flex: 1, justifyContent: "space-between", paddingVertical: theme.spacing.xl }}>
-        <View style={{ gap: theme.spacing.md, marginTop: theme.spacing.xxl }}>
-          <Pill label="MOVA · v0.1" tone="ink" />
-          <Text variant="display">
-            {t("welcome.title")}
-            <Text variant="display" color="textMuted">+</Text>
-          </Text>
-          <Text variant="display" weight="bold" italic color="text">
-            {t("welcome.subtitle").split("\n")[0]}
-          </Text>
-          {t("welcome.subtitle").split("\n")[1] ? (
-            <Text variant="bodyLarge" color="textMuted">
-              {t("welcome.subtitle").split("\n").slice(1).join(" ")}
-            </Text>
-          ) : null}
-        </View>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingTop: 8,
+            paddingBottom: 24,
+          }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          <View style={{ flex: 1, justifyContent: "space-between", gap: 32 }}>
+            <AuthHeroHeader />
 
-        <View style={{ gap: theme.spacing.md }}>
-          {FEATURES.map((f) => (
-            <View
-              key={f.icon}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 14,
-              }}
-            >
+            <View style={{ gap: 16 }}>
+              {banner ? (
+                <Text variant="body" color="danger">
+                  {banner}
+                </Text>
+              ) : null}
+
+              <LoginForm onError={setBanner} />
+
               <View
                 style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
+                  flexDirection: "row",
                   alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: theme.colors.accent,
+                  gap: 12,
+                  marginVertical: 4,
                 }}
               >
-                <Ionicons name={f.icon} size={18} color={theme.colors.accentText} />
+                <View
+                  style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }}
+                />
+                <Text
+                  variant="caption"
+                  color="textMuted"
+                  style={{ textTransform: "uppercase", letterSpacing: 0.6 }}
+                >
+                  {t("auth.orDivider")}
+                </Text>
+                <View
+                  style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }}
+                />
               </View>
-              <Text variant="body" weight="bold" style={{ flex: 1 }}>
-                {t(f.i18nKey)}
+
+              <GoogleSignInButton onError={setBanner} />
+
+              <Pressable
+                onPress={() => router.push("/register")}
+                accessibilityRole="link"
+                hitSlop={8}
+                style={{ alignItems: "center", paddingVertical: 8 }}
+              >
+                <Text variant="body" color="textMuted">
+                  {t("auth.noAccountPrefix")}{" "}
+                  <Text variant="body" weight="bold" color="text">
+                    {t("auth.registerLink")}
+                  </Text>
+                </Text>
+              </Pressable>
+
+              <Text
+                variant="caption"
+                color="textMuted"
+                style={{ textAlign: "center", lineHeight: 18 }}
+              >
+                {t("auth.legalPrefix")}{" "}
+                <Text
+                  variant="caption"
+                  weight="bold"
+                  color="text"
+                  onPress={() => void WebBrowser.openBrowserAsync(TERMS_URL)}
+                >
+                  {t("auth.legalTerms")}
+                </Text>{" "}
+                {t("auth.legalAnd")}{" "}
+                <Text
+                  variant="caption"
+                  weight="bold"
+                  color="text"
+                  onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_URL)}
+                >
+                  {t("auth.legalPrivacy")}
+                </Text>
               </Text>
             </View>
-          ))}
-        </View>
-
-        <View style={{ gap: theme.spacing.md }}>
-          <Button
-            label={t("welcome.register")}
-            variant="primary"
-            onPress={() => router.push("/register")}
-          />
-          <Button
-            label={t("welcome.login")}
-            variant="secondary"
-            onPress={() => router.push("/login")}
-          />
-        </View>
-      </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }

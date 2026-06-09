@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TextInput, View } from "react-native";
+import { Pressable, TextInput, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
@@ -13,18 +14,20 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { persistLanguage, register as registerRequest } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
 
-import { GoogleSignInButton } from "./GoogleSignInButton";
-
 import { registerSchema, type RegisterValues } from "./schemas";
 import { useAuthErrorMapper } from "./useAuthErrorMessage";
 
-export function RegisterForm() {
+type Props = {
+  onError?: (message: string | null) => void;
+};
+
+export function RegisterForm({ onError }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
   const setSession = useAuthStore((s) => s.setSession);
   const mapError = useAuthErrorMapper();
   const [submitting, setSubmitting] = useState(false);
-  const [banner, setBanner] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const passwordRef = useRef<TextInput>(null);
   const nameRef = useRef<TextInput>(null);
 
@@ -40,9 +43,8 @@ export function RegisterForm() {
 
   async function onSubmit(values: RegisterValues) {
     setSubmitting(true);
-    setBanner(null);
+    onError?.(null);
     try {
-      // Backend register only accepts {email, password, name}.
       const resp = await registerRequest({
         email: values.email,
         password: values.password,
@@ -50,37 +52,50 @@ export function RegisterForm() {
       });
       await setSession({ user: resp.user, tokens: resp.tokens });
       triggerHaptic("success");
-      // Persist non-default UI language to the user profile so it survives
-      // reinstalls. Best-effort — failure is silent.
       if (values.language && values.language !== resp.user.language) {
         void persistLanguage(values.language);
       }
     } catch (err) {
       triggerHaptic("error");
       const mapped = mapError(err);
-      if (mapped.emailError)
-        setError("email", { message: mapped.emailError });
+      if (mapped.emailError) setError("email", { message: mapped.emailError });
       if (mapped.passwordError)
         setError("password", { message: mapped.passwordError });
-      if (mapped.banner) setBanner(mapped.banner);
+      onError?.(mapped.banner ?? null);
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <View style={{ gap: theme.spacing.lg }}>
-      {banner ? (
-        <Text color="danger" variant="body">
-          {banner}
-        </Text>
-      ) : null}
+    <View style={{ gap: 16 }}>
+      <Controller
+        control={control}
+        name="name"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <TextField
+            ref={nameRef}
+            variant="card"
+            label={t("auth.nameLabel")}
+            placeholder={t("auth.namePlaceholder")}
+            autoCapitalize="words"
+            autoComplete="name"
+            returnKeyType="next"
+            value={value}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            onSubmitEditing={() => passwordRef.current?.focus()}
+            error={errors.name?.message}
+          />
+        )}
+      />
 
       <Controller
         control={control}
         name="email"
         render={({ field: { onChange, onBlur, value } }) => (
           <TextField
+            variant="card"
             label={t("auth.emailLabel")}
             placeholder={t("auth.emailPlaceholder")}
             autoCapitalize="none"
@@ -95,41 +110,49 @@ export function RegisterForm() {
           />
         )}
       />
+
       <Controller
         control={control}
         name="password"
         render={({ field: { onChange, onBlur, value } }) => (
           <TextField
             ref={passwordRef}
+            variant="card"
             label={t("auth.passwordLabel")}
             placeholder={t("auth.passwordPlaceholder")}
-            secureTextEntry
+            secureTextEntry={!showPassword}
             autoCapitalize="none"
             autoComplete="password-new"
-            returnKeyType="next"
-            value={value}
-            onChangeText={onChange}
-            onBlur={onBlur}
-            onSubmitEditing={() => nameRef.current?.focus()}
-            error={errors.password?.message}
-          />
-        )}
-      />
-      <Controller
-        control={control}
-        name="name"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextField
-            ref={nameRef}
-            label={t("auth.nameLabel")}
-            placeholder={t("auth.namePlaceholder")}
-            autoCapitalize="words"
             returnKeyType="done"
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
             onSubmitEditing={handleSubmit(onSubmit)}
-            error={errors.name?.message}
+            error={errors.password?.message}
+            helperText={t("auth.passwordHelper")}
+            rightSlot={
+              <Pressable
+                onPress={() => setShowPassword((v) => !v)}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  showPassword
+                    ? t("auth.hidePassword")
+                    : t("auth.showPassword")
+                }
+                hitSlop={12}
+              >
+                <Text
+                  variant="caption"
+                  color="textMuted"
+                  weight="bold"
+                  style={{ textTransform: "uppercase", letterSpacing: 0.6 }}
+                >
+                  {showPassword
+                    ? t("auth.hidePassword")
+                    : t("auth.showPassword")}
+                </Text>
+              </Pressable>
+            }
           />
         )}
       />
@@ -139,7 +162,13 @@ export function RegisterForm() {
         name="language"
         render={({ field: { onChange, value } }) => (
           <View style={{ gap: theme.spacing.xs }}>
-            <Text variant="label">{t("auth.languageLabel")}</Text>
+            <Text
+              variant="caption"
+              color="textMuted"
+              style={{ textTransform: "uppercase", letterSpacing: 0.6 }}
+            >
+              {t("auth.languageLabel")}
+            </Text>
             <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
               <Chip
                 label={t("auth.languageUk")}
@@ -160,24 +189,10 @@ export function RegisterForm() {
         label={t("auth.registerCta")}
         onPress={handleSubmit(onSubmit)}
         loading={submitting}
+        trailing={
+          <Ionicons name="arrow-forward" size={16} color={theme.colors.primaryText} />
+        }
       />
-
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 12,
-          marginTop: 4,
-        }}
-      >
-        <View style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }} />
-        <Text variant="caption" color="textMuted">
-          {t("auth.orDivider")}
-        </Text>
-        <View style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }} />
-      </View>
-
-      <GoogleSignInButton onError={(msg) => setBanner(msg)} />
     </View>
   );
 }
