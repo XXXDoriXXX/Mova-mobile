@@ -33,8 +33,7 @@ import {
   getConversation,
   getConversationMessages,
 } from "@/api/conversations";
-import { TranscriptView } from "@/features/conversations/TranscriptView";
-import { transcriptToText } from "@/features/conversations/exportTranscript";
+import { TranscriptView, transcriptToText } from "@/features/conversations";
 import { formatDuration, formatRelativeFromNow } from "@/utils/format";
 import { formatPhoneForDisplay } from "@/utils/phone";
 

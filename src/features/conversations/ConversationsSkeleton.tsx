@@ -5,11 +5,6 @@ import { useTheme } from "@/theme/ThemeProvider";
 
 type Props = { count?: number };
 
-/**
- * Placeholder rows for the History list. Matches the real
- * `ConversationsList` row footprint (avatar + 2-line meta + round
- * dial-back button) so the layout settles in place when data arrives.
- */
 export function ConversationsSkeleton({ count = 6 }: Props) {
   const theme = useTheme();
   return (
