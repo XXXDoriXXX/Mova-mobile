@@ -17,7 +17,7 @@ import { useTranslation } from "react-i18next";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import { useCallStore } from "./callStore";
-import { copyForError, type ErrorBannerCopy } from "./errorCopy";
+import { copyForError, type ErrorBannerCopy } from "./application/errorCopy";
 
 /**
  * Sticky, in-context status banner for the live-call screen. Replaces

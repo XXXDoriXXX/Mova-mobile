@@ -5,7 +5,7 @@ import { createCallSocket, onServerEvent, type CallSocket } from "@/realtime/soc
 import type { ClientCommand, ServerEvent } from "@/realtime/protocol";
 import { CallErrorCode, isRecoverable } from "@/realtime/error-codes";
 
-import { useCallStore } from "./callStore";
+import { useCallStore } from "../callStore";
 
 const PING_INTERVAL_MS = 20_000;
 

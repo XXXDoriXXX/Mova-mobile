@@ -20,18 +20,21 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { confirm } from "@/feedback/dialogStore";
 import { toast } from "@/feedback/toast";
 import { useAuthStore } from "@/auth/store";
-import { useCallStore } from "@/features/calls/live/callStore";
-import { useCallSocket } from "@/features/calls/live/useCallSocket";
-import { useAppStateReconnect } from "@/features/calls/live/useAppStateReconnect";
-import { CallConnecting } from "@/features/calls/live/CallConnecting";
-import { CallEnding } from "@/features/calls/live/CallEnding";
-import { CallFatal } from "@/features/calls/live/CallFatal";
-import { CallSettingsDrawer } from "@/features/calls/live/CallSettingsDrawer";
-import { CallStatusBanner } from "@/features/calls/live/CallStatusBanner";
-import { AiReplyCandidate } from "@/features/calls/live/AiReplyCandidate";
-import { MessageInput } from "@/features/calls/live/MessageInput";
-import { SuggestionChips } from "@/features/calls/live/SuggestionChips";
-import { Transcript } from "@/features/calls/live/Transcript";
+import {
+  AiReplyCandidate,
+  CallConnecting,
+  CallEnding,
+  CallFatal,
+  CallSettingsDrawer,
+  CallStatusBanner,
+  MessageInput,
+  SuggestionChips,
+  Transcript,
+  useAppStateReconnect,
+  useCallControls,
+  useCallSocket,
+  useCallStore,
+} from "@/features/calls";
 import { formatDuration } from "@/utils/format";
 
 /**
@@ -75,6 +78,7 @@ export default function LiveCallScreen() {
     accessToken: accessToken ?? "",
     initialStyleId: params.initialStyleId || null,
   });
+  const controls = useCallControls(send);
 
   useAppStateReconnect();
 
@@ -109,32 +113,25 @@ export default function LiveCallScreen() {
 
   function handleSend(text: string) {
     useCallStore.getState().pushUserTyped(text);
-    send({ type: "user.speak", data: { text } });
+    controls.speak(text);
   }
 
   function handleSuggestion(s: { id: string; content: string }) {
     useCallStore.getState().pushUserTyped(s.content);
     useCallStore.getState().removeSuggestion(s.id);
-    send({ type: "user.accept_suggestion", data: { suggestionId: s.id } });
+    controls.acceptSuggestion(s.id);
   }
 
   function handleAcceptAiReply(candidateId: string) {
-    // Optimistic clear so the preview card dismisses instantly; backend
-    // will follow up with the canonical ai.text.final event which lands
-    // the bubble in chat. Idempotent on the backend — if the user
-    // double-taps, the second accept is a no-op.
     setPendingAiReply(null);
-    send({ type: "user.accept_ai_reply", data: { candidateId } });
+    controls.acceptAiReply(candidateId);
   }
   function handleCancelAiReply(candidateId: string) {
     setPendingAiReply(null);
-    send({ type: "user.cancel_ai_reply", data: { candidateId } });
+    controls.cancelAiReply(candidateId);
   }
 
   async function handleEnd() {
-    // Confirm before terminating — single-tap dismissals during a live
-    // call are unrecoverable, so we always gate this through the brand
-    // confirm sheet.
     const ok = await confirm({
       title: t("live.endCallConfirmTitle"),
       body: t("live.endCallConfirmBody"),
@@ -142,7 +139,7 @@ export default function LiveCallScreen() {
       destructive: true,
       icon: "call",
     });
-    if (ok) send({ type: "user.end_call" });
+    if (ok) controls.endCall();
   }
 
   // Android hardware back during an active call must NOT silently leave the
@@ -253,7 +250,7 @@ export default function LiveCallScreen() {
       <CallSettingsDrawer
         visible={settingsOpen}
         onClose={() => setSettingsOpen(false)}
-        send={send}
+        controls={controls}
       />
 
       {/* Persistent in-context banner. Owns its own visibility logic:
