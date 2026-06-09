@@ -1,6 +1,5 @@
 import { Pressable, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
@@ -12,28 +11,18 @@ import type { Conversation } from "@/types/api";
 import { formatDuration, formatRelativeFromNow } from "@/utils/format";
 import { formatPhoneForDisplay } from "@/utils/phone";
 
+import { selectRecentCallStatus, type RecentCallTone } from "./application/selectRecentCallStatus";
+
 type Props = {
   items: Conversation[];
+  onOpen: (conversationId: string) => void;
+  onRecall: (targetPhone: string) => void;
+  onEmptyCta: () => void;
 };
 
-const STATUS_ICON: Record<Conversation["status"], keyof typeof Ionicons.glyphMap> = {
-  pending: "ellipse-outline",
-  active: "radio",
-  ended: "checkmark-circle",
-  failed: "alert-circle",
-};
-
-/**
- * Recent-calls list shown on the home screen and the history tab.
- *
- * Each row is a tappable card with the contact identity on the left and a
- * round dial-back affordance on the right. Status is conveyed by a small
- * icon, not by colour alone (helps with colour-blindness).
- */
-export function RecentCallsList({ items }: Props) {
+export function RecentCallsList({ items, onOpen, onRecall, onEmptyCta }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const router = useRouter();
 
   if (items.length === 0) {
     return (
@@ -42,7 +31,7 @@ export function RecentCallsList({ items }: Props) {
         title={t("home.recentEmpty")}
         body={t("home.recentEmptyBody")}
         ctaLabel={t("home.startCallCta")}
-        onCta={() => router.push("/call/pre")}
+        onCta={onEmptyCta}
       />
     );
   }
@@ -56,18 +45,8 @@ export function RecentCallsList({ items }: Props) {
         >
           <RecentRow
             item={c}
-            onOpen={() =>
-              router.push({
-                pathname: "/conversation/[id]",
-                params: { id: c.id },
-              })
-            }
-            onRecall={() =>
-              router.push({
-                pathname: "/call/pre",
-                params: { prefillPhone: c.targetPhone },
-              })
-            }
+            onOpen={() => onOpen(c.id)}
+            onRecall={() => onRecall(c.targetPhone)}
           />
         </Animated.View>
       ))}
@@ -85,12 +64,8 @@ function RecentRow({ item, onOpen, onRecall }: RowProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const phone = formatPhoneForDisplay(item.targetPhone);
-  const statusColor =
-    item.status === "failed"
-      ? theme.colors.danger
-      : item.status === "active"
-        ? theme.colors.success
-        : theme.colors.textMuted;
+  const { iconName, tone } = selectRecentCallStatus(item.status);
+  const iconColor = toneToColor(tone, theme);
 
   return (
     <Pressable
@@ -114,7 +89,7 @@ function RecentRow({ item, onOpen, onRecall }: RowProps) {
           {phone}
         </Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <Ionicons name={STATUS_ICON[item.status]} size={12} color={statusColor} />
+          <Ionicons name={iconName} size={12} color={iconColor} />
           <Text variant="caption" color="textMuted">
             {formatRelativeFromNow(item.startedAt)}
             {item.durationSeconds > 0
@@ -142,4 +117,15 @@ function RecentRow({ item, onOpen, onRecall }: RowProps) {
       </Pressable>
     </Pressable>
   );
+}
+
+function toneToColor(tone: RecentCallTone, theme: ReturnType<typeof useTheme>): string {
+  switch (tone) {
+    case "danger":
+      return theme.colors.danger;
+    case "success":
+      return theme.colors.success;
+    case "muted":
+      return theme.colors.textMuted;
+  }
 }

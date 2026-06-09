@@ -21,8 +21,7 @@ import { getBillingSummary } from "@/api/billing";
 import { listConversations } from "@/api/conversations";
 import { getMe } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
-import { HomeSkeleton } from "@/features/home/HomeSkeleton";
-import { RecentCallsList } from "@/features/home/RecentCallsList";
+import { HomeSkeleton, RecentCallsList } from "@/features/home";
 import { greetingKey } from "@/utils/format";
 import { triggerHaptic } from "@/utils/haptics";
 
@@ -158,7 +157,16 @@ export default function HomeScreen() {
         {recentQuery.isLoading ? (
           <Spinner size="small" />
         ) : (
-          <RecentCallsList items={recentQuery.data?.items ?? []} />
+          <RecentCallsList
+            items={recentQuery.data?.items ?? []}
+            onOpen={(id) =>
+              router.push({ pathname: "/conversation/[id]", params: { id } })
+            }
+            onRecall={(prefillPhone) =>
+              router.push({ pathname: "/call/pre", params: { prefillPhone } })
+            }
+            onEmptyCta={() => router.push("/call/pre")}
+          />
         )}
       </ScrollView>
     </Screen>

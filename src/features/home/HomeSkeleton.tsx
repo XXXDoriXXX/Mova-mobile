@@ -3,11 +3,6 @@ import { View } from "react-native";
 import { Skeleton } from "@/components/Skeleton";
 import { useTheme } from "@/theme/ThemeProvider";
 
-/**
- * Approximate layout of the Home screen while data loads. Mirrors the
- * shipping layout (header → date pill → hero → balance → CTA pair →
- * recent list) so the page doesn't shift when content arrives.
- */
 export function HomeSkeleton() {
   const theme = useTheme();
   return (
