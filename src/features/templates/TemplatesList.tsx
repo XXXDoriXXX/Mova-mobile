@@ -10,7 +10,11 @@ import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import type { Template } from "@/types/api";
 
-type Filter = "all" | "mine" | "system";
+import {
+  describeTemplateSubtitle,
+  filterTemplates,
+  type TemplateFilter,
+} from "./application/filterTemplates";
 
 type Props = {
   items: Template[];
@@ -20,18 +24,9 @@ type Props = {
 export function TemplatesList({ items, onSelect }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<TemplateFilter>("all");
 
-  const filtered = useMemo(() => {
-    switch (filter) {
-      case "mine":
-        return items.filter((t) => !t.isSystem);
-      case "system":
-        return items.filter((t) => t.isSystem);
-      default:
-        return items;
-    }
-  }, [items, filter]);
+  const filtered = useMemo(() => filterTemplates(items, filter), [items, filter]);
 
   return (
     <View style={{ gap: theme.spacing.md }}>
@@ -55,7 +50,13 @@ export function TemplatesList({ items, onSelect }: Props) {
 
       {filtered.length === 0 ? (
         <Card>
-          <View style={{ alignItems: "center", gap: theme.spacing.sm, paddingVertical: theme.spacing.md }}>
+          <View
+            style={{
+              alignItems: "center",
+              gap: theme.spacing.sm,
+              paddingVertical: theme.spacing.md,
+            }}
+          >
             <Ionicons
               name="document-text-outline"
               size={36}
@@ -71,26 +72,17 @@ export function TemplatesList({ items, onSelect }: Props) {
         </Card>
       ) : (
         <View style={{ gap: theme.spacing.sm }}>
-          {filtered.map((tpl) => {
-            const badges: string[] = [];
-            if (tpl.isSystem) badges.push(t("templates.badgeSystem"));
-            if (tpl.isDefault) badges.push(t("templates.badgeDefault"));
-            const subtitle = [
-              ...badges,
-              tpl.description.slice(0, 80),
-            ]
-              .filter(Boolean)
-              .join(" · ");
-
-            return (
-              <Row
-                key={tpl.id}
-                title={tpl.name}
-                subtitle={subtitle}
-                onPress={() => onSelect(tpl)}
-              />
-            );
-          })}
+          {filtered.map((tpl) => (
+            <Row
+              key={tpl.id}
+              title={tpl.name}
+              subtitle={describeTemplateSubtitle(tpl, {
+                system: t("templates.badgeSystem"),
+                default: t("templates.badgeDefault"),
+              })}
+              onPress={() => onSelect(tpl)}
+            />
+          ))}
         </View>
       )}
     </View>
