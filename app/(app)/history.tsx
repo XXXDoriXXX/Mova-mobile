@@ -11,7 +11,7 @@ import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
 import { useTheme } from "@/theme/ThemeProvider";
 import { listConversations } from "@/api/conversations";
-import { ConversationsList } from "@/features/conversations/ConversationsList";
+import { ConversationsList } from "@/features/conversations";
 import { PeriodFilter } from "@/features/history/PeriodFilter";
 import { SearchResultsList } from "@/features/history/SearchResultsList";
 import { TemplateFilter } from "@/features/history/TemplateFilter";
