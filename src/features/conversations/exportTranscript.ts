@@ -20,11 +20,6 @@ function fmtClock(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-/**
- * Plain-text dump of a conversation suitable for OS Share sheet. Includes
- * header (phone, time, duration) and a per-message log with role label.
- * No PII beyond what the user already sees; safe to share.
- */
 export function transcriptToText(input: ExportInput): string {
   const lines: string[] = [];
   lines.push(`MOVA — ${input.phone}`);

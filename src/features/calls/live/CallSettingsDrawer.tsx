@@ -280,22 +280,6 @@ export function CallSettingsDrawer({ visible, onClose, controls }: Props) {
   );
 }
 
-/**
- * Voice picker chip with gender icon + language pill rendered inline.
- *
- * The base Chip exposes leading/trailing slots, so we just hand it a
- * small Ionicon for gender and a tiny pill for the language tag. Both
- * are cosmetic — saving still goes through the same handleVoice path
- * that persists (preferredVoice, preferredTtsProvider) as a pair.
- *
- * Gender ⇒ icon:
- *   female  → person  (the more rounded glyph in the Ionicon set)
- *   male    → man
- *   neutral → mic-circle-outline  (no gender → just "a voice")
- *
- * Language pill is shown only when the voice has a known regional
- * code; multilingual voices skip it to keep the chip narrow.
- */
 function VoiceChip({
   voice,
   selected,

@@ -17,11 +17,6 @@ const SCALES: { value: FontScale; label: string }[] = [
   { value: 1.3, label: "A++" },
 ];
 
-/**
- * Appearance sheet — used to be a theme-mode + font-scale picker. The mode
- * picker was removed when the app went single-light-theme; only the size
- * controls remain.
- */
 export function AppearanceModal({ visible, onClose }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();

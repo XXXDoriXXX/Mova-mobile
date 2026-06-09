@@ -19,31 +19,6 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { useCallStore } from "./callStore";
 import { copyForError, type ErrorBannerCopy } from "./application/errorCopy";
 
-/**
- * Sticky, in-context status banner for the live-call screen. Replaces
- * the ephemeral 4-second auto-clearing toast — provider degradation
- * happens fast (a couple of seconds of glitch) but the user reads
- * the chat at their own pace; a 4s window meant the message was gone
- * before they looked up from the partner's last bubble.
- *
- * Two states it surfaces, in priority order:
- *
- *   1. **Reconnecting** — WS dropped, mid-reconnect. Wins over error
- *      banners because if the wire is down nothing else matters; the
- *      icon pulses so the user reads it as "active recovery" not
- *      "permanently broken". We don't ship a dismiss for this one —
- *      it auto-clears the moment status flips back to `active`.
- *
- *   2. **Recoverable error** — provider degradation, rate limit, etc.
- *      Stays on screen until the user dismisses (X) OR a new error
- *      replaces it. Some codes (RATE_LIMITED, moderation) intentionally
- *      lock the X out so the user can't miss the reason a message
- *      didn't go through.
- *
- * Copy is hidden behind `errorCopy.ts` so the backend's server-y
- * messages (e.g. "stt provider degraded — switching to fallback")
- * never reach the user. UA-first translations live in i18n bundles.
- */
 export function CallStatusBanner() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -51,9 +26,6 @@ export function CallStatusBanner() {
   const toastError = useCallStore((s) => s.toastError);
   const setToastError = useCallStore((s) => s.setToastError);
 
-  // Reconnecting is the override layer — replaces any error banner
-  // for the duration. The error stays in store and pops back in if
-  // it's still relevant once we're connected again.
   if (status === "reconnecting") {
     return (
       <BannerShell
@@ -115,8 +87,6 @@ function BannerShell({
   onDismiss?: () => void;
 }) {
   const theme = useTheme();
-  // Sync the spin animation here so reconnecting's icon visually
-  // communicates "active retry" instead of just sitting static.
   const rotation = useSharedValue(0);
   useEffect(() => {
     if (!spin) return;
@@ -132,8 +102,6 @@ function BannerShell({
     transform: [{ rotate: `${rotation.value}deg` }],
   }));
 
-  // Tone → palette. We pick from theme tokens so dark-mode polish later
-  // doesn't need to touch this file.
   const palette = (() => {
     if (tone === "danger") {
       return {

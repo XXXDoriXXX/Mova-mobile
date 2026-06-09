@@ -11,12 +11,6 @@ type Props = {
   onPick: (s: CallSuggestion) => void;
 };
 
-/**
- * Horizontal strip of AI-generated quick replies above the composer.
- * Matches the design's "quick replies" row — chips wrap in a horizontal
- * scroller rather than wrapping vertically, so the row height never
- * shifts and accidental taps from a vertical scroll are unlikely.
- */
 export function SuggestionChips({ items, onPick }: Props) {
   const theme = useTheme();
   if (items.length === 0) return null;

@@ -15,19 +15,6 @@ import {
 
 const PING_INTERVAL_MS = 20_000;
 
-/**
- * Two-stage watchdog windows for the loader screen:
- *
- *   - HANDSHAKE_TIMEOUT_MS — no `call.connected` within this window means
- *     the backend chain is dead (worker crashed, livekit SIP couldn't
- *     dial, agent never joined the room). Fatal-out so the user can
- *     retry instead of staring at a "connecting" spinner forever.
- *
- *   - ANSWER_TIMEOUT_MS — `call.connected` arrived but `call.answered`
- *     never did, i.e. the phone is ringing and ringing. Real PSTN call
- *     timeouts are 30–60s (after which voicemail or carrier drops it),
- *     so we give 60s here and only then fatal with NO_ANSWER copy.
- */
 const HANDSHAKE_TIMEOUT_MS = 25_000;
 const ANSWER_TIMEOUT_MS = 60_000;
 
@@ -62,14 +49,11 @@ export function useCallSocket(opts: {
       const s = useCallStore.getState();
       s.setWsConnected(false);
       if (s.status !== "ended") s.setStatus("reconnecting");
-      // Refresh handshake auth on every reconnect attempt so the server can
-      // replay events since `lastStreamId`. Without this, a reconnect
-      // re-sends the original (empty) cursor and drops the gap entirely.
-      const lastStreamId = s.lastStreamId ?? undefined;
+      // Replay since lastStreamId; default empty cursor would drop the gap.
       socket.auth = {
         token: opts.accessToken,
         conversationId: opts.conversationId,
-        lastStreamId,
+        lastStreamId: s.lastStreamId ?? undefined,
       };
     });
 
@@ -89,7 +73,6 @@ export function useCallSocket(opts: {
       sendRef.current?.({ type: "ping" });
     }, PING_INTERVAL_MS);
 
-    // Handshake watchdog — fatal if we never made it past `connecting`.
     const handshakeWatchdog = setTimeout(() => {
       const s = useCallStore.getState();
       if (s.status === "connecting" && !s.fatalError && !s.endInfo) {
@@ -102,10 +85,6 @@ export function useCallSocket(opts: {
       }
     }, HANDSHAKE_TIMEOUT_MS);
 
-    // Answer watchdog — backend dialed fine but nobody picked up. We
-    // wait a full minute to cover the typical PSTN ring window before
-    // ending the call locally with a `NO_ANSWER` reason; sending
-    // `user.end_call` ensures the trunk leg is hung up too.
     const answerWatchdog = setTimeout(() => {
       const s = useCallStore.getState();
       if (s.status === "ringing" && !s.fatalError && !s.endInfo) {
@@ -131,7 +110,6 @@ export function useCallSocket(opts: {
     };
   }, [opts.conversationId, opts.accessToken]);
 
-  // Apply user-requested style mid-call once connected.
   useEffect(() => {
     const styleId = opts.initialStyleId;
     if (!styleId) return;
@@ -160,9 +138,6 @@ function routeEvent(event: ServerEvent) {
 
   switch (event.type) {
     case "call.connected":
-      // Agent + WS are ready. The phone hasn't picked up yet — stay in
-      // the ringing state and let `call.answered` (or any real signal
-      // above) advance us to `active`.
       if (store.status === "connecting") store.setStatus("ringing");
       break;
     case "call.answered":
@@ -184,11 +159,6 @@ function routeEvent(event: ServerEvent) {
       store.commitInterlocutorFinal(event.data.messageId, event.data.text);
       break;
     case "ai.thinking":
-      // Empty payload — presence of the event toggles the indicator. We clear
-      // it when the AI's next partial/final arrives (the partial setters do
-      // that themselves). Also drop any previous candidate card: ai.thinking
-      // signals the AI is restarting work for a new turn, so the old preview
-      // is stale and would otherwise linger until the new candidate replaces it.
       store.setAiThinking(true);
       store.setPendingAiReply(null);
       break;
@@ -217,12 +187,9 @@ function routeEvent(event: ServerEvent) {
       break;
     }
     case "ai.tts.start":
-      // Server-side audio playback over SIP; UI gets the voice for context.
       store.setActiveVoice(event.data.voice);
       break;
     case "ai.tts.end":
-      // No UI work here — audio plays on the phone side; final state is on
-      // the persisted `Message.ttsStatus`.
       break;
     case "suggestions.new":
       store.setSuggestions(
@@ -238,36 +205,18 @@ function routeEvent(event: ServerEvent) {
       });
       break;
     case "call.config.changed": {
-      // styleId rides on the LLM event (resolved server-side from
-      // template / preference). Apply unconditionally — it's the only
-      // surface where mid-call style change reaches us.
       if (event.data.styleId) store.setActiveStyleId(event.data.styleId);
-      // Provider snapshots are typed via `providerType`. Apply each to
-      // its own slot so the in-call info strip can render the full
-      // active stack ("Deepgram · GPT-4o · ElevenLabs (Rachel)") instead
-      // of just the voice the user happened to switch last.
       switch (event.data.providerType) {
         case "llm":
-          store.setActiveLlm(
-            event.data.provider ?? null,
-            event.data.model ?? null,
-          );
+          store.setActiveLlm(event.data.provider ?? null, event.data.model ?? null);
           break;
         case "stt":
-          store.setActiveStt(
-            event.data.provider ?? null,
-            event.data.model ?? null,
-          );
+          store.setActiveStt(event.data.provider ?? null, event.data.model ?? null);
           break;
         case "tts":
-          store.setActiveTts(
-            event.data.provider ?? null,
-            event.data.voice ?? null,
-          );
+          store.setActiveTts(event.data.provider ?? null, event.data.voice ?? null);
           break;
         default:
-          // Legacy / untyped change events (e.g. user.change_voice from
-          // an older agent build) — fall back to voice-only.
           if (event.data.voice) store.setActiveVoice(event.data.voice);
       }
       break;
@@ -283,8 +232,6 @@ function routeEvent(event: ServerEvent) {
       break;
     }
     case "pong":
-      // Heartbeat acked — nothing else to do; useAppStateReconnect watches
-      // disconnects directly.
       break;
   }
 }

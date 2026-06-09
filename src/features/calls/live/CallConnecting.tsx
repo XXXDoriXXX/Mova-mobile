@@ -19,23 +19,6 @@ import { useCallStore } from "./callStore";
 
 type Phase = "handshake" | "dialing" | "ringing" | "stalled";
 
-/**
- * Replaces the bare `<Spinner />` previously shown during the
- * `connecting` status. Drives a phase that advances on real signals
- * we have:
- *
- *   - handshake  → WS not yet connected
- *   - dialing    → WS connected, < 5s elapsed (backend opening
- *                  livekit room + SIP trunk)
- *   - ringing    → 5s – 12s elapsed (SIP dial fired, awaiting
- *                  remote answer)
- *   - stalled    → > 12s elapsed (still no answer; the watchdog in
- *                  useCallSocket will fatal-out at 25s)
- *
- * Each phase gets its own icon + headline + supporting line. A
- * pulsing forest circle anchors the layout. Total: one clear screen
- * telling the user what's happening instead of a blank loader.
- */
 export function CallConnecting() {
   const { t } = useTranslation();
   const theme = useTheme();
