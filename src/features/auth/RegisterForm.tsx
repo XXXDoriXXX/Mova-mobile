@@ -13,6 +13,8 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { persistLanguage, register as registerRequest } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
 
+import { GoogleSignInButton } from "./GoogleSignInButton";
+
 import { registerSchema, type RegisterValues } from "./schemas";
 import { useAuthErrorMapper } from "./useAuthErrorMessage";
 
@@ -159,6 +161,23 @@ export function RegisterForm() {
         onPress={handleSubmit(onSubmit)}
         loading={submitting}
       />
+
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 12,
+          marginTop: 4,
+        }}
+      >
+        <View style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }} />
+        <Text variant="caption" color="textMuted">
+          {t("auth.orDivider")}
+        </Text>
+        <View style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }} />
+      </View>
+
+      <GoogleSignInButton onError={(msg) => setBanner(msg)} />
     </View>
   );
 }
