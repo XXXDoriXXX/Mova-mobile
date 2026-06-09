@@ -11,13 +11,13 @@ module.exports = defineConfig([
     files: ['src/**/*.{ts,tsx}', 'app/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
-        'warn',
+        'error',
         {
           patterns: [
             {
               group: ['@/features/*/*'],
               message:
-                "Deep import into a feature. Prefer '@/features/<feature>' once the feature exposes a public index.ts. See docs/adr/0004-application-layer-pattern.md.",
+                "Deep import into a feature. Use '@/features/<feature>' (the feature's index.ts is its public API). See docs/adr/0004-application-layer-pattern.md.",
             },
           ],
         },
