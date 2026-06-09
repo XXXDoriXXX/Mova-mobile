@@ -37,6 +37,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded) {
+      if (__DEV__) console.log("[mova/boot] tree mounted, hiding splash");
       SplashScreen.hideAsync().catch(() => undefined);
     }
   }, [fontsLoaded]);
