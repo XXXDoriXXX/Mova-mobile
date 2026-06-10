@@ -6,6 +6,7 @@ import type { Socket } from "socket.io-client";
 import { useAuthStore } from "@/auth/store";
 import { createSignalSocket, onSignalEvent } from "@/realtime/signal";
 import { registerForPush } from "@/notifications/registration";
+import { addIncomingCallListener } from "@/notifications/incomingCallListener";
 import { registerPushToken } from "@/api/push";
 
 import { useCallSignalStore } from "../callSignalStore";
@@ -76,8 +77,17 @@ export function useCallSignaling(): void {
       }
     });
 
+    const offPush = addIncomingCallListener((call) => {
+      store.setIncoming(call);
+      router.push({
+        pathname: "/call/incoming",
+        params: { conversationId: call.conversationId },
+      });
+    });
+
     return () => {
       off();
+      offPush();
       socket.disconnect();
     };
   }, [status, accessToken]);

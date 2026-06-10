@@ -9,7 +9,7 @@ import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import type { Conversation } from "@/types/api";
 import { formatDuration, formatRelativeFromNow } from "@/utils/format";
-import { formatPhoneForDisplay } from "@/utils/phone";
+import { conversationTitle } from "@/utils/conversation-display";
 
 import { selectRecentCallStatus, type RecentCallTone } from "./application/selectRecentCallStatus";
 
@@ -46,7 +46,9 @@ export function RecentCallsList({ items, onOpen, onRecall, onEmptyCta }: Props) 
           <RecentRow
             item={c}
             onOpen={() => onOpen(c.id)}
-            onRecall={() => onRecall(c.targetPhone)}
+            onRecall={
+              c.targetPhone ? () => onRecall(c.targetPhone as string) : null
+            }
           />
         </Animated.View>
       ))}
@@ -57,13 +59,13 @@ export function RecentCallsList({ items, onOpen, onRecall, onEmptyCta }: Props) 
 type RowProps = {
   item: Conversation;
   onOpen: () => void;
-  onRecall: () => void;
+  onRecall: (() => void) | null;
 };
 
 function RecentRow({ item, onOpen, onRecall }: RowProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const phone = formatPhoneForDisplay(item.targetPhone);
+  const phone = conversationTitle(item);
   const { iconName, tone } = selectRecentCallStatus(item.status);
   const iconColor = toneToColor(tone, theme);
 
@@ -98,23 +100,25 @@ function RecentRow({ item, onOpen, onRecall }: RowProps) {
           </Text>
         </View>
       </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t("history.recall")}
-        onPress={onRecall}
-        hitSlop={8}
-        style={({ pressed }) => ({
-          width: 38,
-          height: 38,
-          borderRadius: 19,
-          backgroundColor: theme.colors.primary,
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: pressed ? 0.8 : 1,
-        })}
-      >
-        <Ionicons name="call" size={16} color={theme.colors.primaryText} />
-      </Pressable>
+      {onRecall ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("history.recall")}
+          onPress={onRecall}
+          hitSlop={8}
+          style={({ pressed }) => ({
+            width: 38,
+            height: 38,
+            borderRadius: 19,
+            backgroundColor: theme.colors.primary,
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: pressed ? 0.8 : 1,
+          })}
+        >
+          <Ionicons name="call" size={16} color={theme.colors.primaryText} />
+        </Pressable>
+      ) : null}
     </Pressable>
   );
 }
