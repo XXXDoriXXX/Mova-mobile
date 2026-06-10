@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,11 +24,13 @@ export default function IncomingCallScreen() {
     (s) => s.clearForConversation,
   );
   const [busy, setBusy] = useState(false);
+  const handledRef = useRef(false);
 
   const callerName = incoming?.caller.name ?? "Невідомий";
 
   const accept = useCallback(async () => {
-    if (!conversationId || busy) return;
+    if (!conversationId || handledRef.current) return;
+    handledRef.current = true;
     setBusy(true);
     try {
       await answerPeerCall(conversationId);
@@ -39,12 +41,14 @@ export default function IncomingCallScreen() {
         params: { conversationId },
       });
     } catch {
+      handledRef.current = false;
       setBusy(false);
     }
-  }, [conversationId, busy, clearForConversation, router]);
+  }, [conversationId, clearForConversation, router]);
 
   const decline = useCallback(async () => {
-    if (!conversationId) return;
+    if (!conversationId || handledRef.current) return;
+    handledRef.current = true;
     setBusy(true);
     try {
       await declinePeerCall(conversationId);
@@ -63,6 +67,7 @@ export default function IncomingCallScreen() {
     if (
       conversationId &&
       incoming === null &&
+      !handledRef.current &&
       params.autoAnswer !== "1"
     ) {
       router.back();
