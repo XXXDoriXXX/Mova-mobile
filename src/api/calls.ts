@@ -1,5 +1,9 @@
 import { apiClient } from "./client";
-import type { CallStartResponse } from "@/types/api";
+import type {
+  CallStartResponse,
+  PeerCallStartResponse,
+  PeerLookupResult,
+} from "@/types/api";
 
 export type StartCallInput = {
   targetPhone: string;
@@ -14,4 +18,45 @@ export async function startCall(
     input,
   );
   return data;
+}
+
+export async function lookupPeerUser(
+  phone: string,
+): Promise<PeerLookupResult | null> {
+  try {
+    const { data } = await apiClient.get<PeerLookupResult>(
+      "/calls/peer/lookup",
+      { params: { phone } },
+    );
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+export type StartPeerCallInput = {
+  calleeUserId: string;
+  templateId?: string;
+};
+
+export async function startPeerCall(
+  input: StartPeerCallInput,
+): Promise<PeerCallStartResponse> {
+  const { data } = await apiClient.post<PeerCallStartResponse>(
+    "/calls/peer/start",
+    input,
+  );
+  return data;
+}
+
+export async function answerPeerCall(conversationId: string): Promise<void> {
+  await apiClient.post(`/calls/peer/${conversationId}/answer`);
+}
+
+export async function declinePeerCall(conversationId: string): Promise<void> {
+  await apiClient.post(`/calls/peer/${conversationId}/decline`);
+}
+
+export async function cancelPeerCall(conversationId: string): Promise<void> {
+  await apiClient.post(`/calls/peer/${conversationId}/cancel`);
 }
