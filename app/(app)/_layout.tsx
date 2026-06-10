@@ -3,7 +3,7 @@ import { Tabs } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { TabBar } from "@/components/TabBar";
-import { CallProgressBanner } from "@/features/calls";
+import { CallProgressBanner, useCallSignaling } from "@/features/calls";
 
 /**
  * Hosts the three primary destinations (home / history / settings) plus
@@ -17,6 +17,7 @@ import { CallProgressBanner } from "@/features/calls";
  */
 export default function AppTabsLayout() {
   const { t } = useTranslation();
+  useCallSignaling();
 
   return (
     <View style={{ flex: 1 }}>
@@ -41,6 +42,14 @@ export default function AppTabsLayout() {
         />
         <Tabs.Screen
           name="call/live"
+          options={{ href: null, tabBarStyle: { display: "none" } }}
+        />
+        <Tabs.Screen
+          name="call/incoming"
+          options={{ href: null, tabBarStyle: { display: "none" } }}
+        />
+        <Tabs.Screen
+          name="call/outgoing"
           options={{ href: null, tabBarStyle: { display: "none" } }}
         />
         <Tabs.Screen name="settings/style-profile" options={{ href: null }} />

@@ -64,6 +64,7 @@ export async function patchMe(
       | "preferredLlmProvider"
       | "preferredLlmModel"
       | "preferredTtsProvider"
+      | "isDeafMute"
     >
   >,
 ): Promise<User> {

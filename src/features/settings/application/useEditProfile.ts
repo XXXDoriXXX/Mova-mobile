@@ -11,6 +11,7 @@ export type EditProfileInput = {
   name: string;
   phone: string | undefined;
   language: Language;
+  isDeafMute: boolean;
 };
 
 export type EditProfileResult =
@@ -28,6 +29,7 @@ export function useEditProfile() {
         name: input.name,
         phoneNumber: input.phone,
         language: input.language,
+        isDeafMute: input.isDeafMute,
       }),
   });
 
