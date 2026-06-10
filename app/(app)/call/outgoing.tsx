@@ -69,6 +69,8 @@ export default function OutgoingCallScreen() {
   useEffect(() => {
     const transport = getCallMediaTransport();
     transport.setOnDisconnected(() => {
+      const current = useCallSignalStore.getState().outgoing?.status;
+      if (current === "declined" || current === "cancelled") return;
       if (conversationId) clearForConversation(conversationId);
       router.back();
     });
