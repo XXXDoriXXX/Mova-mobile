@@ -12,12 +12,14 @@ import { Screen } from "@/components/Screen";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
-import { getMe } from "@/api/auth";
+import { getMe, patchMe } from "@/api/auth";
 import { listStyles, setPreferredStyle } from "@/api/styles";
 import { useAuthStore } from "@/auth/store";
 import { useOnboardingStore } from "@/onboarding/store";
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
+const CAPABILITY_STEP = 3;
+const STYLE_STEP = 4;
 
 /**
  * Welcome wizard for new users. Three feature slides followed by a
@@ -34,15 +36,17 @@ export default function OnboardingScreen() {
   const queryClient = useQueryClient();
   const [step, setStep] = useState(0);
   const [styleId, setStyleId] = useState<string | null>(null);
+  const [isDeafMute, setIsDeafMute] = useState(true);
 
   const stylesQuery = useQuery({
     queryKey: ["styles"],
     queryFn: listStyles,
-    enabled: step === 3,
+    enabled: step === STYLE_STEP,
   });
 
   const finishMut = useMutation({
     mutationFn: async () => {
+      await patchMe({ isDeafMute });
       if (styleId) await setPreferredStyle(styleId);
       const me = await getMe();
       setUser(me);
@@ -141,6 +145,36 @@ export default function OnboardingScreen() {
               {slides[step]!.body}
             </Text>
           </Animated.View>
+        ) : step === CAPABILITY_STEP ? (
+          <Animated.View
+            key="capability"
+            entering={FadeIn.duration(220)}
+            exiting={FadeOut.duration(120)}
+            style={{ gap: theme.spacing.lg, alignItems: "stretch" }}
+          >
+            <Text variant="title" align="center">
+              Як ви спілкуєтесь?
+            </Text>
+            <Text variant="body" color="textMuted" align="center" style={{ maxWidth: 320, alignSelf: "center" }}>
+              Це визначає, хто може телефонувати вам, а кому телефонуєте ви. Можна змінити пізніше в налаштуваннях.
+            </Text>
+            <View style={{ gap: theme.spacing.sm }}>
+              <CapabilityOption
+                icon="hand-left-outline"
+                title="Я глухонімий(а)"
+                body="Спілкуюсь текстом, асистент озвучує. Інші можуть телефонувати мені."
+                selected={isDeafMute}
+                onPress={() => setIsDeafMute(true)}
+              />
+              <CapabilityOption
+                icon="ear-outline"
+                title="Я чую і розмовляю"
+                body="Розмовляю голосом. Я можу телефонувати тим, хто користується асистентом."
+                selected={!isDeafMute}
+                onPress={() => setIsDeafMute(false)}
+              />
+            </View>
+          </Animated.View>
         ) : (
           <Animated.View
             key="picker"
@@ -192,5 +226,59 @@ export default function OnboardingScreen() {
         </View>
       </View>
     </Screen>
+  );
+}
+
+function CapabilityOption({
+  icon,
+  title,
+  body,
+  selected,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  body: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const theme = useTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{
+        flexDirection: "row",
+        gap: theme.spacing.md,
+        alignItems: "center",
+        padding: theme.spacing.lg,
+        borderRadius: 20,
+        borderWidth: 2,
+        borderColor: selected ? theme.colors.primary : theme.colors.border,
+        backgroundColor: selected
+          ? theme.colors.surfaceMuted
+          : theme.colors.surface,
+      }}
+    >
+      <View
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 22,
+          backgroundColor: selected
+            ? theme.colors.accent
+            : theme.colors.surfaceMuted,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Ionicons name={icon} size={22} color={theme.colors.accentText} />
+      </View>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text variant="button">{title}</Text>
+        <Text variant="caption" color="textMuted">
+          {body}
+        </Text>
+      </View>
+    </Pressable>
   );
 }
