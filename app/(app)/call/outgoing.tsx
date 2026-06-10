@@ -11,6 +11,8 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { cancelPeerCall } from "@/api/calls";
 import { useCallSignalStore, getCallMediaTransport } from "@/features/calls";
 
+const RING_TIMEOUT_MS = 60_000;
+
 export default function OutgoingCallScreen() {
   const theme = useTheme();
   const router = useRouter();
@@ -55,6 +57,25 @@ export default function OutgoingCallScreen() {
       return () => clearTimeout(id);
     }
   }, [status, conversationId, clearForConversation, router]);
+
+  useEffect(() => {
+    if (status !== "ringing") return;
+    const id = setTimeout(() => {
+      void hangUp();
+    }, RING_TIMEOUT_MS);
+    return () => clearTimeout(id);
+  }, [status, hangUp]);
+
+  useEffect(() => {
+    const transport = getCallMediaTransport();
+    transport.setOnDisconnected(() => {
+      const current = useCallSignalStore.getState().outgoing?.status;
+      if (current === "declined" || current === "cancelled") return;
+      if (conversationId) clearForConversation(conversationId);
+      router.back();
+    });
+    return () => transport.setOnDisconnected(null);
+  }, [conversationId, clearForConversation, router]);
 
   const statusLabel =
     status === "accepted"

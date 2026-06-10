@@ -35,7 +35,7 @@ import {
 } from "@/api/conversations";
 import { TranscriptView, transcriptToText } from "@/features/conversations";
 import { formatDuration, formatRelativeFromNow } from "@/utils/format";
-import { formatPhoneForDisplay } from "@/utils/phone";
+import { conversationTitle } from "@/utils/conversation-display";
 
 const REASON_KEYS: Record<string, string> = {
   user: "conversation.endReasonUser",
@@ -107,11 +107,11 @@ export default function ConversationDetailScreen() {
   const c = convQuery.data;
   const reasonKey = c.endReason ? REASON_KEYS[c.endReason] : null;
   const messages = messagesQuery.data?.pages.flatMap((p) => p.items) ?? [];
-  const phone = formatPhoneForDisplay(c.targetPhone);
+  const phone = conversationTitle(c);
 
   const transcriptText = () =>
     transcriptToText({
-      phone: c.targetPhone,
+      phone,
       startedAt: c.startedAt,
       durationSeconds: c.durationSeconds,
       messages,
@@ -154,18 +154,20 @@ export default function ConversationDetailScreen() {
           <IconButton onPress={() => router.back()} accessibilityLabel={t("common.back")}>
             <Ionicons name="chevron-back" size={20} color={theme.colors.text} />
           </IconButton>
-          <IconButton
-            onPress={() =>
-              router.push({
-                pathname: "/call/pre",
-                params: { prefillPhone: c.targetPhone },
-              })
-            }
-            tone="ink"
-            accessibilityLabel={t("history.recall")}
-          >
-            <Ionicons name="call" size={18} color={theme.colors.primaryText} />
-          </IconButton>
+          {c.targetPhone ? (
+            <IconButton
+              onPress={() =>
+                router.push({
+                  pathname: "/call/pre",
+                  params: { prefillPhone: c.targetPhone as string },
+                })
+              }
+              tone="ink"
+              accessibilityLabel={t("history.recall")}
+            >
+              <Ionicons name="call" size={18} color={theme.colors.primaryText} />
+            </IconButton>
+          ) : null}
         </View>
 
         <View style={{ gap: 4 }}>
