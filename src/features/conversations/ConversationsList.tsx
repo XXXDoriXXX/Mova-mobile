@@ -15,7 +15,7 @@ import { listConversations } from "@/api/conversations";
 import type { Conversation } from "@/types/api";
 import { formatDuration, formatRelativeFromNow } from "@/utils/format";
 import { triggerHaptic } from "@/utils/haptics";
-import { formatPhoneForDisplay } from "@/utils/phone";
+import { conversationTitle } from "@/utils/conversation-display";
 import {
   selectConversationStatusMeta,
   type ConversationStatusTone,
@@ -47,7 +47,7 @@ export function ConversationsList({ onOpen, status }: Props) {
 
   const renderItem = useCallback(
     ({ item, index }: { item: Conversation; index: number }) => {
-      const phone = formatPhoneForDisplay(item.targetPhone);
+      const phone = conversationTitle(item);
       const { iconName, tone } = selectConversationStatusMeta(item.status);
       const iconColor = toneColor(tone, theme);
       return (

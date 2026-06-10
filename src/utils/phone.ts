@@ -16,8 +16,8 @@ export function isDialable(value: string): boolean {
   return isE164(trimmed) || isShortCode(trimmed);
 }
 
-export function formatPhoneForDisplay(value: string): string {
-  const trimmed = value.trim();
+export function formatPhoneForDisplay(value: string | null | undefined): string {
+  const trimmed = (value ?? "").trim();
   if (!isE164(trimmed)) return trimmed;
   // Light-touch grouping for UA-style numbers; pure cosmetic.
   if (trimmed.startsWith("+380") && trimmed.length === 13) {

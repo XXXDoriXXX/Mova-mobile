@@ -85,11 +85,16 @@ export type BillingSummary = {
 
 export type ConversationStatus = "pending" | "active" | "ended" | "failed";
 
+export type ConversationType = "sip_outbound" | "peer_inbound";
+
 export type Conversation = {
   id: string;
   userId: string;
   templateId: string | null;
-  targetPhone: string;
+  callType: ConversationType;
+  callerUserId: string | null;
+  caller: { id: string; name: string } | null;
+  targetPhone: string | null;
   livekitRoom: string;
   status: ConversationStatus;
   startedAt: string;
@@ -102,6 +107,7 @@ export type Conversation = {
     | "balance"
     | "fatal_error"
     | "timeout"
+    | "declined"
     | "admin"
     | null;
   errorCode: string | null;
