@@ -24,6 +24,7 @@ export function EditProfileModal({ visible, onClose }: Props) {
   const [name, setName] = useState(user?.name ?? "");
   const [phone, setPhone] = useState(user?.phoneNumber ?? "");
   const [language, setLanguage] = useState<Language>(user?.language ?? "uk");
+  const [isDeafMute, setIsDeafMute] = useState(user?.isDeafMute ?? true);
   const [error, setError] = useState<string | null>(null);
 
   const { submitting, execute } = useEditProfile();
@@ -33,6 +34,7 @@ export function EditProfileModal({ visible, onClose }: Props) {
     setName(user.name);
     setPhone(user.phoneNumber ?? "");
     setLanguage(user.language);
+    setIsDeafMute(user.isDeafMute);
     setError(null);
   }, [visible, user]);
 
@@ -51,6 +53,7 @@ export function EditProfileModal({ visible, onClose }: Props) {
       name: validation.name,
       phone: validation.phone,
       language,
+      isDeafMute,
     });
     if (result.ok) {
       onClose();
@@ -88,6 +91,21 @@ export function EditProfileModal({ visible, onClose }: Props) {
               label={t("auth.languageEn")}
               selected={language === "en"}
               onPress={() => setLanguage("en")}
+            />
+          </View>
+        </View>
+        <View style={{ gap: theme.spacing.xs }}>
+          <Text variant="label">Спосіб спілкування</Text>
+          <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
+            <Chip
+              label="Глухонімий(а)"
+              selected={isDeafMute}
+              onPress={() => setIsDeafMute(true)}
+            />
+            <Chip
+              label="Чую і розмовляю"
+              selected={!isDeafMute}
+              onPress={() => setIsDeafMute(false)}
             />
           </View>
         </View>

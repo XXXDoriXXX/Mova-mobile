@@ -19,6 +19,7 @@ export type User = {
   preferredLlmModel: string | null;
   preferredTtsProvider: string | null;
   preferredStyleId: string | null;
+  isDeafMute: boolean;
   createdAt: string;
 };
 
@@ -212,6 +213,29 @@ export type CallStartResponse = {
   roomName: string;
   participantId: string;
   maxCallDurationSeconds: number;
+};
+
+export type PeerCallStartResponse = {
+  conversationId: string;
+  roomName: string;
+  livekitUrl: string;
+  livekitToken: string;
+};
+
+export type PushPlatform = "ios" | "android";
+export type PushTokenKind = "data" | "voip";
+
+export type IncomingCall = {
+  conversationId: string;
+  roomName: string;
+  caller: { id: string; name: string };
+};
+
+export type PeerLookupResult = {
+  id: string;
+  name: string;
+  isDeafMute: boolean;
+  online: boolean;
 };
 
 export type TopupResponse = {

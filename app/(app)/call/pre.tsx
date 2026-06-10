@@ -13,13 +13,18 @@ import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
 import { useTheme } from "@/theme/ThemeProvider";
-import { startCall } from "@/api/calls";
+import { lookupPeerUser, startCall } from "@/api/calls";
 import { listTemplates } from "@/api/templates";
 import { listStyles } from "@/api/styles";
 import { getBillingSummary } from "@/api/billing";
 import { extractErrorPayload } from "@/api/client";
 import { useAuthStore } from "@/auth/store";
-import { ContactsPicker, StylePicker, TemplatePicker } from "@/features/calls";
+import {
+  ContactsPicker,
+  StylePicker,
+  TemplatePicker,
+  useStartPeerCall,
+} from "@/features/calls";
 import { isDialable } from "@/utils/phone";
 
 /**
@@ -35,6 +40,7 @@ export default function PreCallScreen() {
   const params = useLocalSearchParams<{ prefillPhone?: string }>();
 
   const preferredStyleId = useAuthStore((s) => s.user?.preferredStyleId ?? null);
+  const meIsDeafMute = useAuthStore((s) => s.user?.isDeafMute ?? true);
   const [phone, setPhone] = useState(params.prefillPhone || "+380");
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [styleId, setStyleId] = useState<string | null>(preferredStyleId);
@@ -57,6 +63,15 @@ export default function PreCallScreen() {
   });
 
   const phoneOk = isDialable(phone);
+
+  const peerCall = useStartPeerCall();
+  const lookupQuery = useQuery({
+    queryKey: ["peer-lookup", phone.trim()],
+    queryFn: () => lookupPeerUser(phone.trim()),
+    enabled: phoneOk && !meIsDeafMute,
+  });
+  const peerTarget =
+    lookupQuery.data && lookupQuery.data.isDeafMute ? lookupQuery.data : null;
 
   const secondsRemaining = (() => {
     const b = billingQuery.data;
@@ -200,7 +215,34 @@ export default function PreCallScreen() {
         />
       )}
 
-      <View style={{ marginTop: theme.spacing.lg }}>
+      {peerTarget ? (
+        <Banner
+          tone="info"
+          message={`${peerTarget.name} користується застосунком — можна подзвонити онлайн через нашу мережу.`}
+        />
+      ) : null}
+      {peerCall.error ? (
+        <Banner tone="danger" message={t("preCall.errorGeneric")} />
+      ) : null}
+
+      <View style={{ marginTop: theme.spacing.lg, gap: theme.spacing.sm }}>
+        {peerTarget ? (
+          <Button
+            label={`Подзвонити онлайн (${peerTarget.name})`}
+            variant="primary"
+            leading={
+              <Ionicons name="wifi" size={16} color={theme.colors.textInverse} />
+            }
+            loading={peerCall.submitting}
+            onPress={() =>
+              peerCall.call({
+                calleeUserId: peerTarget.id,
+                calleeName: peerTarget.name,
+                templateId: templateId ?? undefined,
+              })
+            }
+          />
+        ) : null}
         <Button
           label={t("preCall.startCta")}
           variant="accent"
