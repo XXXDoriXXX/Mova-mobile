@@ -222,7 +222,7 @@ export default function PreCallScreen() {
         />
       ) : null}
       {peerCall.error ? (
-        <Banner tone="danger" message={t("preCall.errorGeneric")} />
+        <Banner tone="danger" message={peerCallErrorMessage(peerCall.error)} />
       ) : null}
 
       <View style={{ marginTop: theme.spacing.lg, gap: theme.spacing.sm }}>
@@ -254,4 +254,21 @@ export default function PreCallScreen() {
       </View>
     </KeyboardScreen>
   );
+}
+
+function peerCallErrorMessage(code: string): string {
+  switch (code) {
+    case "MEDIA_UNAVAILABLE":
+      return "Голосові дзвінки доступні лише у повній версії застосунку.";
+    case "CALLEE_OFFLINE":
+      return "Користувач зараз не в мережі.";
+    case "CALLEE_BUSY":
+      return "Користувач зараз на іншому дзвінку.";
+    case "CALLEE_UNAVAILABLE":
+      return "Користувач не може приймати дзвінки.";
+    case "CALL_IN_PROGRESS":
+      return "Ви вже на дзвінку.";
+    default:
+      return "Не вдалося розпочати дзвінок. Спробуйте ще раз.";
+  }
 }

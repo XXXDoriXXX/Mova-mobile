@@ -6,7 +6,7 @@ import { deleteConversation } from "@/api/conversations";
 import { actionSheet, confirm } from "@/feedback/dialogStore";
 import { toast } from "@/feedback/toast";
 import type { Conversation } from "@/types/api";
-import { formatPhoneForDisplay } from "@/utils/phone";
+import { conversationTitle } from "@/utils/conversation-display";
 
 type Args = {
   onOpen: (id: string) => void;
@@ -27,6 +27,7 @@ export function useConversationActions({ onOpen }: Args) {
   });
 
   function quickRecall(c: Conversation) {
+    if (!c.targetPhone) return;
     router.push({
       pathname: "/call/pre",
       params: { prefillPhone: c.targetPhone },
@@ -35,9 +36,17 @@ export function useConversationActions({ onOpen }: Args) {
 
   async function openMenu(c: Conversation) {
     const chosen = await actionSheet({
-      title: formatPhoneForDisplay(c.targetPhone),
+      title: conversationTitle(c),
       actions: [
-        { id: "recall", label: t("history.recall"), icon: "call-outline" },
+        ...(c.targetPhone
+          ? [
+              {
+                id: "recall",
+                label: t("history.recall"),
+                icon: "call-outline" as const,
+              },
+            ]
+          : []),
         { id: "open", label: t("history.open"), icon: "chatbubbles-outline" },
         {
           id: "delete",

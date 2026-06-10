@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { router } from "expo-router";
 
-import { startPeerCall } from "@/api/calls";
+import { cancelPeerCall, startPeerCall } from "@/api/calls";
 import { extractErrorPayload } from "@/api/client";
 
 import { useCallSignalStore } from "../../incoming/callSignalStore";
@@ -18,20 +18,22 @@ export function useStartPeerCall() {
   const [error, setError] = useState<string | null>(null);
 
   async function call(target: StartPeerCallTarget): Promise<void> {
+    const transport = getCallMediaTransport();
+    if (!transport.isAvailable()) {
+      setError("MEDIA_UNAVAILABLE");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
+    let conversationId: string | null = null;
     try {
       const res = await startPeerCall({
         calleeUserId: target.calleeUserId,
         templateId: target.templateId,
       });
-      const transport = getCallMediaTransport();
-      if (transport.isAvailable()) {
-        await transport.connect({
-          url: res.livekitUrl,
-          token: res.livekitToken,
-        });
-      }
+      conversationId = res.conversationId;
+      await transport.connect({ url: res.livekitUrl, token: res.livekitToken });
       useCallSignalStore.getState().setOutgoing({
         conversationId: res.conversationId,
         calleeName: target.calleeName,
@@ -42,6 +44,10 @@ export function useStartPeerCall() {
         params: { conversationId: res.conversationId },
       });
     } catch (err) {
+      if (conversationId) {
+        await cancelPeerCall(conversationId).catch(() => undefined);
+        await transport.disconnect().catch(() => undefined);
+      }
       const payload = extractErrorPayload(err);
       const code = (payload as { code?: string } | undefined)?.code;
       setError(code ?? "CALL_FAILED");
