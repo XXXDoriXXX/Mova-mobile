@@ -8,6 +8,7 @@ import { createSignalSocket, onSignalEvent } from "@/realtime/signal";
 import { registerForPush } from "@/notifications/registration";
 import { addIncomingCallListener } from "@/notifications/incomingCallListener";
 import { registerPushToken } from "@/api/push";
+import { callLog, callWarn } from "@/observability/callLog";
 
 import { useCallSignalStore } from "../callSignalStore";
 import {
@@ -19,15 +20,19 @@ import {
 async function syncPushToken(): Promise<void> {
   try {
     const result = await registerForPush();
+    callLog("signal.push.register", { status: result.status });
     if (result.status === "granted") {
       await registerPushToken({
         token: result.token,
         platform: Platform.OS === "android" ? "android" : "ios",
         kind: "data",
       });
+      callLog("signal.push.tokenSynced");
     }
-  } catch {
-    // best-effort
+  } catch (err) {
+    callWarn("signal.push.syncFailed", {
+      message: err instanceof Error ? err.message : String(err),
+    });
   }
 }
 
@@ -53,8 +58,18 @@ export function useCallSignaling(): void {
 
     const socket: Socket = createSignalSocket({ token: accessToken });
     const store = useCallSignalStore.getState();
+    callLog("signal.connecting");
+    socket.on("connect", () => callLog("signal.connected"));
+    socket.on("disconnect", (reason) => callWarn("signal.disconnect", { reason }));
+    socket.on("connect_error", (err: Error) =>
+      callWarn("signal.connectError", { message: err.message }),
+    );
 
     const off = onSignalEvent(socket, (event) => {
+      callLog("signal.event", {
+        type: event.type,
+        conversationId: event.data.conversationId,
+      });
       switch (event.type) {
         case "call.incoming":
           store.setIncoming(event.data);
@@ -78,6 +93,7 @@ export function useCallSignaling(): void {
     });
 
     const offPush = addIncomingCallListener((call) => {
+      callLog("signal.push.tapped", { conversationId: call.conversationId });
       store.setIncoming(call);
       router.push({
         pathname: "/call/incoming",

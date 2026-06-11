@@ -4,6 +4,7 @@ import { triggerHaptic } from "@/utils/haptics";
 import { createCallSocket, onServerEvent, type CallSocket } from "@/realtime/socket";
 import type { ClientCommand, ServerEvent } from "@/realtime/protocol";
 import { CallErrorCode } from "@/realtime/error-codes";
+import { callLog, callWarn } from "@/observability/callLog";
 
 import { useCallStore } from "../callStore";
 import {
@@ -30,6 +31,7 @@ export function useCallSocket(opts: {
     const store = useCallStore.getState();
     store.reset();
     store.setStatus("connecting");
+    callLog("call.ws.connecting", { conversationId: opts.conversationId });
 
     const socket = createCallSocket({
       token: opts.accessToken,
@@ -37,11 +39,23 @@ export function useCallSocket(opts: {
       lastStreamId: useCallStore.getState().lastStreamId ?? undefined,
     });
     socketRef.current = socket;
-    sendRef.current = (cmd: ClientCommand) => socket.sendCommand(cmd);
+    sendRef.current = (cmd: ClientCommand) => {
+      if (cmd.type !== "ping") {
+        callLog("call.ws.command", {
+          conversationId: opts.conversationId,
+          command: cmd.type,
+        });
+      }
+      socket.sendCommand(cmd);
+    };
 
     socket.on("connect", () => {
       const s = useCallStore.getState();
       s.setWsConnected(true);
+      callLog("call.ws.connected", {
+        conversationId: opts.conversationId,
+        wasReconnecting: s.status === "reconnecting",
+      });
       if (s.status === "reconnecting") s.setStatus("active");
     });
 
@@ -49,6 +63,10 @@ export function useCallSocket(opts: {
       const s = useCallStore.getState();
       s.setWsConnected(false);
       if (s.status !== "ended") s.setStatus("reconnecting");
+      callWarn("call.ws.reconnectAttempt", {
+        conversationId: opts.conversationId,
+        lastStreamId: s.lastStreamId ?? null,
+      });
       // Replay since lastStreamId; default empty cursor would drop the gap.
       socket.auth = {
         token: opts.accessToken,
@@ -57,15 +75,28 @@ export function useCallSocket(opts: {
       };
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", (reason) => {
       const s = useCallStore.getState();
       s.setWsConnected(false);
       if (s.status !== "ended") s.setStatus("reconnecting");
+      callWarn("call.ws.disconnect", {
+        conversationId: opts.conversationId,
+        reason,
+        ended: s.status === "ended",
+      });
+    });
+
+    socket.on("connect_error", (err: Error) => {
+      callWarn("call.ws.connectError", {
+        conversationId: opts.conversationId,
+        message: err.message,
+      });
     });
 
     const unsubscribe = onServerEvent(socket, (event) => {
       const s = useCallStore.getState();
       s.setLastStreamId(event.id);
+      callLog("call.ws.event", { conversationId: opts.conversationId, type: event.type });
       routeEvent(event);
     });
 
@@ -76,6 +107,10 @@ export function useCallSocket(opts: {
     const handshakeWatchdog = setTimeout(() => {
       const s = useCallStore.getState();
       if (s.status === "connecting" && !s.fatalError && !s.endInfo) {
+        callWarn("call.ws.handshakeTimeout", {
+          conversationId: opts.conversationId,
+          afterMs: HANDSHAKE_TIMEOUT_MS,
+        });
         s.setFatalError({
           code: CallErrorCode.AGENT_LOST,
           message: "CONNECT_TIMEOUT",
@@ -88,6 +123,10 @@ export function useCallSocket(opts: {
     const answerWatchdog = setTimeout(() => {
       const s = useCallStore.getState();
       if (s.status === "ringing" && !s.fatalError && !s.endInfo) {
+        callWarn("call.ws.answerTimeout", {
+          conversationId: opts.conversationId,
+          afterMs: ANSWER_TIMEOUT_MS,
+        });
         sendRef.current?.({ type: "user.end_call" });
         s.setFatalError({
           code: CallErrorCode.AGENT_LOST,
@@ -99,6 +138,7 @@ export function useCallSocket(opts: {
     }, ANSWER_TIMEOUT_MS);
 
     return () => {
+      callLog("call.ws.teardown", { conversationId: opts.conversationId });
       clearTimeout(handshakeWatchdog);
       clearTimeout(answerWatchdog);
       clearInterval(pingTimer);

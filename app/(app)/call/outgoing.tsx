@@ -10,6 +10,7 @@ import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import { cancelPeerCall } from "@/api/calls";
 import { useCallSignalStore, getCallMediaTransport } from "@/features/calls";
+import { callLog, callError } from "@/observability/callLog";
 
 const RING_TIMEOUT_MS = 60_000;
 
@@ -30,16 +31,17 @@ export default function OutgoingCallScreen() {
       router.back();
       return;
     }
+    callLog("call.outgoing.hangUp", { conversationId, status });
     try {
       await cancelPeerCall(conversationId);
-    } catch {
-      // ignore — teardown is best-effort
+    } catch (err) {
+      callError("call.outgoing.hangUpFailed", err, { conversationId });
     } finally {
       await getCallMediaTransport().disconnect();
       clearForConversation(conversationId);
       router.back();
     }
-  }, [conversationId, clearForConversation, router]);
+  }, [conversationId, status, clearForConversation, router]);
 
   const toggleMute = useCallback(async () => {
     const next = !muted;
@@ -49,12 +51,16 @@ export default function OutgoingCallScreen() {
 
   useEffect(() => {
     if (status === "declined" || status === "cancelled") {
+      callLog("call.outgoing.ended", { conversationId, status });
       const id = setTimeout(() => {
         void getCallMediaTransport().disconnect();
         if (conversationId) clearForConversation(conversationId);
         router.back();
       }, 1500);
       return () => clearTimeout(id);
+    }
+    if (status === "accepted") {
+      callLog("call.outgoing.accepted", { conversationId });
     }
   }, [status, conversationId, clearForConversation, router]);
 
@@ -69,6 +75,7 @@ export default function OutgoingCallScreen() {
   useEffect(() => {
     const transport = getCallMediaTransport();
     transport.setOnDisconnected(() => {
+      callLog("call.outgoing.roomDropped", { conversationId });
       const current = useCallSignalStore.getState().outgoing?.status;
       if (current === "declined" || current === "cancelled") return;
       if (conversationId) clearForConversation(conversationId);
