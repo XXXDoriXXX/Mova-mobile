@@ -2,6 +2,7 @@ import React, { Component, type ReactNode } from "react";
 import { View } from "react-native";
 
 import { captureException } from "@/observability/sentry";
+import { reportError } from "@/observability/telemetry";
 
 import { Banner } from "./Banner";
 import { Button } from "./Button";
@@ -51,6 +52,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: React.ErrorInfo): void {
     captureException(error, { componentStack: info.componentStack });
+    reportError(error, {
+      fatal: true,
+      context: { source: "errorBoundary", componentStack: info.componentStack },
+    });
   }
 
   private handleReload = (): void => {
