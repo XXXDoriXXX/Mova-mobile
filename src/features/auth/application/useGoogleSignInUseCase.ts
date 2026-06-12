@@ -1,21 +1,14 @@
 import { useEffect, useState } from "react";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
-import Constants from "expo-constants";
 
 import { signInWithGoogle } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
 import { triggerHaptic } from "@/utils/haptics";
 
+import { googleClientIds } from "./googleAuthConfig";
+
 WebBrowser.maybeCompleteAuthSession();
-
-type Extra = {
-  googleOAuthWebClientId?: string;
-  googleOAuthAndroidClientId?: string;
-  googleOAuthIosClientId?: string;
-};
-
-const extra = (Constants.expoConfig?.extra ?? {}) as Extra;
 
 export type GoogleSignInState = {
   ready: boolean;
@@ -29,9 +22,9 @@ export function useGoogleSignInUseCase() {
   const [error, setError] = useState<string | null>(null);
 
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: extra.googleOAuthWebClientId,
-    androidClientId: extra.googleOAuthAndroidClientId,
-    iosClientId: extra.googleOAuthIosClientId,
+    clientId: googleClientIds.web,
+    androidClientId: googleClientIds.android,
+    iosClientId: googleClientIds.ios,
   });
 
   useEffect(() => {
