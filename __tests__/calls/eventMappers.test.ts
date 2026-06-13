@@ -136,14 +136,21 @@ describe("shouldAutoPromoteToActive", () => {
     expect(shouldAutoPromoteToActive("reconnecting", "transcript.partial")).toBe(false);
   });
 
-  it("promotes on a transcript while connecting", () => {
+  it("promotes on a real interlocutor transcript (the only proof they answered)", () => {
     expect(shouldAutoPromoteToActive("connecting", "transcript.final")).toBe(true);
+    expect(shouldAutoPromoteToActive("ringing", "transcript.partial")).toBe(true);
   });
 
-  it("promotes on suggestions / usage / candidate while ringing", () => {
-    expect(shouldAutoPromoteToActive("ringing", "suggestions.new")).toBe(true);
-    expect(shouldAutoPromoteToActive("ringing", "usage.tick")).toBe(true);
-    expect(shouldAutoPromoteToActive("ringing", "ai.text.candidate")).toBe(true);
+  it("does NOT promote on the agent's own activity while ringing (the bug)", () => {
+    // The greeting, suggestions, ticks and config echoes all fire while the SIP
+    // leg is still ringing — none of them mean the other side picked up, so the
+    // UI must stay on the ringing screen.
+    expect(shouldAutoPromoteToActive("ringing", "ai.text.final")).toBe(false);
+    expect(shouldAutoPromoteToActive("ringing", "ai.thinking")).toBe(false);
+    expect(shouldAutoPromoteToActive("ringing", "ai.text.candidate")).toBe(false);
+    expect(shouldAutoPromoteToActive("ringing", "suggestions.new")).toBe(false);
+    expect(shouldAutoPromoteToActive("ringing", "usage.tick")).toBe(false);
+    expect(shouldAutoPromoteToActive("ringing", "call.config.changed")).toBe(false);
   });
 
   it("never promotes on a liveness-irrelevant event", () => {

@@ -178,6 +178,7 @@ export const ServerEvent = {
       reason: z.enum([
         "user",
         "interlocutor",
+        "no_answer",
         "balance",
         "fatal_error",
         "timeout",
@@ -185,6 +186,13 @@ export const ServerEvent = {
       ]),
       durationSeconds: z.number().int().nonnegative(),
       endedBy: z.enum(["user", "system", "interlocutor", "admin"]),
+      /** Specific cause (mirrors CallErrorCode) — present for failures and for
+       *  no_answer (CALL_DECLINED / CALL_UNANSWERED / CALLEE_UNAVAILABLE /
+       *  LIVEKIT_DISCONNECTED). Lets the end screen show a precise message. */
+      errorCode: z.string().optional(),
+      /** True only if the call was actually answered. Words the end screen and
+       *  gates the redial CTA. */
+      wasAnswered: z.boolean().optional(),
     }),
   }),
 
