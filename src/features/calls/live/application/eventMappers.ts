@@ -61,11 +61,19 @@ export function resolveCallError(input: CallErrorInput): CallError {
   };
 }
 
-const NON_LIVENESS_EVENTS = new Set<string>([
-  "call.connected",
-  "call.answered",
-  "call.ended",
-  "pong",
+/**
+ * Events that prove the INTERLOCUTOR is actually on the line — only these may
+ * flip a ringing call to "active". The agent's own greeting (`ai.text.*`),
+ * provider/config echoes (`call.config.changed`), and billing ticks
+ * (`usage.tick`) all fire while the SIP leg is merely RINGING, so promoting on
+ * them showed the in-call screen before anyone picked up. `call.answered` is
+ * the authoritative answer signal (handled explicitly in routeEvent); a
+ * transcript is the safety net for the race where the interlocutor speaks a
+ * fraction before that event lands.
+ */
+const INTERLOCUTOR_PRESENT_EVENTS = new Set<string>([
+  "transcript.partial",
+  "transcript.final",
 ]);
 
 export function shouldAutoPromoteToActive(
@@ -73,5 +81,5 @@ export function shouldAutoPromoteToActive(
   eventType: string,
 ): boolean {
   if (currentStatus !== "connecting" && currentStatus !== "ringing") return false;
-  return !NON_LIVENESS_EVENTS.has(eventType);
+  return INTERLOCUTOR_PRESENT_EVENTS.has(eventType);
 }

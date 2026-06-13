@@ -50,9 +50,21 @@ export type CallError = {
 };
 
 export type CallEnd = {
-  reason: "user" | "interlocutor" | "balance" | "fatal_error" | "timeout" | "admin";
+  reason:
+    | "user"
+    | "interlocutor"
+    | "no_answer"
+    | "balance"
+    | "fatal_error"
+    | "timeout"
+    | "admin";
   durationSeconds: number;
   endedBy: "user" | "system" | "interlocutor" | "admin";
+  /** Specific cause (CallErrorCode string) when present — drives the precise
+   *  end-screen message. */
+  errorCode?: string;
+  /** Whether the call was ever answered — words the screen + gates redial. */
+  wasAnswered?: boolean;
 };
 
 export type UsageTick = {
