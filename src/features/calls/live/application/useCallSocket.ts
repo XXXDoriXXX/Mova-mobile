@@ -189,6 +189,8 @@ function routeEvent(event: ServerEvent) {
         reason: event.data.reason,
         durationSeconds: event.data.durationSeconds,
         endedBy: event.data.endedBy,
+        errorCode: event.data.errorCode,
+        wasAnswered: event.data.wasAnswered,
       });
       triggerHaptic("warning");
       break;

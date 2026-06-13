@@ -199,12 +199,12 @@ export default function LiveCallScreen() {
   }
 
   // Keep the ringing-loader on screen until we have a real interlocutor
-  // (status === "active") or we already have transcript bubbles. The
-  // `bubbles.length` escape hatch covers race cases where the very first
-  // transcript outraced the `call.answered` event — the chat should win
-  // since there is real content to render.
-  const showConnectingState =
-    (status === "connecting" || status === "ringing") && bubbles.length === 0;
+  // (status === "active"). We intentionally do NOT peek at bubbles: the agent
+  // speaks a greeting into the still-ringing leg, and showing that bubble used
+  // to reveal the chat before anyone picked up. A genuine interlocutor
+  // transcript promotes status to "active" (see shouldAutoPromoteToActive), so
+  // status alone is the correct, truthful gate.
+  const showConnectingState = status === "connecting" || status === "ringing";
   const reconnecting = status === "reconnecting";
 
   return (

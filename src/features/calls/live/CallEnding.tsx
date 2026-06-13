@@ -21,18 +21,52 @@ type Props = {
 const REASON_KEYS: Record<string, string> = {
   user: "conversation.endReasonUser",
   interlocutor: "conversation.endReasonInterlocutor",
+  no_answer: "conversation.endReasonNoAnswer",
   balance: "conversation.endReasonBalance",
   timeout: "conversation.endReasonTimeout",
   fatal_error: "conversation.endReasonFatal",
   admin: "conversation.endReasonAdmin",
 };
 
+// A precise cause beats the coarse reason when the server sends one. Each maps
+// to a friendly, specific line so the user knows exactly what happened.
+const ERROR_CODE_KEYS: Record<string, string> = {
+  CALL_DECLINED: "conversation.endCallDeclined",
+  CALL_UNANSWERED: "conversation.endCallUnanswered",
+  CALLEE_UNAVAILABLE: "conversation.endCalleeUnavailable",
+  CALLEE_OFFLINE: "conversation.endCalleeOffline",
+  CALLEE_BUSY: "conversation.endCalleeBusy",
+  LIVEKIT_DISCONNECTED: "conversation.endTelephonyError",
+  AGENT_LOST: "conversation.endAgentLost",
+  CALL_TIMEOUT: "conversation.endReasonTimeout",
+  BALANCE_EXHAUSTED: "conversation.endReasonBalance",
+  FATAL_INTERNAL: "conversation.endReasonFatal",
+};
+
 export function CallEnding({ info, onNewCall, onHistory }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
-  const reasonKey = REASON_KEYS[info.reason];
+  // Prefer the specific errorCode line; fall back to the coarse reason.
+  const messageKey =
+    (info.errorCode && ERROR_CODE_KEYS[info.errorCode]) || REASON_KEYS[info.reason];
   const balanceExhausted = info.reason === "balance";
+  // The call never reached a real conversation — show the cause as the headline
+  // and don't present a "00:00" duration that implies a 0-second call happened.
+  const neverAnswered =
+    info.wasAnswered === false || info.reason === "no_answer";
+  // Things worth a one-tap retry: nobody picked up, a transient failure, or a
+  // duration cap. A user-ended or admin-ended call doesn't push redial.
+  const offerRedial =
+    info.reason === "no_answer" ||
+    info.reason === "fatal_error" ||
+    info.reason === "timeout";
+
+  const title = neverAnswered
+    ? t("live.endingTitleNoAnswer")
+    : info.reason === "fatal_error"
+      ? t("live.endingTitleError")
+      : t("live.endingTitle");
 
   const summary = useQuery({
     queryKey: ["billing", "me"],
@@ -53,7 +87,7 @@ export function CallEnding({ info, onNewCall, onHistory }: Props) {
       }}
     >
       <Text variant="title" align="center">
-        {t("live.endingTitle")}
+        {title}
       </Text>
 
       <View
@@ -65,32 +99,43 @@ export function CallEnding({ info, onNewCall, onHistory }: Props) {
           alignItems: "center",
         }}
       >
-        <Text variant="label" color="textOnInverse" style={{ opacity: 0.6 }}>
-          {t("live.endingDurationLabel")}
-        </Text>
-        <Text
-          variant="display"
-          color="textOnInverse"
-          style={{ fontSize: 56, lineHeight: 56 }}
-        >
-          {formatDuration(info.durationSeconds)}
-        </Text>
-        {cost !== null ? (
-          <Pill
-            tone="accent"
-            label={`₴ ${formatCentsAsUah(cost)}`}
-          />
-        ) : null}
-        {reasonKey ? (
+        {neverAnswered ? (
+          // No conversation took place — the cause IS the headline.
           <Text
-            variant="body"
+            variant="title"
             color="textOnInverse"
             align="center"
-            style={{ opacity: 0.7, marginTop: 4 }}
+            style={{ opacity: 0.92 }}
           >
-            {t(reasonKey)}
+            {messageKey ? t(messageKey) : t("conversation.endReasonNoAnswer")}
           </Text>
-        ) : null}
+        ) : (
+          <>
+            <Text variant="label" color="textOnInverse" style={{ opacity: 0.6 }}>
+              {t("live.endingDurationLabel")}
+            </Text>
+            <Text
+              variant="display"
+              color="textOnInverse"
+              style={{ fontSize: 56, lineHeight: 56 }}
+            >
+              {formatDuration(info.durationSeconds)}
+            </Text>
+            {cost !== null ? (
+              <Pill tone="accent" label={`₴ ${formatCentsAsUah(cost)}`} />
+            ) : null}
+            {messageKey ? (
+              <Text
+                variant="body"
+                color="textOnInverse"
+                align="center"
+                style={{ opacity: 0.7, marginTop: 4 }}
+              >
+                {t(messageKey)}
+              </Text>
+            ) : null}
+          </>
+        )}
       </View>
 
       {/* Recovery actions. We deliberately keep only ONE full-width
@@ -107,7 +152,7 @@ export function CallEnding({ info, onNewCall, onHistory }: Props) {
           />
         ) : (
           <Button
-            label={t("live.endingNewCall")}
+            label={offerRedial ? t("live.endingRedial") : t("live.endingNewCall")}
             variant="primary"
             onPress={onNewCall}
           />
