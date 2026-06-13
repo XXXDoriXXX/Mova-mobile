@@ -9,6 +9,7 @@ import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import { answerPeerCall, declinePeerCall } from "@/api/calls";
 import { useCallSignalStore, dismissNativeCall } from "@/features/calls";
+import { callLog, callError } from "@/observability/callLog";
 
 export default function IncomingCallScreen() {
   const theme = useTheme();
@@ -32,6 +33,7 @@ export default function IncomingCallScreen() {
     if (!conversationId || handledRef.current) return;
     handledRef.current = true;
     setBusy(true);
+    callLog("call.incoming.accept", { conversationId });
     try {
       await answerPeerCall(conversationId);
       dismissNativeCall(conversationId);
@@ -40,7 +42,8 @@ export default function IncomingCallScreen() {
         pathname: "/call/live",
         params: { conversationId },
       });
-    } catch {
+    } catch (err) {
+      callError("call.incoming.acceptFailed", err, { conversationId });
       handledRef.current = false;
       setBusy(false);
     }
@@ -50,8 +53,11 @@ export default function IncomingCallScreen() {
     if (!conversationId || handledRef.current) return;
     handledRef.current = true;
     setBusy(true);
+    callLog("call.incoming.decline", { conversationId });
     try {
       await declinePeerCall(conversationId);
+    } catch (err) {
+      callError("call.incoming.declineFailed", err, { conversationId });
     } finally {
       dismissNativeCall(conversationId);
       clearForConversation(conversationId);
