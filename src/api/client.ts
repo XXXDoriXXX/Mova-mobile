@@ -86,9 +86,39 @@ apiClient.interceptors.response.use(
       return apiClient.request(config);
     }
 
+    // Capture genuine failures (server 5xx + network/timeout) for
+    // investigation — never the expected 4xx business errors, and never the
+    // telemetry endpoint itself (that would recurse).
+    const isTelemetry = config?.url?.includes("/telemetry/");
+    if ((!status || status >= 500) && !isTelemetry) {
+      reportApiFailure(error, {
+        method: config?.method,
+        url: config?.url,
+        status,
+        code: error.code,
+      });
+    }
+
     return Promise.reject(error);
   },
 );
+
+/**
+ * Lazily forward a failed request to the telemetry pipeline. Loaded via
+ * require() at call time to break the module cycle
+ * client → observability/telemetry → api/telemetry → client.
+ */
+function reportApiFailure(error: unknown, context: Record<string, unknown>): void {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const mod = require("@/observability/telemetry") as {
+      reportError: (e: unknown, o?: { context?: Record<string, unknown> }) => void;
+    };
+    mod.reportError(error, { context: { source: "api", ...context } });
+  } catch {
+    // telemetry unavailable — ignore
+  }
+}
 
 export type RequestOptions = AxiosRequestConfig & {
   meta?: { idempotencyKey?: string; skipAuth?: boolean };

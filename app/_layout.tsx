@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { View } from "react-native";
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import { I18nextProvider } from "react-i18next";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -21,6 +21,8 @@ import { QueryProvider } from "@/net/QueryProvider";
 import { ThemeProvider } from "@/theme/ThemeProvider";
 import { useAppFonts } from "@/theme/fonts";
 import { initSentry, setUserContext } from "@/observability/sentry";
+import { initTelemetry, setCurrentScreen } from "@/observability/telemetry";
+import { installGlobalErrorHandlers } from "@/observability/errorHandlers";
 import i18n, { initI18n } from "@/i18n";
 
 // Keep the splash visible until the brand fonts have loaded. Without this
@@ -30,10 +32,17 @@ SplashScreen.preventAutoHideAsync().catch(() => undefined);
 export default function RootLayout() {
   const i18n = useMemo(() => initI18n(), []);
   const fontsLoaded = useAppFonts();
+  const pathname = usePathname();
 
   useEffect(() => {
     initSentry();
+    initTelemetry();
+    installGlobalErrorHandlers();
   }, []);
+
+  useEffect(() => {
+    setCurrentScreen(pathname);
+  }, [pathname]);
 
   useEffect(() => {
     if (fontsLoaded) {
