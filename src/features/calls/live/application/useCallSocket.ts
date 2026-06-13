@@ -6,7 +6,7 @@ import type { ClientCommand, ServerEvent } from "@/realtime/protocol";
 import { CallErrorCode } from "@/realtime/error-codes";
 import { callLog, callWarn } from "@/observability/callLog";
 
-import { useCallStore } from "../callStore";
+import { useCallStore, type CallStatus } from "../callStore";
 import {
   computeNextCandidate,
   mapAiTextFinalKind,
@@ -15,6 +15,11 @@ import {
 } from "./eventMappers";
 
 const PING_INTERVAL_MS = 20_000;
+
+// Redis stream entry id (`<ms>-<seq>`). Only events carrying one are valid
+// reconnect cursors; the gateway rejects anything else. Mirror its check so a
+// 20s `pong` (id = socket.id) can't wipe the cursor and kill replay.
+const STREAM_ID_RE = /^\d+-\d+$/;
 
 const HANDSHAKE_TIMEOUT_MS = 25_000;
 const ANSWER_TIMEOUT_MS = 60_000;
@@ -26,6 +31,13 @@ export function useCallSocket(opts: {
 }) {
   const socketRef = useRef<CallSocket | null>(null);
   const sendRef = useRef<((cmd: ClientCommand) => void) | null>(null);
+  // Latest token without re-running the socket effect — a mid-call refresh must
+  // NOT tear down the live WebSocket; reconnects read this for fresh auth.
+  const tokenRef = useRef(opts.accessToken);
+  tokenRef.current = opts.accessToken;
+  // Status to restore after a reconnect. Forcing "active" would show the in-call
+  // UI for a call that was still merely ringing when the socket blipped.
+  const preReconnectStatusRef = useRef<CallStatus>("connecting");
 
   useEffect(() => {
     const store = useCallStore.getState();
@@ -34,7 +46,7 @@ export function useCallSocket(opts: {
     callLog("call.ws.connecting", { conversationId: opts.conversationId });
 
     const socket = createCallSocket({
-      token: opts.accessToken,
+      token: tokenRef.current,
       conversationId: opts.conversationId,
       lastStreamId: useCallStore.getState().lastStreamId ?? undefined,
     });
@@ -56,20 +68,23 @@ export function useCallSocket(opts: {
         conversationId: opts.conversationId,
         wasReconnecting: s.status === "reconnecting",
       });
-      if (s.status === "reconnecting") s.setStatus("active");
+      if (s.status === "reconnecting") s.setStatus(preReconnectStatusRef.current);
     });
 
     socket.io.on("reconnect_attempt", () => {
       const s = useCallStore.getState();
       s.setWsConnected(false);
-      if (s.status !== "ended") s.setStatus("reconnecting");
+      if (s.status !== "ended") {
+        if (s.status !== "reconnecting") preReconnectStatusRef.current = s.status;
+        s.setStatus("reconnecting");
+      }
       callWarn("call.ws.reconnectAttempt", {
         conversationId: opts.conversationId,
         lastStreamId: s.lastStreamId ?? null,
       });
       // Replay since lastStreamId; default empty cursor would drop the gap.
       socket.auth = {
-        token: opts.accessToken,
+        token: tokenRef.current,
         conversationId: opts.conversationId,
         lastStreamId: s.lastStreamId ?? undefined,
       };
@@ -78,7 +93,10 @@ export function useCallSocket(opts: {
     socket.on("disconnect", (reason) => {
       const s = useCallStore.getState();
       s.setWsConnected(false);
-      if (s.status !== "ended") s.setStatus("reconnecting");
+      if (s.status !== "ended") {
+        if (s.status !== "reconnecting") preReconnectStatusRef.current = s.status;
+        s.setStatus("reconnecting");
+      }
       callWarn("call.ws.disconnect", {
         conversationId: opts.conversationId,
         reason,
@@ -95,7 +113,9 @@ export function useCallSocket(opts: {
 
     const unsubscribe = onServerEvent(socket, (event) => {
       const s = useCallStore.getState();
-      s.setLastStreamId(event.id);
+      // Only advance the replay cursor on real stream events; pong/call.connected
+      // carry socket.id (not a stream id) and would wipe replay on next reconnect.
+      if (STREAM_ID_RE.test(event.id)) s.setLastStreamId(event.id);
       callLog("call.ws.event", { conversationId: opts.conversationId, type: event.type });
       routeEvent(event);
     });
@@ -148,7 +168,7 @@ export function useCallSocket(opts: {
       socketRef.current = null;
       sendRef.current = null;
     };
-  }, [opts.conversationId, opts.accessToken]);
+  }, [opts.conversationId]);
 
   useEffect(() => {
     const styleId = opts.initialStyleId;
