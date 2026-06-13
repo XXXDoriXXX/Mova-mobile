@@ -119,6 +119,9 @@ export default function LiveCallScreen() {
   function handleSuggestion(s: { id: string; content: string }) {
     useCallStore.getState().pushUserTyped(s.content);
     useCallStore.getState().removeSuggestion(s.id);
+    // A chosen suggestion must be VOICED via speak() — the agent treats
+    // accept_suggestion as audit-only (marks wasChosen) and never speaks it.
+    controls.speak(s.content);
     controls.acceptSuggestion(s.id);
   }
 
