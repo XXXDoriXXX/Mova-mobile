@@ -27,12 +27,6 @@ import {
 } from "@/features/calls";
 import { isDialable } from "@/utils/phone";
 
-/**
- * Pre-call configuration. Brand header (back + page title), phone input
- * with a contacts shortcut, optional template + style selection, big
- * lime "start" CTA. Validates phone shape locally and surfaces
- * insufficient-balance / low-balance hints before dialling.
- */
 export default function PreCallScreen() {
   const { t } = useTranslation();
   const theme = useTheme();

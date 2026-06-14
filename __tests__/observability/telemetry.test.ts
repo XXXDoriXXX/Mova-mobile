@@ -59,8 +59,6 @@ describe("telemetry", () => {
 
   it("keeps the persisted SecureStore value under the 2KB warning threshold", async () => {
     mockedSetItem.mockClear();
-    // Make delivery fail so the (fatal → immediate flush) reports stay queued
-    // and get persisted. Fatal avoids leaving a debounced timer pending.
     mockedSend.mockRejectedValue(new Error("offline"));
     for (let i = 0; i < 40; i++) {
       recordBreadcrumb({ level: "info", message: "x".repeat(300) + i });

@@ -16,14 +16,6 @@ import { triggerHaptic } from "@/utils/haptics";
 const SUPPORT_EMAIL = "support@mova.app";
 const BACKEND_REPO = "https://github.com/XXXDoriXXX/MOVA";
 
-/**
- * Static about screen. Brand block at top (display headline + tagline +
- * version), support rows below.
- *
- * Easter egg: tap the MOVA logotype 7 times in quick succession to reveal
- * the telephone-cat mascot. The tap window resets after a second of
- * idleness so accidental triple-taps don't burn the count.
- */
 export default function AboutScreen() {
   const { t } = useTranslation();
   const theme = useTheme();

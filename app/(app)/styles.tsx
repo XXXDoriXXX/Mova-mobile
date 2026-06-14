@@ -15,12 +15,6 @@ import { listStyles, setPreferredStyle } from "@/api/styles";
 import { getMe } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
 
-/**
- * Styles screen. Built-ins are picked via chips (single-select, sets the
- * preferred style on tap); custom styles are listed as rows that route
- * into the editor. The default-style indicator is the chip's selected
- * state — no separate badge needed.
- */
 export default function StylesScreen() {
   const { t } = useTranslation();
   const theme = useTheme();

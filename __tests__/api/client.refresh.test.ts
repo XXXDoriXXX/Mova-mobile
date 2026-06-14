@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 import MockAdapter from "axios-mock-adapter";
 
-/**
- * The 401 → refresh → retry path is the most-likely regression source under
- * load. Two simultaneous 401s must produce exactly ONE call to /auth/refresh.
- */
 describe("axios single-flight refresh", () => {
   let apiMock: MockAdapter;
   let rawAxiosMock: MockAdapter;
@@ -74,7 +70,6 @@ describe("axios single-flight refresh", () => {
   });
 
   it("a 401 on /auth/refresh itself does not retry", async () => {
-    // Reset and arrange a refresh failure.
     rawAxiosMock.reset();
     rawAxiosMock
       .onPost("http://localhost:3000/v1/auth/refresh")

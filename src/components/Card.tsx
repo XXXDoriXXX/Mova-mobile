@@ -7,19 +7,11 @@ export type CardTone = "surface" | "muted" | "inverse" | "accent";
 
 type CardProps = ViewProps & {
   children: ReactNode;
-  /** Visual surface. Defaults to white card with hairline border. */
   tone?: CardTone;
   padded?: boolean;
-  /** Override the default radius. */
   radius?: number;
 };
 
-/**
- * Surface primitive. The default `surface` tone is white with a faint
- * ink border; `inverse` is the dark forest card; `accent` is the lime
- * card; `muted` is the beige chip background. Border is suppressed on
- * coloured tones — borders only make sense on the white surface.
- */
 export function Card({
   children,
   tone = "surface",

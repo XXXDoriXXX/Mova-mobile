@@ -12,11 +12,6 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { listTemplates } from "@/api/templates";
 import { TemplatesList } from "@/features/templates";
 
-/**
- * Templates index. Shows the user's templates + system presets with a
- * floating "new" CTA at the top. Pull-to-refresh; per-item navigation
- * to the editor at `/template/[id]`.
- */
 export default function TemplatesScreen() {
   const { t } = useTranslation();
   const theme = useTheme();

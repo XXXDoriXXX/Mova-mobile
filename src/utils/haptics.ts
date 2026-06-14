@@ -2,10 +2,6 @@ import * as Haptics from "expo-haptics";
 
 export type HapticKind = "success" | "warning" | "error" | "selection" | "light";
 
-/**
- * Best-effort haptic feedback. Failures (web, simulator without haptics
- * support) are silent — never crash the UI.
- */
 export function triggerHaptic(kind: HapticKind): void {
   try {
     switch (kind) {
@@ -26,6 +22,5 @@ export function triggerHaptic(kind: HapticKind): void {
         return;
     }
   } catch {
-    // ignore
   }
 }

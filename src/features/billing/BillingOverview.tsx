@@ -13,11 +13,7 @@ import { formatCentsAsUah } from "@/utils/format";
 
 type Props = {
   summary: BillingSummary;
-  /** Tap on a quick-top-up preset → switch to the Top-up tab with the
-   *  amount pre-filled. Optional — when not provided the tiles still
-   *  render but as static info. */
   onPickQuickTopup?: (amountUah: number) => void;
-  /** Tap on the plan card → switch to the Plan tab. */
   onOpenPlan?: () => void;
 };
 

@@ -8,24 +8,14 @@ import { useTheme } from "@/theme/ThemeProvider";
 export type BubbleSide = "left" | "right";
 
 type Props = {
-  /** "left" = remote speaker (lime); "right" = local / AI (forest). */
   side: BubbleSide;
-  /** Mono uppercase label above the message ("Мама", "Ти · ШІ-голос"). */
   who?: string;
   text: string;
-  /** Show the three-dot typing pulse after the text. */
   partial?: boolean;
-  /** Show the audio wave under the text (live speaker). */
   live?: boolean;
   style?: ViewStyle;
 };
 
-/**
- * Chat bubble — the live-call transcript and conversation history both
- * render through this. The "tail" is faked by squashing the corner radius
- * on the speaker's side (`borderBottomLeftRadius` for left, etc.) which
- * gives the design's softly-pinched silhouette without a separate path.
- */
 export function Bubble({ side, who, text, partial, live, style }: Props) {
   const theme = useTheme();
   const isLeft = side === "left";
@@ -82,7 +72,6 @@ export function Bubble({ side, who, text, partial, live, style }: Props) {
   );
 }
 
-/** Three dots that pulse — pure decorative loader for the partial state. */
 function TypingDots({ color }: { color: string }) {
   return (
     <>

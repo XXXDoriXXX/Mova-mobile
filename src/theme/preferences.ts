@@ -1,15 +1,6 @@
 import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 
-/**
- * Persisted UX preferences. Only `fontScale` survived the redesign — the
- * dark-mode toggle was removed because the new MOVA design ships a single
- * light theme on purpose. Keeping a struct (instead of a bare number)
- * leaves room for future additions (reduced motion, haptics …) without a
- * migration.
- */
-
-/** Discrete font-scale multipliers applied on top of typography variant sizes. */
 export type FontScale = 0.9 | 1 | 1.15 | 1.3;
 
 export type ThemePreferences = {
@@ -20,9 +11,6 @@ export const DEFAULT_PREFERENCES: ThemePreferences = {
   fontScale: 1,
 };
 
-// Bumped from `v1` to `v2` so blobs written by the old dual-mode struct
-// (with the now-removed `mode` field) deserialize as defaults instead of
-// silently leaking that key into the new shape.
 const KEY = "mova.prefs.v2";
 const isWeb = Platform.OS === "web";
 
@@ -65,6 +53,5 @@ export async function savePreferences(prefs: ThemePreferences): Promise<void> {
   try {
     await rawSet(JSON.stringify(prefs));
   } catch {
-    // Persistence failures are silent — settings still apply for the session.
   }
 }

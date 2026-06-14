@@ -6,11 +6,6 @@ import {
   onlineManager,
 } from "@tanstack/react-query";
 
-/**
- * Wraps `QueryClientProvider` with a NetInfo bridge so TanStack pauses queries
- * while offline and refetches on reconnect. Centralized here so app/_layout
- * doesn't grow into a config farm.
- */
 export function QueryProvider({ children }: { children: ReactNode }) {
   const queryClient = useMemo(
     () =>
@@ -18,8 +13,6 @@ export function QueryProvider({ children }: { children: ReactNode }) {
         defaultOptions: {
           queries: {
             retry: (count, err) => {
-              // Don't keep retrying when the user is offline — let the
-              // onReconnect refetch do its job once we're back online.
               if (!onlineManager.isOnline()) return false;
               return count < 2;
             },

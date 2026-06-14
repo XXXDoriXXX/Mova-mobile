@@ -12,7 +12,6 @@ import type { ApiErrorPayload } from "@/types/api";
 
 import { performRefresh } from "./refresh";
 
-// Augment Axios request config to carry our metadata without `any`.
 declare module "axios" {
   export interface AxiosRequestConfig {
     meta?: {
@@ -86,9 +85,6 @@ apiClient.interceptors.response.use(
       return apiClient.request(config);
     }
 
-    // Capture genuine failures (server 5xx + network/timeout) for
-    // investigation — never the expected 4xx business errors, and never the
-    // telemetry endpoint itself (that would recurse).
     const isTelemetry = config?.url?.includes("/telemetry/");
     if ((!status || status >= 500) && !isTelemetry) {
       reportApiFailure(error, {
@@ -103,11 +99,6 @@ apiClient.interceptors.response.use(
   },
 );
 
-/**
- * Lazily forward a failed request to the telemetry pipeline. Loaded via
- * require() at call time to break the module cycle
- * client → observability/telemetry → api/telemetry → client.
- */
 function reportApiFailure(error: unknown, context: Record<string, unknown>): void {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -116,7 +107,6 @@ function reportApiFailure(error: unknown, context: Record<string, unknown>): voi
     };
     mod.reportError(error, { context: { source: "api", ...context } });
   } catch {
-    // telemetry unavailable — ignore
   }
 }
 

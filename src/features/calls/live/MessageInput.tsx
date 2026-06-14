@@ -8,7 +8,7 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { FONT_FAMILY } from "@/theme/typography";
 import { triggerHaptic } from "@/utils/haptics";
 
-const MAX_LENGTH = 2000; // backend `user.speak` enforces this; mirror locally.
+const MAX_LENGTH = 2000;
 
 type Props = {
   onSend: (text: string) => void;

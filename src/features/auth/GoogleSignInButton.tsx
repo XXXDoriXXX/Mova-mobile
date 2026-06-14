@@ -13,12 +13,6 @@ type Props = {
   onError?: (message: string) => void;
 };
 
-/**
- * Renders nothing when Google OAuth isn't configured for this platform
- * (missing `EXPO_PUBLIC_GOOGLE_OAUTH_*` client id). expo-auth-session throws
- * synchronously in that case, so we gate the hook-using inner component behind
- * the config check instead of letting it blow up the auth screen.
- */
 export function GoogleSignInButton({ onError }: Props) {
   if (!isGoogleSignInConfigured()) return null;
   return <GoogleSignInButtonInner onError={onError} />;

@@ -17,13 +17,6 @@ type Props = {
   style?: ViewStyle;
 };
 
-/**
- * Animated shimmer placeholder. Used instead of <Spinner /> on screens where
- * we know the rough shape of the upcoming layout — reduces perceived latency
- * and avoids the "blank → spinner → flash → content" jank cycle.
- *
- * Cheap: one shared value, one repeat-yoyo timing, drives `opacity` only.
- */
 export function Skeleton({
   width = "100%",
   height = 16,

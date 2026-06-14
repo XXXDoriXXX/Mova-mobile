@@ -1,51 +1,35 @@
-/**
- * MOVA palette — warm-white canvas with lime + forest accent.
- *
- * Tokens are semantic where the role is unambiguous, brand-named where the
- * character matters more than the function (`accent`, `inverse`). Keys named
- * after the old design (`primary`, `surface`, `border`, …) are kept so the
- * existing call-sites do not need to change — they just point at the new
- * values.
- */
 export type Palette = {
-  // Surfaces
-  background: string;       // page background (warm white)
-  surface: string;          // default card / pill (white)
-  surfaceMuted: string;     // chip background (beige)
-  surfaceInverse: string;   // forest card
-  surfaceAccent: string;    // lime accent card
+  background: string;
+  surface: string;
+  surfaceMuted: string;
+  surfaceInverse: string;
+  surfaceAccent: string;
 
-  // Strokes
-  border: string;           // hairline (ink with low alpha)
-  borderStrong: string;     // dashed / emphasized stroke
+  border: string;
+  borderStrong: string;
 
-  // Text
-  text: string;             // primary ink
+  text: string;
   textMuted: string;
-  textInverse: string;      // white text (used inside dark cards)
-  textOnAccent: string;     // text on lime (still ink)
-  textOnInverse: string;    // text on forest (white)
+  textInverse: string;
+  textOnAccent: string;
+  textOnInverse: string;
 
-  // CTA
-  primary: string;          // ink — default solid CTA
+  primary: string;
   primaryPressed: string;
-  primaryText: string;      // white
-  accent: string;           // lime — highlight / accent CTA
+  primaryText: string;
+  accent: string;
   accentPressed: string;
-  accentText: string;       // ink
+  accentText: string;
 
-  // Brand surfaces
-  inverse: string;          // forest
-  inverseLight: string;     // transparent white on forest
+  inverse: string;
+  inverseLight: string;
 
-  // Avatar bgs (intentionally pastel)
   avatarPeach: string;
   avatarSage: string;
   avatarLavender: string;
   avatarSky: string;
   avatarSand: string;
 
-  // States
   danger: string;
   dangerPressed: string;
   dangerSoft: string;
@@ -96,6 +80,4 @@ export const palette: Palette = {
   overlay: "rgba(10,10,10,0.45)",
 };
 
-// Old code imports `lightPalette`; keep the alias so we don't have to chase
-// every usage to flip the variable name.
 export const lightPalette = palette;

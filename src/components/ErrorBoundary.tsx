@@ -10,19 +10,12 @@ import { Text } from "./Text";
 
 type Props = {
   children: ReactNode;
-  /** Override the default reload action (mostly for tests). */
   onReload?: () => void;
-  /** Optional logout hook — when provided, surfaces "Sign out" as a recovery. */
   onSignOut?: () => void;
 };
 
 type State = { error: Error | null };
 
-/**
- * Soft dependency on expo-updates. When present (standalone builds), Reload
- * fully restarts the JS bundle; otherwise we just clear the error state and
- * let React retry rendering. Resolved lazily so the module is optional.
- */
 function tryReload(): boolean {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -32,17 +25,10 @@ function tryReload(): boolean {
       return true;
     }
   } catch {
-    // expo-updates not installed
   }
   return false;
 }
 
-/**
- * Root-only error boundary. Mobile flows are short and one boundary catches
- * everything; per-route boundaries are overkill and tend to hide bugs behind
- * dismissible fallbacks. Errors are reported to Sentry, then the user gets
- * "Reload" (Updates.reloadAsync) and optionally "Sign out".
- */
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null };
 

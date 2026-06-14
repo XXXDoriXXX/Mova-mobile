@@ -27,10 +27,6 @@ const FLUSH_DEBOUNCE_MS = 2_000;
 const MAX_ATTEMPTS = 5;
 const QUEUE_KEY = "mova.telemetryQueue.v1";
 
-// SecureStore warns (and may eventually throw) above ~2KB. The durable
-// fallback copy is therefore size-budgeted and slimmed: the rich, full
-// report is what we send live; persistence only needs enough to re-deliver
-// a recent error after a crash-then-restart when the network was down.
 const PERSIST_BUDGET_BYTES = 1_900;
 const PERSIST_STACK_CAP = 700;
 const PERSIST_MESSAGE_CAP = 300;
@@ -94,12 +90,6 @@ function toEvent(error: unknown, opts: ReportOptions): ClientErrorEvent {
   };
 }
 
-/**
- * Capture an error for storage on the backend. Builds a report from the
- * current breadcrumb trail + device/screen context and enqueues it for
- * (retried) delivery. Fatal reports flush immediately — the process may be
- * about to die, so we fire the request without waiting for the debounce.
- */
 export function reportError(error: unknown, opts: ReportOptions = {}): void {
   try {
     const event = toEvent(error, opts);
@@ -112,7 +102,6 @@ export function reportError(error: unknown, opts: ReportOptions = {}): void {
       scheduleFlush();
     }
   } catch {
-    // observability must never throw into the app
   }
 }
 
@@ -147,13 +136,6 @@ function stripInternal(e: QueuedEvent): ClientErrorEvent {
   return rest;
 }
 
-/**
- * Shrink an event to its essentials for durable storage. The durable copy is
- * only a fallback to re-deliver "which error" after a crash-then-restart when
- * the network was down — the full report (breadcrumbs + context) is what we
- * send live. So we drop breadcrumbs/context entirely and cap stack/message,
- * keeping each persisted report well under the SecureStore budget.
- */
 function slimForPersist(e: QueuedEvent): QueuedEvent {
   return {
     name: e.name,
@@ -174,8 +156,6 @@ function slimForPersist(e: QueuedEvent): QueuedEvent {
 async function persist(): Promise<void> {
   try {
     if (Platform.OS === "web") return;
-    // Build newest-first within a strict byte budget so SecureStore never
-    // sees an oversized value (it warns/throws above ~2KB).
     const kept: QueuedEvent[] = [];
     for (let i = queue.length - 1; i >= 0; i--) {
       const slim = slimForPersist(queue[i]!);
@@ -188,7 +168,6 @@ async function persist(): Promise<void> {
     }
     await SecureStore.setItemAsync(QUEUE_KEY, JSON.stringify(kept));
   } catch {
-    // ignore persistence failures
   }
 }
 
@@ -202,7 +181,6 @@ async function restore(): Promise<void> {
       queue = [...parsed, ...queue].slice(-MAX_QUEUE);
     }
   } catch {
-    // ignore restore failures
   }
 }
 

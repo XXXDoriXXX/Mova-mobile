@@ -3,7 +3,6 @@ import { renderHook } from "@testing-library/react-native";
 
 import { useAuthErrorMapper } from "@/features/auth/useAuthErrorMessage";
 
-// Force-fix the i18n language to UA so the mapped strings are stable.
 const originalLanguage = "uk";
 
 function makeAxiosError(payload: unknown, status?: number) {

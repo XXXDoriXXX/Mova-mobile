@@ -6,15 +6,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "./Text";
 import { useTheme } from "@/theme/ThemeProvider";
 
-/**
- * Custom bottom tab bar — a floating dark pill that hosts three icon-only
- * destinations. Replaces the default RN tab bar so the brand silhouette
- * survives across iOS/Android instead of inheriting platform chrome.
- *
- * The icon for each route is picked by route name; adding a new tabbed
- * route only needs an entry in `ICONS`. Hidden routes (registered with
- * `href: null` in the tabs layout) never reach this component.
- */
 const ICONS: Record<string, [keyof typeof Ionicons.glyphMap, keyof typeof Ionicons.glyphMap]> = {
   home: ["home", "home-outline"],
   history: ["time", "time-outline"],
@@ -25,11 +16,6 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
-  // Honor per-screen `tabBarStyle: { display: "none" }` from the layout
-  // options. The default RN tab bar reads this automatically; our custom
-  // tabBar component has to opt in explicitly. Used by call/pre, call/live
-  // and onboarding to hide the floating pill that would otherwise overlap
-  // the in-call composer.
   const currentRoute = state.routes[state.index];
   const currentOptions = currentRoute
     ? descriptors[currentRoute.key]?.options

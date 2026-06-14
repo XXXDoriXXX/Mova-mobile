@@ -18,10 +18,6 @@ export function useAppStateReconnect(): void {
         return;
       }
       if (next === "active" && prev !== "active") {
-        // Reconnection probe lives on the next ping from useCallSocket; here
-        // we just nudge the UI back to active if the socket actually still
-        // works — the next pong (or any event) will flip it back to active
-        // anyway. Setting the status here would be premature.
       }
     });
     return () => sub.remove();

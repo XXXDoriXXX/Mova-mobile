@@ -4,7 +4,6 @@ import { render } from "@testing-library/react-native";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
-// Silence React's noisy error log for the child-throws-on-render test.
 const realError = console.error;
 beforeAll(() => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

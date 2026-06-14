@@ -31,8 +31,6 @@ type LiveKitRoom = {
 
 function loadLiveKit(): LiveKitModule | null {
   try {
-    // Optional native dependency, present only in a custom dev/standalone
-    // build (`npx expo install @livekit/react-native @livekit/react-native-webrtc`).
 
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require("@livekit/react-native") as LiveKitModule;

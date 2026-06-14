@@ -10,24 +10,13 @@ export type ChipTone = "neutral" | "accent" | "danger";
 
 export type ChipProps = Omit<PressableProps, "style" | "children"> & {
   label: string;
-  /** Active state — flips the chip to the ink/lime/red filled variant. */
   selected?: boolean;
-  /** Filled background when selected. `accent` paints lime; `danger` red. */
   tone?: ChipTone;
   leading?: ReactNode;
   trailing?: ReactNode;
-  /** Override the haptic. Defaults to `selection` for filter chips and
-   *  `light` for action chips — close to the iOS picker tick. */
   haptic?: HapticKind | null;
 };
 
-/**
- * Pill-shaped tag. Inactive = white card with hairline border, active =
- * ink fill with inverse text (or lime/red when `tone` overrides). Use
- * for filters, quick replies, multi-select tags. Tapping a chip fires a
- * `selection` haptic by default — the same tick iOS uses for pickers
- * so the user's wrist feels the choice landing.
- */
 export function Chip({
   label,
   selected = false,

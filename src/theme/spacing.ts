@@ -1,8 +1,3 @@
-/**
- * Layout scale. The design uses 22px page padding, large card radii
- * (20–24) and pill-shaped chips. Tokens stay generic — `lg` is the
- * common "card padding" / "section gap" value.
- */
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -11,7 +6,6 @@ export const spacing = {
   xl: 22,
   xxl: 32,
   xxxl: 48,
-  /** Standard horizontal page inset. Matches the design canvas. */
   page: 22,
 } as const;
 

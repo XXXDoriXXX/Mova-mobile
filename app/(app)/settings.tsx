@@ -23,12 +23,6 @@ import {
   PushNotificationsRow,
 } from "@/features/settings";
 
-/**
- * Settings — grouped list of rows. Sections separated by visual spacing
- * rather than chrome dividers; each group is preceded by a small mono
- * uppercase header. The user identity card at top doubles as a quick
- * visual anchor.
- */
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -170,9 +164,6 @@ export default function SettingsScreen() {
             loading={loggingOut}
             onPress={handleLogout}
           />
-          {/* Destructive action is intentionally low-key — a small text
-              link, not a button. Users who want it will find it; users
-              who don't won't tap it by accident. */}
           <Pressable
             onPress={() => setDeletingAccount(true)}
             hitSlop={12}

@@ -142,9 +142,6 @@ describe("shouldAutoPromoteToActive", () => {
   });
 
   it("does NOT promote on the agent's own activity while ringing (the bug)", () => {
-    // The greeting, suggestions, ticks and config echoes all fire while the SIP
-    // leg is still ringing — none of them mean the other side picked up, so the
-    // UI must stay on the ringing screen.
     expect(shouldAutoPromoteToActive("ringing", "ai.text.final")).toBe(false);
     expect(shouldAutoPromoteToActive("ringing", "ai.thinking")).toBe(false);
     expect(shouldAutoPromoteToActive("ringing", "ai.text.candidate")).toBe(false);

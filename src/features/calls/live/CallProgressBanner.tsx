@@ -32,9 +32,9 @@ export function CallProgressBanner() {
         position: "absolute",
         left: 0,
         right: 0,
-        bottom: insets.bottom + 90, // sit just above the floating tab bar
+        bottom: insets.bottom + 90,
         paddingHorizontal: 16,
-        zIndex: 5000, // below toasts (9999), above content
+        zIndex: 5000,
       }}
     >
       <Animated.View
@@ -60,7 +60,6 @@ export function CallProgressBanner() {
             elevation: 6,
           }}
         >
-          {/* Pulsing dot indicates the active connection. */}
           <View
             style={{
               width: 8,

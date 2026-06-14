@@ -38,7 +38,6 @@ describe("callStore reducer", () => {
     expect(get().aiThinking).toBe(true);
 
     get().setAiPartial("Доб");
-    // Thinking indicator clears as soon as we have a partial.
     expect(get().aiThinking).toBe(false);
 
     get().setAiPartial("Доброго дня");

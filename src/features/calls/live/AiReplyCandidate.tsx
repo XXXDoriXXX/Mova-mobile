@@ -104,8 +104,6 @@ export function AiReplyCandidate({ candidate, onAccept, onCancel }: Props) {
       }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        {/* Left badge: countdown ring with the seconds-remaining
-            number inside (auto mode) OR a stable mic icon (manual). */}
         <View
           style={{
             width: RING_SIZE,

@@ -51,7 +51,6 @@ export function useStyleActions({ styleId }: Args) {
         await updateMut.mutateAsync({ id: styleId, values });
       }
     } catch {
-      // toast already fired by mutation onError
     }
   }
 

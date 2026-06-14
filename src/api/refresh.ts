@@ -4,12 +4,6 @@ import { useAuthStore } from "@/auth/store";
 import { API_BASE_URL } from "@/constants/env";
 import type { AuthTokens, RefreshResponse } from "@/types/api";
 
-/**
- * Single-flight refresh primitive. Used by both the axios 401 interceptor and
- * the pre-emptive scheduler so a burst of triggers turns into exactly one
- * round-trip. On failure the auth store is cleared, surfacing the user to the
- * Welcome screen via AuthGate.
- */
 let inflight: Promise<AuthTokens | null> | null = null;
 
 async function doRefresh(): Promise<AuthTokens | null> {
@@ -47,7 +41,6 @@ export function performRefresh(): Promise<AuthTokens | null> {
   return inflight;
 }
 
-/** Pre-emptive trigger; identical semantics, same de-duplication. */
 export function performBackgroundRefresh(): Promise<AuthTokens | null> {
   return performRefresh();
 }

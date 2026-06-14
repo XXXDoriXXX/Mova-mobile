@@ -1,14 +1,5 @@
 import type { TextStyle } from "react-native";
 
-/**
- * Onest is the brand sans; JetBrains Mono is the brand mono (small-caps
- * labels, timers, counters). Each weight maps to a distinct PostScript
- * family name — React Native resolves `fontFamily` to the bundled face,
- * so we cannot rely on `fontWeight` alone for selecting weight.
- *
- * Prefer the `Text` component's `weight` / `mono` / `italic` props over
- * wiring `fontFamily` by hand at call sites.
- */
 export const FONT_FAMILY = {
   sansRegular: "Onest_400Regular",
   sansMedium: "Onest_500Medium",
@@ -30,17 +21,17 @@ export function familyFor(weight: FontWeight): string {
 }
 
 export type TypographyVariant =
-  | "display"        // hero — 50px, used sparingly
-  | "displayLarge"   // legacy alias kept for back-compat — also 50px now
-  | "title"          // section headline — 26px
-  | "subtitle"       // card title — 17px
-  | "body"           // default — 15px
-  | "bodyLarge"      // emphasised body — 17px
-  | "caption"        // supporting copy — 12px
-  | "label"          // mono uppercase tag — 10px
-  | "labelLarge"     // mono caption — 12px
-  | "button"         // CTA inside button — 14px bold
-  | "numeric";       // timer / metric — 28px mono
+  | "display"
+  | "displayLarge"
+  | "title"
+  | "subtitle"
+  | "body"
+  | "bodyLarge"
+  | "caption"
+  | "label"
+  | "labelLarge"
+  | "button"
+  | "numeric";
 
 type Variant = TextStyle & { fontFamily: string };
 

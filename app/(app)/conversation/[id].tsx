@@ -46,12 +46,6 @@ const REASON_KEYS: Record<string, string> = {
   admin: "conversation.endReasonAdmin",
 };
 
-/**
- * Past-conversation viewer. Forest hero card with the meta (phone,
- * duration, end reason, AI config), action row (redial, share, copy,
- * delete), then the full transcript rendered in the same bubble style
- * as the live call.
- */
 export default function ConversationDetailScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -59,9 +53,6 @@ export default function ConversationDetailScreen() {
   const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  // Scroll tracking — surfaces a floating "scroll to bottom" chip when
-  // the user has wandered up the transcript by more than 600 px. Long
-  // transcripts on a phone benefit from a fast way back to the latest.
   const scrollRef = useRef<ScrollView>(null);
   const [showJumpToBottom, setShowJumpToBottom] = useState(false);
   function handleScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
@@ -209,9 +200,6 @@ export default function ConversationDetailScreen() {
           ) : null}
         </View>
 
-        {/* Single action row: chip-sized buttons rather than three stacked
-            full-width CTAs. Destructive "delete" stays in the same row but
-            visually retreats (danger text on muted chip background). */}
         <View
           style={{
             flexDirection: "row",

@@ -21,9 +21,7 @@ type Props = {
 type Entry = {
   id: string;
   name: string;
-  /** Display number as it appears in the device book — pre-normalisation. */
   raw: string;
-  /** Normalized E.164; null when the number cannot be parsed. */
   e164: string | null;
 };
 

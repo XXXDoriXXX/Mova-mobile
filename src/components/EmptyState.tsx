@@ -7,23 +7,15 @@ import { Text } from "./Text";
 import { useTheme } from "@/theme/ThemeProvider";
 
 type Props = {
-  /** Hero icon. Rendered inside a soft round badge. */
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
   body?: string;
-  /** Primary action — the chip-sized CTA at the bottom. */
   ctaLabel?: string;
   onCta?: () => void;
-  /** Custom slot below the body (e.g. secondary actions). */
   children?: ReactNode;
   style?: ViewStyle;
 };
 
-/**
- * Friendly empty-state card. Centred icon badge, headline, supporting
- * copy and an optional CTA. Used in place of bare "Nothing here" lines
- * so empty screens feel inviting rather than broken.
- */
 export function EmptyState({
   icon,
   title,

@@ -24,20 +24,12 @@ import type { Plan } from "@/types/api";
 
 type Tab = "overview" | "plan" | "topup" | "history";
 
-/**
- * Billing — four tabs in a horizontal pill row: overview, plan, top-up,
- * history. Each tab lazy-loads its data so opening the screen doesn't
- * pay for all four endpoints up front.
- */
 export default function BillingScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("overview");
-  // Lets the Overview tab pre-fill the top-up amount when the user
-  // taps one of the quick-amount chips. Cleared once the Top-up form
-  // mounts (the form reads it on mount, then forgets).
   const [topupPrefill, setTopupPrefill] = useState<number | null>(null);
 
   const summaryQuery = useQuery({
@@ -107,10 +99,6 @@ export default function BillingScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          // `flexGrow: 0` keeps the tab row at its intrinsic height
-          // inside the screen's column flex container. Without it,
-          // the horizontal scroller fills available height and the
-          // chips inside stretch vertically.
           style={{ flexGrow: 0 }}
           contentContainerStyle={{ gap: 8, paddingVertical: 4 }}
         >

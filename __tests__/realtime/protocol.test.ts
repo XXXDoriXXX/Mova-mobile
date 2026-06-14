@@ -5,8 +5,6 @@ import {
   parseClientCommand,
 } from "@/realtime/protocol";
 
-// All known event variants must round-trip through the schema. These
-// fixtures live in __tests__/fixtures/ws and mirror real backend payloads.
 const FIXTURES = [
   "call.connected",
   "transcript.partial",

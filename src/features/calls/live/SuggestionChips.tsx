@@ -18,9 +18,6 @@ export function SuggestionChips({ items, onPick }: Props) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      // Keep the row at intrinsic chip height — otherwise the
-      // horizontal scroller stretches vertically and the chips fill
-      // it (alignItems: stretch defaults).
       style={{ flexGrow: 0 }}
       contentContainerStyle={{
         gap: 8,
@@ -31,8 +28,6 @@ export function SuggestionChips({ items, onPick }: Props) {
       {items.map((s, idx) => (
         <Animated.View
           key={s.id}
-          // Stagger each chip so the row "ripples" in rather than popping
-          // all three at once. 60ms apart matches a comfortable cadence.
           entering={FadeIn.duration(160).delay(idx * 60)}
           exiting={FadeOut.duration(120)}
         >

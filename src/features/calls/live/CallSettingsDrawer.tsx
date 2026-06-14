@@ -48,21 +48,12 @@ export function CallSettingsDrawer({ visible, onClose, controls }: Props) {
     enabled: visible,
   });
 
-  // Voice catalogue is server-curated (/v1/voices) so adding a Wavenet
-  // variant or rotating an ElevenLabs id doesn't require a mobile ship.
-  // 24h stale window is fine — the list changes infrequently.
   const voicesQuery = useQuery({
     queryKey: ["voices"],
     queryFn: listVoices,
     enabled: visible,
     staleTime: 24 * 60 * 60 * 1000,
   });
-  // Group voices by provider so we can render labelled blocks. Within
-  // each provider we sort by language so the UA voices float to the
-  // top — this app is UA-first; multilingual voices come second
-  // (still useful for UA), English-only voices last. Stable secondary
-  // sort by label keeps the order predictable when prices/quality
-  // are equivalent within a language bucket.
   const voicesByProvider = useMemo(() => {
     const rank: Record<string, number> = { "uk-UA": 0, multi: 1, "en-US": 2 };
     const map = new Map<VoiceProvider, VoiceOption[]>();
@@ -86,19 +77,11 @@ export function CallSettingsDrawer({ visible, onClose, controls }: Props) {
     (activeTtsProvider as VoiceProvider | null) ??
     "google";
   const [voiceProviderTab, setVoiceProviderTab] = useState<VoiceProvider>(initialProvider);
-  // Sync the tab when the drawer reopens against a different active
-  // provider (e.g. the agent fell back to OpenAI mid-call). Without
-  // this the user opens the drawer and sees the previous tab's chips
-  // selected as "the current voice" — confusing.
   useEffect(() => {
     if (visible) setVoiceProviderTab(initialProvider);
   }, [visible, initialProvider]);
 
   function handleStyle(styleId: string) {
-    // Optimistically highlight the picked chip so the selection moves on tap,
-    // matching the auto-mode toggle above. The backend `call.config.changed`
-    // echo remains the source of truth and confirms/overrides this value
-    // (and reconnect replay recovers it), so we never diverge permanently.
     setActiveStyleIdStore(styleId);
     controls.changeStyle(styleId);
   }
@@ -125,9 +108,6 @@ export function CallSettingsDrawer({ visible, onClose, controls }: Props) {
       scrollable={false}
     >
       <ScrollView style={{ maxHeight: 540 }} contentContainerStyle={{ gap: theme.spacing.lg }}>
-        {/* Auto-mode — single most important control on this screen.
-            Flipping it OFF turns the call into "tap to speak" mode:
-            every AI reply waits for the user's explicit Send tap. */}
         <View
           style={{
             flexDirection: "row",
@@ -182,7 +162,6 @@ export function CallSettingsDrawer({ visible, onClose, controls }: Props) {
           </Pressable>
         </View>
 
-        {/* Style — applies immediately */}
         <View style={{ gap: theme.spacing.sm }}>
           <Text variant="label">{t("liveSettings.style")}</Text>
           <Text variant="caption" color="textMuted">
@@ -212,11 +191,6 @@ export function CallSettingsDrawer({ visible, onClose, controls }: Props) {
           )}
         </View>
 
-        {/* Voice — applies next call.
-            Two-tier picker: a row of provider tabs at the top
-            (which TTS engine), then the chip grid of that engine's
-            curated voices below. Tapping a chip persists both
-            preferredVoice AND preferredTtsProvider in one PATCH. */}
         <View style={{ gap: theme.spacing.sm }}>
           <Text variant="label">{t("liveSettings.voice")}</Text>
           <Text variant="caption" color="textMuted">
@@ -230,8 +204,6 @@ export function CallSettingsDrawer({ visible, onClose, controls }: Props) {
             </Text>
           ) : (
             <>
-              {/* Provider tabs. Only show providers that actually
-                  returned at least one curated voice. */}
               <View
                 style={{
                   flexDirection: "row",
@@ -270,16 +242,6 @@ export function CallSettingsDrawer({ visible, onClose, controls }: Props) {
           )}
         </View>
 
-        {/* LLM model + custom model pickers intentionally removed —
-            agent-worker's ProviderRegistry now auto-picks the best
-            healthy LLM per turn (Phase-9 health-based selection).
-            Surfacing a manual override on the drawer was a footgun:
-            users picked a model, the upstream went degraded, registry
-            silently fell back to the next-best, and the drawer's
-            "selected" indicator stayed wrong. Backend WS controls
-            `user.change_model` are still wired for future hot-swap
-            but mobile doesn't expose them. */}
-
         <Banner tone="info" message={t("liveSettings.nextCallNote")} />
       </ScrollView>
     </Modal>
@@ -302,8 +264,6 @@ function VoiceChip({
       : voice.gender === 'male'
         ? 'man'
         : 'mic-circle-outline';
-  // When selected the chip flips to ink+light text; pick contrasting
-  // icon / pill colours so they read against either background.
   const iconColor = selected ? theme.colors.primaryText : theme.colors.textMuted;
   const pillBg = selected ? 'rgba(255,255,255,0.18)' : theme.colors.surfaceMuted;
   const pillFg = selected ? theme.colors.primaryText : theme.colors.textMuted;

@@ -10,12 +10,6 @@ type ErrorUtilsLike = {
 
 let installed = false;
 
-/**
- * Wire the JS engine's global hooks so that uncaught errors and unhandled
- * promise rejections are captured (to our backend + Sentry) instead of
- * vanishing. Idempotent; call once on boot. Each hook chains to whatever
- * handler was there before so we never swallow the platform's own logging.
- */
 export function installGlobalErrorHandlers(): void {
   if (installed) return;
   installed = true;
@@ -55,6 +49,5 @@ function enableUnhandledRejectionTracking(): void {
       onHandled: () => undefined,
     });
   } catch {
-    // `promise` rejection-tracking unavailable on this runtime — skip.
   }
 }

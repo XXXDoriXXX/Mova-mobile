@@ -8,17 +8,6 @@ type AppExtra = {
 
 const extra = (Constants.expoConfig?.extra ?? {}) as Partial<AppExtra>;
 
-/**
- * Try to pull the LAN IP of the dev machine from Metro's `hostUri`.
- *
- * In Expo Go on a real device, `localhost` resolves to the *phone*, not to
- * the developer's laptop. Metro tells the bundle which machine served it
- * via `expoConfig.hostUri` (newer) / `expoGoConfig.debuggerHost` (older) —
- * typically `192.168.X.Y:8081`. We take that IP and assume the backend
- * runs on the same machine on the standard ports. Tunnels (`exp+…`,
- * `*.exp.direct`) don't give us a usable LAN IP — we surface that loudly
- * in the dev console so the developer can switch back to LAN mode.
- */
 function inferDevLanHost(): { host: string; raw: string } | { host: null; raw: string | null } {
   const hostUri =
     Constants.expoConfig?.hostUri ??
@@ -36,12 +25,6 @@ function inferDevLanHost(): { host: string; raw: string } | { host: null; raw: s
   return { host, raw: hostUri };
 }
 
-/**
- * Returns the configured URL as-is when the developer has explicitly set
- * a non-localhost URL via `EXPO_PUBLIC_API_URL`. Otherwise, in dev, swaps
- * `localhost` for the Metro host IP so Expo Go on a real device reaches
- * the right machine. Production builds keep whatever is configured.
- */
 function resolveDevUrl(envValue: string | undefined, fallback: string): string {
   const value = envValue ?? fallback;
   const usesLocalhost =
@@ -68,12 +51,6 @@ export const WS_URL: string = resolveDevUrl(
 export const SENTRY_DSN: string | undefined =
   extra.sentryDsn && extra.sentryDsn.length > 0 ? extra.sentryDsn : undefined;
 
-// ─── Dev-only visibility ──────────────────────────────────────────────────
-// Surface the resolved URLs + Metro hostUri once on boot so it's obvious
-// which machine the bundle is targeting. Massively cuts "Server unreachable"
-// debugging time: if you see `localhost` here, Metro served the bundle in
-// tunnel mode and the auto-detect couldn't extract a LAN IP — restart
-// `expo start` without --tunnel.
 if (__DEV__) {
   const probe = inferDevLanHost();
   const usingLocalhost = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");

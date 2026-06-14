@@ -30,7 +30,6 @@ describe("toast store", () => {
     for (let i = 0; i < pushed; i++) toast.info(`m${i}`);
     const queue = useToastStore.getState().queue;
     expect(queue).toHaveLength(MAX_VISIBLE);
-    // The last MAX_VISIBLE messages survived; the leading ones were dropped.
     const expected = Array.from(
       { length: MAX_VISIBLE },
       (_, i) => `m${pushed - MAX_VISIBLE + i}`,

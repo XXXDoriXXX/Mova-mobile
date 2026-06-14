@@ -19,11 +19,6 @@ type AuthState = {
   clear: () => Promise<void>;
 };
 
-// Pre-emptive refresh is driven by `auth/refreshScheduler.ts`, which
-// subscribes to this store. Keeping the dependency one-way (store →
-// scheduler is forbidden, scheduler → store is allowed) breaks the cycle
-// that Metro warned about.
-
 export const useAuthStore = create<AuthState>((set) => ({
   status: "unknown",
   user: null,

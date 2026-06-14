@@ -7,8 +7,6 @@ export async function register(input: {
   password: string;
   name: string;
 }): Promise<AuthResponse> {
-  // Backend `RegisterSchema` (auth.schemas.ts) only accepts these three
-  // fields — `language` is set server-side and changed via PATCH /auth/me.
   const { data } = await apiClient.post<AuthResponse>(
     "/auth/register",
     input,
@@ -37,8 +35,6 @@ export async function signInWithGoogle(idToken: string): Promise<AuthResponse> {
 }
 
 export async function logout(): Promise<void> {
-  // `POST /auth/logout` requires `{ refreshToken }` (LogoutDto). Best-effort —
-  // callers always proceed to local clear even if this fails.
   const { refreshToken } = useAuthStore.getState();
   if (!refreshToken) return;
   await apiClient.post(
@@ -80,19 +76,12 @@ export async function changePassword(input: {
 }
 
 export async function deleteAccount(password: string): Promise<void> {
-  // `DELETE /auth/me` requires `{ password }` (DeleteAccountDto).
   await apiClient.delete("/auth/me", { data: { password } });
 }
 
-/**
- * Persist a non-default UI language to the user's profile after register.
- * The register endpoint silently drops `language`, so the choice would be
- * lost otherwise. Best-effort: failure is non-fatal.
- */
 export async function persistLanguage(language: Language): Promise<void> {
   try {
     await patchMe({ language });
   } catch {
-    // Non-fatal: language stays at backend default; user can change it later.
   }
 }

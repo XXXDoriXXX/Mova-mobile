@@ -23,9 +23,6 @@ export function useTopup() {
 
   async function execute(amountCents: number): Promise<TopupOk | TopupFail> {
     setSubmitting(true);
-    // The idempotency key must be tied to the amount: reusing a key minted for a
-    // different amount would let the server return its cached (original-amount)
-    // result on retry, applying a sum different from what the user now intends.
     if (!keyRef.current || keyAmountRef.current !== amountCents) {
       keyRef.current = newIdempotencyKey();
       keyAmountRef.current = amountCents;

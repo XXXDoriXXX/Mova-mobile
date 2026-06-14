@@ -1,12 +1,7 @@
-// Domain types mirror the actual wire shape produced by the MOVA backend
-// (apps/api-gateway). Anything that isn't on the wire is NOT declared here.
 
 export type Language = "uk" | "en";
 export type UserRole = "user" | "admin";
 
-// Mirrors `PublicUser` produced by `AuthService.toPublic()` —
-// auth.service.ts. `preferredStyleId` is exposed by the matching backend
-// patch in this repo (see plan, Phase 7).
 export type User = {
   id: string;
   email: string;
@@ -26,17 +21,14 @@ export type User = {
 export type AuthTokens = {
   accessToken: string;
   refreshToken: string;
-  /** ISO timestamp — used for pre-emptive refresh before the token expires. */
   refreshExpiresAt: string;
 };
 
-// `POST /auth/register` and `POST /auth/login` return this exact shape.
 export type AuthResponse = {
   user: User;
   tokens: AuthTokens;
 };
 
-// `POST /auth/refresh` returns the tokens flat (no `user`).
 export type RefreshResponse = AuthTokens;
 
 export type Template = {
@@ -277,7 +269,6 @@ export type ApiErrorPayload = {
   statusCode: number;
   message: string | string[];
   error?: string;
-  // Bespoke fields on specific business errors
   secondsNeeded?: number;
   balanceCents?: number;
   secondsRemaining?: number;
