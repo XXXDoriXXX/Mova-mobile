@@ -13,11 +13,6 @@ type PillProps = ViewProps & {
   trailing?: ReactNode;
 };
 
-/**
- * Static pill — the small dated marker under the header ("monday, 20 May
- * 2026"), in-call duration tags, "live" badges. Use `Chip` instead when
- * the element is interactive.
- */
 export function Pill({ label, tone = "ink", leading, trailing, style, ...rest }: PillProps) {
   const theme = useTheme();
   const { bg, fg } = (() => {

@@ -16,28 +16,9 @@ type Props = {
   onClose: () => void;
   title?: string;
   children: ReactNode;
-  /**
-   * When true (default), the sheet body is wrapped in an internal
-   * `ScrollView` so long forms scroll above the keyboard. Set to
-   * `false` when the child manages its own scrolling — most notably
-   * when the child is a `FlatList` / `SectionList`, since nesting a
-   * VirtualizedList inside a ScrollView with the same orientation
-   * breaks windowing and warns at runtime.
-   */
   scrollable?: boolean;
 };
 
-/**
- * Bottom-sheet modal. Slides up, dims the page, exposes a small drag
- * handle. Tapping the dim closes; the sheet itself swallows taps so
- * clicking inside doesn't dismiss.
- *
- * Wraps the sheet in `KeyboardAvoidingView` so on Android the
- * on-screen keyboard pushes the sheet up rather than covering the
- * input (`adjustResize` is unreliable inside RN modals). For tall
- * forms an internal `ScrollView` keeps the submit button reachable;
- * set `scrollable={false}` when embedding a virtualized list.
- */
 export function Modal({
   visible,
   onClose,

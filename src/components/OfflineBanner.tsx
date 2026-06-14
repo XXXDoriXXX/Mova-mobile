@@ -8,16 +8,6 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { useOnline } from "@/net/useOnline";
 import { toast } from "@/feedback/toastStore";
 
-/**
- * Persistent banner at the very top of every screen while the device is
- * offline. Also surfaces a one-off "connection restored" toast when the
- * device comes back online — that toast is the only transient feedback
- * we need; the banner already covers the persistent state.
- *
- * `wasOffline` tracks whether the user actually saw the offline banner
- * during this session, so we don't show "restored" the first time the
- * app boots online (which would be confusing).
- */
 export function OfflineBanner() {
   const { t } = useTranslation();
   const theme = useTheme();

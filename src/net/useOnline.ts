@@ -6,10 +6,6 @@ export type OnlineState = {
   type: NetInfoState["type"] | null;
 };
 
-/**
- * Subscribes to OS-level connectivity changes. Treats `null` (unknown) as
- * online — pessimism here causes ghost offline banners on slow boot.
- */
 export function useOnline(): OnlineState {
   const [state, setState] = useState<OnlineState>({ online: true, type: null });
 
@@ -23,7 +19,6 @@ export function useOnline(): OnlineState {
           : reachable && connected !== false;
       setState({ online, type: ns.type });
     });
-    // Prime once on mount so first frame reflects current state.
     void NetInfo.fetch().then((ns) => {
       const reachable = ns.isInternetReachable;
       const connected = ns.isConnected;

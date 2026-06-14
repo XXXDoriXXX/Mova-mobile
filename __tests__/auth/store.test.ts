@@ -74,7 +74,6 @@ describe("auth store", () => {
 
   it("hydrate() loads previously-saved tokens after restart", async () => {
     const { useAuthStore } = require("@/auth/store");
-    // Pretend a prior session saved tokens.
     await useAuthStore.getState().setSession({
       user: {
         id: "user-1",
@@ -97,7 +96,6 @@ describe("auth store", () => {
       },
     });
 
-    // Simulate a cold start: drop in-memory state, then hydrate.
     useAuthStore.setState({
       status: "unknown",
       user: null,

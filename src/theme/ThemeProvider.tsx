@@ -33,11 +33,6 @@ const PreferencesContext = createContext<PreferencesContextValue>({
   setFontScale: () => undefined,
 });
 
-/**
- * Single-theme provider. Loads persisted preferences once on mount and
- * persists changes thereafter. There is no dark mode: the design
- * direction is one warm-white scheme, intentionally.
- */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [prefs, setPrefs] = useState<ThemePreferences>(DEFAULT_PREFERENCES);
   const [hydrated, setHydrated] = useState(false);

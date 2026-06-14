@@ -16,9 +16,6 @@ import {
 
 const PING_INTERVAL_MS = 20_000;
 
-// Redis stream entry id (`<ms>-<seq>`). Only events carrying one are valid
-// reconnect cursors; the gateway rejects anything else. Mirror its check so a
-// 20s `pong` (id = socket.id) can't wipe the cursor and kill replay.
 const STREAM_ID_RE = /^\d+-\d+$/;
 
 const HANDSHAKE_TIMEOUT_MS = 25_000;
@@ -31,12 +28,8 @@ export function useCallSocket(opts: {
 }) {
   const socketRef = useRef<CallSocket | null>(null);
   const sendRef = useRef<((cmd: ClientCommand) => void) | null>(null);
-  // Latest token without re-running the socket effect — a mid-call refresh must
-  // NOT tear down the live WebSocket; reconnects read this for fresh auth.
   const tokenRef = useRef(opts.accessToken);
   tokenRef.current = opts.accessToken;
-  // Status to restore after a reconnect. Forcing "active" would show the in-call
-  // UI for a call that was still merely ringing when the socket blipped.
   const preReconnectStatusRef = useRef<CallStatus>("connecting");
 
   useEffect(() => {
@@ -82,7 +75,6 @@ export function useCallSocket(opts: {
         conversationId: opts.conversationId,
         lastStreamId: s.lastStreamId ?? null,
       });
-      // Replay since lastStreamId; default empty cursor would drop the gap.
       socket.auth = {
         token: tokenRef.current,
         conversationId: opts.conversationId,
@@ -113,8 +105,6 @@ export function useCallSocket(opts: {
 
     const unsubscribe = onServerEvent(socket, (event) => {
       const s = useCallStore.getState();
-      // Only advance the replay cursor on real stream events; pong/call.connected
-      // carry socket.id (not a stream id) and would wipe replay on next reconnect.
       if (STREAM_ID_RE.test(event.id)) s.setLastStreamId(event.id);
       callLog("call.ws.event", { conversationId: opts.conversationId, type: event.type });
       routeEvent(event);

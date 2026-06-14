@@ -24,21 +24,12 @@ export type TextColor =
 
 export type TextProps = RNTextProps & {
   variant?: TypographyVariant;
-  /** Overrides the weight implied by `variant`. */
   weight?: FontWeight;
-  /** RN synthesises italic from the loaded bold roman; we don't bundle
-   *  a dedicated italic face. Used for the accent word in the hero. */
   italic?: boolean;
   color?: TextColor;
   align?: "left" | "center" | "right";
 };
 
-/**
- * Themed text — wraps RN `Text` with the brand font, the variant scale,
- * and an accessibility font-scale multiplier. Always render copy through
- * this primitive; raw `<Text>` from `react-native` falls back to the
- * system font and loses the brand character.
- */
 export function Text({
   variant = "body",
   weight,

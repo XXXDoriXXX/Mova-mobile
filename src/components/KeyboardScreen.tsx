@@ -6,15 +6,9 @@ import { useTheme } from "@/theme/ThemeProvider";
 
 type Props = {
   children: ReactNode;
-  /** Extra bottom padding above the floating tab bar. */
   bottomPad?: number;
 };
 
-/**
- * Form-friendly screen wrapper. Keyboard nudges content up on iOS; the
- * scroll container leaves clearance below for the floating tab bar (or
- * just enough room when used inside stacks that hide it).
- */
 export function KeyboardScreen({ children, bottomPad = 140 }: Props) {
   const theme = useTheme();
   return (

@@ -2,8 +2,6 @@ import { actionSheet, confirm, useDialogStore } from "@/feedback/dialogStore";
 
 describe("dialog store", () => {
   beforeEach(() => {
-    // Force-resolve any leftover promises from a previous test so they
-    // don't leak between cases.
     useDialogStore.getState().resolveConfirm(false);
     useDialogStore.getState().resolveSheet(null);
   });

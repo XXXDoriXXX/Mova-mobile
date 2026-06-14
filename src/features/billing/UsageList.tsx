@@ -37,8 +37,6 @@ export function UsageList({ items }: Props) {
     );
   }
 
-  // Aggregate header: total seconds + total cost across this window. Cheap —
-  // the API caps results at 500 records.
   const totals = items.reduce(
     (acc, u) => {
       acc.seconds += u.secondsBilled;

@@ -5,18 +5,9 @@ import { useTheme } from "@/theme/ThemeProvider";
 
 type Props = {
   size?: number;
-  /** Background circle colour. Defaults to the peach avatar tone. */
   background?: string;
 };
 
-/**
- * Smiling-face avatar from the design — a generic placeholder used in the
- * header when a real user photo is absent. The face geometry is the same
- * tiny SVG from the design canvas, rendered with react-native-svg.
- *
- * Sized by the `size` prop (the circle, eyes, smile and hair all scale
- * proportionally so it stays balanced from 28px to 64px).
- */
 export function FaceAvatar({ size = 42, background }: Props) {
   const theme = useTheme();
   const bg = background ?? theme.colors.avatarPeach;

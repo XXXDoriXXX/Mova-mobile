@@ -21,12 +21,6 @@ const TOTAL_STEPS = 5;
 const CAPABILITY_STEP = 3;
 const STYLE_STEP = 4;
 
-/**
- * Welcome wizard for new users. Three feature slides followed by a
- * preferred-style picker, then writes both to the backend and lands on
- * /home. Skippable at any step — the user can come back via Settings
- * → About (long-press).
- */
 export default function OnboardingScreen() {
   const { t } = useTranslation();
   const theme = useTheme();

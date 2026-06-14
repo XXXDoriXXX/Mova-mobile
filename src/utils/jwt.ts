@@ -8,8 +8,6 @@ function base64UrlDecode(input: string): string {
   const padded = input.replace(/-/g, "+").replace(/_/g, "/");
   const pad = padded.length % 4;
   const normalized = pad === 0 ? padded : padded + "=".repeat(4 - pad);
-  // React Native ships with global atob via core-js polyfills on Hermes.
-  // Fallback to Buffer-style decode if unavailable.
   if (typeof globalThis.atob === "function") {
     return globalThis.atob(normalized);
   }

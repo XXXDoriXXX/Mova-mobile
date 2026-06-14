@@ -7,9 +7,6 @@ const ACCESS_KEY = "mova.accessToken";
 const REFRESH_KEY = "mova.refreshToken";
 const REFRESH_EXPIRES_AT_KEY = "mova.refreshExpiresAt";
 
-// Platform-aware storage:
-// - native (iOS / Android) → expo-secure-store (Keychain / EncryptedSharedPrefs)
-// - web → localStorage. NOTE: web storage is NOT secure; web is dev-only.
 const isWeb = Platform.OS === "web";
 
 function webStorage(): Storage | null {

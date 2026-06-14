@@ -25,16 +25,6 @@ import { HomeSkeleton, RecentCallsList } from "@/features/home";
 import { greetingKey } from "@/utils/format";
 import { triggerHaptic } from "@/utils/haptics";
 
-/**
- * Home — single source of truth for the user's "what now?" moment.
- *
- * Composition (top → bottom): face/greeting header → date pill → hero
- * headline → forest balance card → primary CTA pair (lime "new call"
- * + forest "templates") → recent calls list. Each section is independent
- * data-wise; the screen handles cold-start with a skeleton and incremental
- * with section-level spinners so a slow billing endpoint doesn't block
- * the whole layout.
- */
 export default function HomeScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -65,17 +55,12 @@ export default function HomeScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = useCallback(async () => {
-    // Light haptic at the start of the gesture — matches the native
-    // RefreshControl on iOS so the pull-to-refresh feels grounded.
     triggerHaptic("light");
     setRefreshing(true);
     await Promise.all([billingQuery.refetch(), recentQuery.refetch()]);
     setRefreshing(false);
   }, [billingQuery, recentQuery]);
 
-  // Picked once per mount so the playful "_alt" variant doesn't reshuffle
-  // mid-session every time React re-renders this screen. MUST stay above
-  // any early returns so React's hook order is stable across renders.
   const greetingI18nKey = useMemo(() => greetingKey(), []);
 
   const coldStart =
@@ -105,7 +90,7 @@ export default function HomeScreen() {
         contentContainerStyle={{
           gap: theme.spacing.lg,
           paddingTop: 4,
-          paddingBottom: 140, // clear the floating tab bar
+          paddingBottom: 140,
         }}
         refreshControl={
           <RefreshControl
@@ -246,11 +231,6 @@ function SectionHeader({
   );
 }
 
-/**
- * The signature dual card from the design. Left (lime) is the primary
- * "new call" CTA; right (forest) is a secondary destination — we
- * surface templates because they meaningfully change the next call.
- */
 function CallShortcuts({
   onStart,
   onTemplates,

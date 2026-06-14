@@ -40,8 +40,6 @@ describe("transcriptToText", () => {
     const text = transcriptToText(baseInput);
     const lines = text.split("\n");
     const bodyLines = lines.filter((l) => l.includes(":") && !l.startsWith("MOVA"));
-    // The phone header and timestamp do contain colons, so we look at the
-    // tail: last 3 lines must correspond to our 3 messages, in order.
     expect(lines[lines.length - 3]).toContain("Інший абонент");
     expect(lines[lines.length - 2]).toContain("Я (введено)");
     expect(lines[lines.length - 1]).toContain("AI (від мене)");

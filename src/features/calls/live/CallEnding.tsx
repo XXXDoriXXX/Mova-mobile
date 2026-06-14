@@ -28,8 +28,6 @@ const REASON_KEYS: Record<string, string> = {
   admin: "conversation.endReasonAdmin",
 };
 
-// A precise cause beats the coarse reason when the server sends one. Each maps
-// to a friendly, specific line so the user knows exactly what happened.
 const ERROR_CODE_KEYS: Record<string, string> = {
   CALL_DECLINED: "conversation.endCallDeclined",
   CALL_UNANSWERED: "conversation.endCallUnanswered",
@@ -47,16 +45,11 @@ export function CallEnding({ info, onNewCall, onHistory }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
-  // Prefer the specific errorCode line; fall back to the coarse reason.
   const messageKey =
     (info.errorCode && ERROR_CODE_KEYS[info.errorCode]) || REASON_KEYS[info.reason];
   const balanceExhausted = info.reason === "balance";
-  // The call never reached a real conversation — show the cause as the headline
-  // and don't present a "00:00" duration that implies a 0-second call happened.
   const neverAnswered =
     info.wasAnswered === false || info.reason === "no_answer";
-  // Things worth a one-tap retry: nobody picked up, a transient failure, or a
-  // duration cap. A user-ended or admin-ended call doesn't push redial.
   const offerRedial =
     info.reason === "no_answer" ||
     info.reason === "fatal_error" ||
@@ -100,7 +93,6 @@ export function CallEnding({ info, onNewCall, onHistory }: Props) {
         }}
       >
         {neverAnswered ? (
-          // No conversation took place — the cause IS the headline.
           <Text
             variant="title"
             color="textOnInverse"
@@ -138,11 +130,6 @@ export function CallEnding({ info, onNewCall, onHistory }: Props) {
         )}
       </View>
 
-      {/* Recovery actions. We deliberately keep only ONE full-width
-          CTA so the post-call sheet doesn't feel like a wall of
-          buttons: balance-exhausted promotes "Top up", otherwise the
-          primary is "New call". "Go to history" is a small ghost link
-          underneath. */}
       <View style={{ gap: 4 }}>
         {balanceExhausted ? (
           <Button

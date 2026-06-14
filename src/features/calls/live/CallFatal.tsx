@@ -83,10 +83,6 @@ export function CallFatal({ error, onRetry, onClose }: Props) {
 }
 
 function resolveCopy(t: (k: string) => string, error: CallError) {
-  // The watchdog uses this sentinel as the message field so the UI
-  // can distinguish "we never got call.connected" from "agent
-  // dropped mid-call". Both share the same error code (AGENT_LOST)
-  // because the backend's contract only has the one.
   if (error.message === "CONNECT_TIMEOUT") {
     return {
       icon: "time-outline" as const,

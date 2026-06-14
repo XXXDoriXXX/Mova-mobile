@@ -1,12 +1,4 @@
-/**
- * Canonical typed error codes that the backend can surface during a call.
- * Mirrors `libs/shared-realtime/src/lib/error-codes.ts` on the backend.
- *
- *   recoverable: true  → toast/banner, call continues
- *   recoverable: false → modal, call ends
- */
 export const CallErrorCode = {
-  // Provider degradation (recoverable)
   STT_UNAVAILABLE: "STT_UNAVAILABLE",
   STT_DEGRADED: "STT_DEGRADED",
   STT_STALLED: "STT_STALLED",
@@ -15,14 +7,11 @@ export const CallErrorCode = {
   TTS_UNAVAILABLE: "TTS_UNAVAILABLE",
   TTS_DEGRADED: "TTS_DEGRADED",
 
-  // Safety / moderation (recoverable)
   PROMPT_INJECTION: "PROMPT_INJECTION",
   CONTENT_BLOCKED: "CONTENT_BLOCKED",
 
-  // Rate / fair-use (recoverable)
   RATE_LIMITED: "RATE_LIMITED",
 
-  // Fatal — call ends
   BALANCE_EXHAUSTED: "BALANCE_EXHAUSTED",
   LIVEKIT_DISCONNECTED: "LIVEKIT_DISCONNECTED",
   AGENT_LOST: "AGENT_LOST",

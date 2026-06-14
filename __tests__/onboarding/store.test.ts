@@ -21,7 +21,6 @@ describe("onboarding store", () => {
     await useOnboardingStore.getState().complete();
     expect(useOnboardingStore.getState().status).toBe("done");
 
-    // Simulate a cold start: reset in-memory state and re-hydrate.
     useOnboardingStore.setState({ status: "unknown" });
     await useOnboardingStore.getState().hydrate();
     expect(useOnboardingStore.getState().status).toBe("done");

@@ -2,35 +2,12 @@ import { z } from "zod";
 
 import { CallErrorCode } from "./error-codes";
 
-/**
- * WebSocket protocol — Zod schemas mirrored from
- * `libs/shared-realtime/src/lib/ws-events.ts` in the MOVA backend monorepo.
- * Kept verbatim so the mobile client validates the exact same payload shapes
- * the server emits. When the backend protocol changes, sync this file.
- *
- * Wire format: JSON envelopes with a `type` discriminator. Server events
- * include `id` and `timestamp`. Client commands are flat payloads.
- */
 export const WS_PROTOCOL_VERSION = "1" as const;
 
-// ─────────────────────────────────────────────────────
-// Envelope (every server event)
-// ─────────────────────────────────────────────────────
-
 const envelope = z.object({
-  /**
-   * Opaque event id — used by us as `lastStreamId` on reconnect. Producer-
-   * defined format: Redis Stream entries are `<ms>-<seq>`, synthetic events
-   * are UUIDs, gateway-local events are socket.id. Treat as opaque.
-   */
   id: z.string().min(1),
-  /** ISO 8601 timestamp (UTC) of when the event was produced server-side. */
   timestamp: z.string().datetime(),
 });
-
-// ─────────────────────────────────────────────────────
-// Server → Client events
-// ─────────────────────────────────────────────────────
 
 export const ServerEvent = {
   callConnected: envelope.extend({
@@ -40,9 +17,6 @@ export const ServerEvent = {
     }),
   }),
 
-  /** Phone on the other end actually picked up. Distinct from
-   *  call.connected (agent/WS ready). UI swaps the ringing-loader for
-   *  the chat on this event. */
   callAnswered: envelope.extend({
     type: z.literal("call.answered"),
     data: z.object({
@@ -50,24 +24,19 @@ export const ServerEvent = {
     }),
   }),
 
-  /** Partial STT result. May arrive multiple times before a final. */
   transcriptPartial: envelope.extend({
     type: z.literal("transcript.partial"),
     data: z.object({ text: z.string() }),
   }),
 
-  /** Finalized STT for one utterance of the interlocutor. */
   transcriptFinal: envelope.extend({
     type: z.literal("transcript.final"),
     data: z.object({
-      // Opaque: producer currently sends the stream-id (`<ms>-<seq>`), not
-      // a UUID. Constraining to UUID dropped every transcript event.
       messageId: z.string().min(1),
       text: z.string(),
     }),
   }),
 
-  /** LLM started generating a reply — empty data; presence is the signal. */
   aiThinking: envelope.extend({
     type: z.literal("ai.thinking"),
     data: z.object({}),
@@ -90,11 +59,6 @@ export const ServerEvent = {
     }),
   }),
 
-  /** Pre-TTS preview — the LLM produced a reply, mobile shows it and
-   *  the user accepts (or auto-mode timer elapses) before audio plays.
-   *  autoAcceptInMs is null in manual mode. `streaming` is true while the
-   *  reply text is still being generated (grows with each emit); the
-   *  countdown only runs once a streaming=false emit arrives. */
   aiTextCandidate: envelope.extend({
     type: z.literal("ai.text.candidate"),
     data: z.object({
@@ -140,12 +104,10 @@ export const ServerEvent = {
     }),
   }),
 
-  /** Periodic billing tick — sent ~every 5s during an active call. */
   usageTick: envelope.extend({
     type: z.literal("usage.tick"),
     data: z.object({
       secondsElapsed: z.number().int().nonnegative(),
-      /** null for paid plans (balance-based, not quota-based). */
       secondsRemaining: z.number().int().nonnegative().nullable(),
       planCode: z.enum(["free", "paid"]),
     }),
@@ -171,7 +133,6 @@ export const ServerEvent = {
     }),
   }),
 
-  /** Terminal event — server closes the WS shortly after. */
   callEnded: envelope.extend({
     type: z.literal("call.ended"),
     data: z.object({
@@ -186,12 +147,7 @@ export const ServerEvent = {
       ]),
       durationSeconds: z.number().int().nonnegative(),
       endedBy: z.enum(["user", "system", "interlocutor", "admin"]),
-      /** Specific cause (mirrors CallErrorCode) — present for failures and for
-       *  no_answer (CALL_DECLINED / CALL_UNANSWERED / CALLEE_UNAVAILABLE /
-       *  LIVEKIT_DISCONNECTED). Lets the end screen show a precise message. */
       errorCode: z.string().optional(),
-      /** True only if the call was actually answered. Words the end screen and
-       *  gates the redial CTA. */
       wasAnswered: z.boolean().optional(),
     }),
   }),
@@ -201,7 +157,6 @@ export const ServerEvent = {
   }),
 } as const;
 
-/** Discriminated union of every server event. */
 export const ServerEventSchema = z.discriminatedUnion("type", [
   ServerEvent.callConnected,
   ServerEvent.callAnswered,
@@ -224,10 +179,6 @@ export const ServerEventSchema = z.discriminatedUnion("type", [
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type ServerEvent = z.infer<typeof ServerEventSchema>;
 export type ServerEventType = ServerEvent["type"];
-
-// ─────────────────────────────────────────────────────
-// Client → Server commands
-// ─────────────────────────────────────────────────────
 
 export const ClientCommand = {
   speak: z.object({
@@ -263,21 +214,16 @@ export const ClientCommand = {
     data: z.object({ styleId: z.string().min(1).max(80) }),
   }),
 
-  /** Promote pending AI candidate to TTS playback. Sent by mobile on
-   *  "Send" tap or when the auto-mode countdown ring elapses. */
   acceptAiReply: z.object({
     type: z.literal("user.accept_ai_reply"),
     data: z.object({ candidateId: z.string().min(1) }),
   }),
 
-  /** Drop pending AI candidate — agent does NOT speak it. */
   cancelAiReply: z.object({
     type: z.literal("user.cancel_ai_reply"),
     data: z.object({ candidateId: z.string().min(1) }),
   }),
 
-  /** Per-call toggle: when true, candidates auto-accept after a brief
-   *  preview; when false, every reply waits for explicit accept. */
   setAutoMode: z.object({
     type: z.literal("user.set_auto_mode"),
     data: z.object({ enabled: z.boolean() }),
@@ -310,17 +256,11 @@ export const ClientCommandSchema = z.discriminatedUnion("type", [
 export type ClientCommand = z.infer<typeof ClientCommandSchema>;
 export type ClientCommandType = ClientCommand["type"];
 
-// ─────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────
-
-/** Parse a raw server event. Returns null on invalid shape — never throws. */
 export function parseServerEvent(raw: unknown): ServerEvent | null {
   const result = ServerEventSchema.safeParse(raw);
   return result.success ? result.data : null;
 }
 
-/** Parse a raw client command. Returns null on invalid shape. */
 export function parseClientCommand(raw: unknown): ClientCommand | null {
   const result = ClientCommandSchema.safeParse(raw);
   return result.success ? result.data : null;

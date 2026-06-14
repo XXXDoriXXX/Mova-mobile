@@ -8,10 +8,6 @@ import * as SplashScreen from "expo-splash-screen";
 
 import { AuthGate } from "@/auth/AuthGate";
 import { useAuthStore } from "@/auth/store";
-// Side-effect import: registers a store subscription that schedules a
-// pre-emptive refresh ~60s before the refresh-token expires. Doing it via
-// import-for-side-effect (instead of an import inside store.ts) avoids a
-// require cycle that Metro warned about.
 import "@/auth/refreshScheduler";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OfflineBanner } from "@/components/OfflineBanner";
@@ -25,8 +21,6 @@ import { initTelemetry, setCurrentScreen } from "@/observability/telemetry";
 import { installGlobalErrorHandlers } from "@/observability/errorHandlers";
 import i18n, { initI18n } from "@/i18n";
 
-// Keep the splash visible until the brand fonts have loaded. Without this
-// the first paint flashes the system font and re-flows when Onest swaps in.
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 export default function RootLayout() {
@@ -51,7 +45,6 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
-  // Mirror auth user into Sentry context so captured exceptions are attributed.
   useEffect(() => {
     const unsub = useAuthStore.subscribe((s) => {
       if (s.user) {
@@ -63,10 +56,6 @@ export default function RootLayout() {
     return () => unsub();
   }, []);
 
-  // Sync i18n with the authenticated user's language preference. Without
-  // this the UI sticks to device locale even when the profile says `uk`,
-  // so a user on an English phone never sees Ukrainian until they manually
-  // toggle. Runs once on mount with the current user, then on every change.
   useEffect(() => {
     const apply = (lang: string | null | undefined) => {
       if (!lang) return;
@@ -82,8 +71,6 @@ export default function RootLayout() {
     void useAuthStore.getState().clear();
   };
 
-  // Hold the tree until fonts resolve so primitive text renders in the
-  // brand face on the very first frame. The splash screen is still up.
   if (!fontsLoaded) return null;
 
   return (
@@ -98,11 +85,6 @@ export default function RootLayout() {
                   <AuthGate>
                     <Stack screenOptions={{ headerShown: false }} />
                   </AuthGate>
-                  {/* Dialog + toast hosts sit last in the tree so they
-                      render above every screen, the tab bar, and any
-                      keyboard. DialogHost goes BEFORE ToastHost so the
-                      transient toast stacks visually above an open
-                      bottom sheet. */}
                   <DialogHost />
                   <ToastHost />
                 </View>

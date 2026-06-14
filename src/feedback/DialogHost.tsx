@@ -13,13 +13,6 @@ import {
   type ActionItem,
 } from "./dialogStore";
 
-/**
- * Renders the ConfirmDialog + ActionSheet for the imperative
- * `confirm()` / `actionSheet()` APIs. Mounted once at root.
- *
- * The Modal primitive does the heavy lifting (slide-up bottom sheet
- * with drag handle); we just compose the body for each dialog type.
- */
 export function DialogHost() {
   return (
     <>

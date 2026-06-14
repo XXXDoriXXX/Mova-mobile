@@ -7,20 +7,11 @@ import { useTheme } from "@/theme/ThemeProvider";
 
 type ScreenProps = {
   children: ReactNode;
-  /** Apply the standard 22px horizontal page inset. Disable for full-bleed
-   *  scroll views that want to manage their own padding. */
   padded?: boolean;
-  /** Optional override for the background colour. The "ink" preset paints
-   *  the warm-white canvas dark (forest) — used by the welcome screen. */
   background?: "default" | "ink";
   style?: ViewStyle;
 };
 
-/**
- * Root frame for every route. Sets the canvas colour, drives the status
- * bar style, and applies the standard horizontal inset. Scrollable
- * content should be wrapped in a `ScrollView` inside this component.
- */
 export function Screen({
   children,
   padded = true,

@@ -20,7 +20,6 @@ async function write(value: string): Promise<void> {
   await SecureStore.setItemAsync(KEY, value);
 }
 
-/** True if the user has already finished onboarding on this device. */
 export async function isOnboardingCompleted(): Promise<boolean> {
   const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2_000));
   const value = await Promise.race([read(), timeout]);

@@ -26,9 +26,6 @@ type CallKeepLike = {
 
 function loadCallKeep(): CallKeepLike | null {
   try {
-    // Optional native dependency. Present only in a custom dev/standalone
-    // build (`npx expo install react-native-callkeep`). Absent in Expo Go,
-    // where the hook falls back to an in-app incoming-call screen.
 
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require("react-native-callkeep") as {

@@ -1,15 +1,8 @@
-/**
- * Test environment shims. Kept minimal — RN/Expo code that touches native
- * modules is mocked per-test, not globally.
- */
 
-// Suppress noisy "useNativeDriver" warnings during reducer/protocol tests
-// that never touch the renderer.
 jest.mock("react-native/Libraries/Animated/NativeAnimatedHelper", () => ({}), {
   virtual: true,
 });
 
-// expo-haptics has no JS fallback in tests; stub the surface we use.
 jest.mock("expo-haptics", () => ({
   NotificationFeedbackType: {
     Success: "success",
@@ -22,7 +15,6 @@ jest.mock("expo-haptics", () => ({
   impactAsync: jest.fn(() => Promise.resolve()),
 }));
 
-// SecureStore has a native module; stub with an in-memory bag.
 jest.mock("expo-secure-store", () => {
   const store = new Map<string, string>();
   return {
@@ -38,7 +30,6 @@ jest.mock("expo-secure-store", () => {
   };
 });
 
-// expo-constants reads from a manifest we don't have at test time.
 jest.mock("expo-constants", () => ({
   __esModule: true,
   default: {
@@ -51,16 +42,10 @@ jest.mock("expo-constants", () => ({
   },
 }));
 
-// expo-localization just needs the surface used by `pickInitialLocale`.
 jest.mock("expo-localization", () => ({
   getLocales: () => [{ languageCode: "uk" }],
 }));
 
-// react-native-reanimated has a complex worklet runtime that doesn't run in
-// Jest. Roll a minimal mock that covers what the app actually uses:
-//  - `default` exports — Animated.View / Animated.Text fall through to RN
-//  - useSharedValue / useAnimatedStyle / withRepeat / withTiming / Easing
-//  - layout animations (FadeIn / FadeOut) as no-ops with chainable methods
 jest.mock("react-native-reanimated", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const RN = require("react-native");
@@ -102,9 +87,6 @@ jest.mock("react-native-reanimated", () => {
   };
 });
 
-// Initialize i18next once for the entire suite so `useTranslation()` works.
-// Keeping it here (rather than per-file) means tests that don't care about
-// strings still get sensible fallbacks instead of NO_I18NEXT_INSTANCE warnings.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { initI18n } = require("@/i18n");
 initI18n();

@@ -12,9 +12,8 @@ describe("refreshScheduler", () => {
 
   it("schedules a refresh ~60s before expiry, not on or after expiry", () => {
     const { schedulePreemptiveRefresh } = require("@/auth/refreshScheduler");
-    const expiresAt = new Date(Date.now() + 5 * 60_000).toISOString(); // 5 min ahead
+    const expiresAt = new Date(Date.now() + 5 * 60_000).toISOString();
     schedulePreemptiveRefresh(expiresAt);
-    // The refresh hasn't fired yet — the auth store snapshot is untouched.
     const { useAuthStore } = require("@/auth/store");
     expect(useAuthStore.getState().accessToken).toBeNull();
   });
@@ -49,7 +48,6 @@ describe("refreshScheduler", () => {
     const { schedulePreemptiveRefresh } = require("@/auth/refreshScheduler");
     schedulePreemptiveRefresh(new Date(Date.now() - 1000).toISOString());
 
-    // Allow microtask + axios mock to resolve.
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
@@ -61,9 +59,7 @@ describe("refreshScheduler", () => {
     const { schedulePreemptiveRefresh } = require("@/auth/refreshScheduler");
     schedulePreemptiveRefresh(new Date(Date.now() + 10 * 60_000).toISOString());
     schedulePreemptiveRefresh(null);
-    // Advance way past when the first timer would have fired — nothing happens.
     jest.advanceTimersByTime(10 * 60_000);
-    // Just reaching here without errors is the assertion; no observable side-effect.
     expect(true).toBe(true);
   });
 

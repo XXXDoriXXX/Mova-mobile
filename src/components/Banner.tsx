@@ -13,13 +13,6 @@ type Props = {
   action?: ReactNode;
 };
 
-/**
- * Soft inline notice. The fill is a tinted card rather than a stark
- * coloured block — matches the brand's quiet, paper-like feel. Reserve
- * `danger` for genuine blockers (signed-out, failed payment); `warning`
- * for soft warnings (low balance); `info` for the "applies next call"
- * footnote on the in-call settings drawer.
- */
 const TONE_BG: Record<BannerTone, string> = {
   info: "rgba(15,58,46,0.06)",
   success: "rgba(31,138,76,0.10)",

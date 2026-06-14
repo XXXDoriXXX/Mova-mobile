@@ -12,7 +12,6 @@ export type CallSocketOptions = {
 };
 
 export type CallSocket = Socket & {
-  // Strongly-typed send helper for client → server commands.
   sendCommand: (command: ClientCommand) => void;
 };
 
@@ -38,11 +37,6 @@ export function createCallSocket(opts: CallSocketOptions): CallSocket {
   return callSocket;
 }
 
-/**
- * Subscribe to validated server events. Inbound messages that don't match the
- * canonical schema are dropped + breadcrumbed (the protocol is the contract;
- * a shape mismatch is a backend bug, not a UI bug).
- */
 export function onServerEvent(
   socket: CallSocket,
   handler: (event: ServerEvent) => void,

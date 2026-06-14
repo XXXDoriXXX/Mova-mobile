@@ -33,11 +33,6 @@ export function CallConnecting() {
   }, []);
 
   const elapsedMs = startedAt ? now - startedAt : 0;
-  // Prefer the authoritative status when it's available:
-  //   - `ringing` → backend confirmed the dial fired and we're waiting
-  //     for the phone to pick up. Use the time elapsed inside ringing to
-  //     decide between dialing copy (early) and stalled copy (very late).
-  //   - otherwise → derive from WS connectivity + elapsed time as before.
   const phase: Phase =
     status === "ringing"
       ? elapsedMs < 5_000
@@ -53,8 +48,6 @@ export function CallConnecting() {
             ? "ringing"
             : "stalled";
 
-  // Pulsing circle scale — driven on the UI thread so it doesn't tick
-  // with React's render cadence.
   const pulse = useSharedValue(1);
   useEffect(() => {
     pulse.value = withRepeat(
@@ -88,8 +81,6 @@ export function CallConnecting() {
           justifyContent: "center",
         }}
       >
-        {/* Outer ring pulses, inner solid stays still — gives the
-            "breathing dot" effect without the icon swelling. */}
         <Animated.View
           style={[
             {
@@ -118,7 +109,6 @@ export function CallConnecting() {
       </View>
 
       <Animated.View
-        // Cross-fade the copy so phase transitions feel intentional.
         key={phase}
         entering={FadeIn.duration(220)}
         exiting={FadeOut.duration(120)}

@@ -1,12 +1,3 @@
-/**
- * Optional Sentry integration. When `EXPO_PUBLIC_SENTRY_DSN` isn't set the
- * functions are no-ops, so the rest of the codebase can call them
- * unconditionally without a feature flag.
- *
- * We load `@sentry/react-native` lazily via `require()` to keep apps without a
- * DSN free of the native module dependency — only call `initSentry()` once on
- * boot. All other helpers tolerate an uninitialized state.
- */
 
 import { SENTRY_DSN } from "@/constants/env";
 
@@ -34,22 +25,18 @@ export function initSentry(): void {
     });
     sentry = mod;
   } catch {
-    // @sentry/react-native isn't installed → silently skip. Apps that need it
-    // declare it as a dependency and re-bundle.
     sentry = null;
   }
 }
 
 export function captureException(error: unknown, context?: Record<string, unknown>): void {
   if (!sentry) {
-    // Fall back to console so developers still see something during dev.
     console.error("[unreported]", error, context);
     return;
   }
   try {
     sentry.captureException(error, { extra: context });
   } catch {
-    // Swallow — observability must never crash the app.
   }
 }
 
@@ -58,7 +45,6 @@ export function addBreadcrumb(crumb: Breadcrumb): void {
   try {
     sentry.addBreadcrumb(crumb);
   } catch {
-    // ignore
   }
 }
 
@@ -67,6 +53,5 @@ export function setUserContext(user: { id: string; email: string } | null): void
   try {
     sentry.setUser(user);
   } catch {
-    // ignore
   }
 }

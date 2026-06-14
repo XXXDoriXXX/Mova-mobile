@@ -37,13 +37,6 @@ import {
 } from "@/features/calls";
 import { formatDuration } from "@/utils/format";
 
-/**
- * Live call screen. Header has a back arrow, a centre identity pill
- * (avatar + name + duration), and a destructive hangup button — exactly
- * the layout from the design canvas. Beneath, a "live speaker" status
- * card pulses while the partner is mid-utterance; the transcript fills
- * the centre; quick-replies + composer pin the bottom.
- */
 export default function LiveCallScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -84,26 +77,14 @@ export default function LiveCallScreen() {
 
   useEffect(() => {
     if (!toastError) return;
-    // Recoverable error → fire the warning toast for the haptic punch
-    // (notification + vibration), but DON'T auto-clear the store error
-    // anymore. CallStatusBanner now renders it inline above the
-    // transcript and stays until the user dismisses it or a new event
-    // replaces it — the previous 4s auto-clear meant the message was
-    // usually gone before the user looked up from the chat.
     toast.warning(toastError.message);
   }, [toastError]);
 
-  // Fatal errors get a louder error toast — the screen reroutes anyway,
-  // but the toast travels with the user to the next screen so they know
-  // what happened.
   useEffect(() => {
     if (!fatalError) return;
     toast.error(fatalError.message);
   }, [fatalError]);
 
-  // When the call ends (or fatal-errors out), invalidate the queries the
-  // History + Home screens read from so the new conversation appears + the
-  // free-seconds / balance figures reflect the just-finished session.
   useEffect(() => {
     if (!endInfo && !fatalError) return;
     queryClient.invalidateQueries({ queryKey: ["conversations"] });
@@ -119,8 +100,6 @@ export default function LiveCallScreen() {
   function handleSuggestion(s: { id: string; content: string }) {
     useCallStore.getState().pushUserTyped(s.content);
     useCallStore.getState().removeSuggestion(s.id);
-    // A chosen suggestion must be VOICED via speak() — the agent treats
-    // accept_suggestion as audit-only (marks wasChosen) and never speaks it.
     controls.speak(s.content);
     controls.acceptSuggestion(s.id);
   }
@@ -145,13 +124,10 @@ export default function LiveCallScreen() {
     if (ok) controls.endCall();
   }
 
-  // Android hardware back during an active call must NOT silently leave the
-  // screen — that would orphan the live connection on the backend while the
-  // user sees a stale /call/pre. Surface the same hang-up confirm instead.
   useFocusEffect(
     useCallback(() => {
       const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-        if (endInfo || fatalError) return false; // let the system handle it
+        if (endInfo || fatalError) return false;
         handleEnd();
         return true;
       });
@@ -181,9 +157,6 @@ export default function LiveCallScreen() {
   }
 
   if (fatalError) {
-    // Retry restarts the whole call flow by routing to /call/pre with
-    // the conversation discarded. The user re-picks template/style if
-    // needed and a fresh `startCall` mints a new conversation.
     return (
       <Screen>
         <CallFatal
@@ -201,29 +174,11 @@ export default function LiveCallScreen() {
     );
   }
 
-  // Keep the ringing-loader on screen until we have a real interlocutor
-  // (status === "active"). We intentionally do NOT peek at bubbles: the agent
-  // speaks a greeting into the still-ringing leg, and showing that bubble used
-  // to reveal the chat before anyone picked up. A genuine interlocutor
-  // transcript promotes status to "active" (see shouldAutoPromoteToActive), so
-  // status alone is the correct, truthful gate.
   const showConnectingState = status === "connecting" || status === "ringing";
   const reconnecting = status === "reconnecting";
 
   return (
     <Screen padded={false}>
-      {/* KeyboardAvoidingView pushes the entire call layout up when the
-          soft keyboard opens, so the MessageInput at the bottom stays
-          visible above the keyboard instead of being covered by it.
-          Without this on Android the user has to tap an invisible input;
-          on iOS the keyboard sits on top of the composer at the screen
-          edge. `padding` behaviour on iOS adds bottom padding equal to
-          the keyboard height (the canonical fix), Android uses `height`
-          which resizes the available area to the same end effect.
-
-          Note: we wrap inside Screen (which is a SafeAreaView) so the
-          safe-area insets are computed BEFORE the keyboard adjustment —
-          the wrong order makes the layout jitter on the first focus. */}
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -238,13 +193,6 @@ export default function LiveCallScreen() {
         reconnecting={reconnecting}
       />
 
-      {/* ActiveStackStrip (deepgram · gemini · elevenlabs · Sarah)
-          intentionally removed — exposing the live provider stack to
-          end-users was an info leak with zero upside: the registry
-          auto-picks the healthiest combo per turn, so the chip row
-          mostly read as system noise the user couldn't act on. Tap
-          target for the settings drawer is now the header pill itself. */}
-
       <SpeakerStatus
         speaking={interlocutorSpeaking}
         aiThinking={aiThinking}
@@ -256,18 +204,8 @@ export default function LiveCallScreen() {
         controls={controls}
       />
 
-      {/* Persistent in-context banner. Owns its own visibility logic:
-          renders the reconnecting state when WS is bouncing, and the
-          recoverable-error banner with friendly UA copy otherwise.
-          Both are dismissible (where appropriate) and outlast the
-          transient toast that fires for haptics. */}
       <CallStatusBanner />
 
-      {/* Low-quota warning. Fires only on the free plan in the last
-          ~30 seconds — leaves the user enough time to wrap up the
-          sentence instead of getting cut off mid-word by the balance
-          watchdog. Paid plans have a wallet, not a quota, so the
-          countdown is meaningless for them. */}
       {usageTick?.planCode === "free" &&
       typeof usageTick.secondsRemaining === "number" &&
       usageTick.secondsRemaining > 0 &&
@@ -280,10 +218,6 @@ export default function LiveCallScreen() {
       ) : (
         <>
           <Transcript bubbles={bubbles} aiThinking={aiThinking} />
-          {/* AI candidate preview — the LLM produced a reply but the
-              user hasn't accepted yet. Shows above the suggestion
-              chips so the user's eye lands on it first. Countdown
-              ring sweeps in auto mode; Send/Cancel buttons either way. */}
           {pendingAiReply ? (
             <AiReplyCandidate
               candidate={pendingAiReply}
@@ -292,10 +226,6 @@ export default function LiveCallScreen() {
             />
           ) : null}
           <SuggestionChips items={suggestions} onPick={handleSuggestion} />
-          {/* Allow typing as soon as the call has any signal of life. Only
-              hard-disable on the terminal `ended` state — `reconnecting`
-              would otherwise lock the composer during a brief WS flap with
-              no chance to recover the typed text. */}
           <MessageInput onSend={handleSend} disabled={status === "ended"} />
         </>
       )}
@@ -312,15 +242,6 @@ type HeaderProps = {
   reconnecting: boolean;
 };
 
-/**
- * In-call header — only TWO controls: a wide identity pill that doubles as
- * the settings entry-point, and a danger hangup button on the right.
- *
- * There is no back button: the previous implementation routed back to
- * /call/pre without ending the call, orphaning the live connection. Now
- * the only way out is the hangup button (or Android hardware back, which
- * we intercept above to show the same confirm).
- */
 function Header({
   durationSeconds,
   secondsRemaining,
@@ -465,16 +386,6 @@ function SpeakerStatus({
   );
 }
 
-/**
- * Free-plan-only countdown banner. Fires at ≤30s remaining so the
- * user can say "let me call you back" instead of getting cut off
- * mid-word by the balance watchdog. Uses the danger tone in the
- * last 10s — psychologically the second-by-second countdown drives
- * the urgency, but the colour drives the "this matters" eye-pull.
- *
- * On the paid plan this never renders — the user's wallet means the
- * call ends when they hang up, not on a clock.
- */
 function LowQuotaWarning({ seconds }: { seconds: number }) {
   const theme = useTheme();
   const { t } = useTranslation();

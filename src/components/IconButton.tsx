@@ -6,31 +6,22 @@ import { useTheme } from "@/theme/ThemeProvider";
 import type { HapticKind } from "@/utils/haptics";
 
 export type IconButtonTone =
-  | "surface"   // white card with hairline border (default)
-  | "ink"       // ink filled, white icon
-  | "accent"    // lime filled, ink icon
-  | "inverse"   // forest filled, white icon
-  | "muted"     // beige chip background
-  | "danger"    // red filled, white icon (hangup)
-  | "ghost";    // transparent over coloured surface
+  | "surface"
+  | "ink"
+  | "accent"
+  | "inverse"
+  | "muted"
+  | "danger"
+  | "ghost";
 
 export type IconButtonProps = Omit<PressableProps, "style" | "children"> & {
-  /** The icon node — typically `<Ionicons />` or a custom SVG. */
   children: ReactNode;
   size?: number;
   tone?: IconButtonTone;
   shadow?: boolean;
-  /** Override the haptic. Defaults differ by tone (danger → warning,
-   *  accent → selection, otherwise light). Pass null to suppress. */
   haptic?: HapticKind | null;
 };
 
-/**
- * Round tactile button. Used for header controls (back, brand, hangup)
- * and the `→` affordances on cards. Press fires the tone-appropriate
- * haptic; danger gets a "warning" tick so users feel the gravity of
- * the action before the alert pops.
- */
 export function IconButton({
   children,
   size = 42,

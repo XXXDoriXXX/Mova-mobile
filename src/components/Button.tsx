@@ -12,11 +12,11 @@ import { useTheme } from "@/theme/ThemeProvider";
 import type { HapticKind } from "@/utils/haptics";
 
 export type ButtonVariant =
-  | "primary"   // ink solid pill — default CTA
-  | "accent"    // lime solid pill — highlight CTA
-  | "secondary" // white card pill with ink border
-  | "ghost"     // transparent + ink text
-  | "danger";   // red pill
+  | "primary"
+  | "accent"
+  | "secondary"
+  | "ghost"
+  | "danger";
 
 export type ButtonSize = "md" | "lg";
 
@@ -26,22 +26,11 @@ export type ButtonProps = Omit<PressableProps, "style" | "children"> & {
   size?: ButtonSize;
   loading?: boolean;
   fullWidth?: boolean;
-  /** Optional leading icon (an `<Ionicons>` or any node). */
   leading?: ReactNode;
-  /** Optional trailing icon. Useful for "→" affordances. */
   trailing?: ReactNode;
-  /** Override the haptic kind. Defaults to "light"; destructive
-   *  buttons get "warning"; accent (primary "happy path" CTAs) get
-   *  a slightly heavier "selection" tick. Pass null to suppress. */
   haptic?: HapticKind | null;
 };
 
-/**
- * Primary CTA primitive. Variants map 1:1 to the brand palette: `primary`
- * is the ink pill, `accent` the lime pill, `secondary` the white card with
- * hairline border. Size `lg` is the home-screen "Start call" footprint;
- * `md` is the in-form / in-card footprint.
- */
 export function Button({
   label,
   variant = "primary",
@@ -78,7 +67,6 @@ export function Button({
     ? { minHeight: 54, paddingHorizontal: 22, paddingVertical: 14 }
     : { minHeight: 44, paddingHorizontal: 18, paddingVertical: 10 };
 
-  // Pick a haptic appropriate to the variant unless one was passed in.
   const resolvedHaptic: HapticKind | null = haptic === undefined
     ? (variant === "danger" ? "warning"
        : variant === "accent" ? "selection"

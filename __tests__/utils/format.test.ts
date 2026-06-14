@@ -23,12 +23,10 @@ describe("estimateMinutesFromBalance", () => {
   });
 
   it("computes whole minutes from balance/pricePerSecond", () => {
-    // 1¢/s * 60s/min = 60¢/min ⇒ 6000¢ = 100 min
     expect(estimateMinutesFromBalance(6000, 1)).toBe(100);
   });
 
   it("floors fractional minutes (no rounding up)", () => {
-    // 6090¢ / 1¢/s = 6090s = 101.5 min ⇒ floor → 101
     expect(estimateMinutesFromBalance(6090, 1)).toBe(101);
   });
 });

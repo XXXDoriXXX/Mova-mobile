@@ -15,12 +15,6 @@ import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import { getStyleProfile, resetStyleProfile } from "@/api/styleProfile";
 
-/**
- * Style-profile dashboard. Shows aggregate stats (sample count, avg len,
- * total chars, last-updated) plus a few exemplar snippets, with a
- * destructive "reset" gated by a confirmation modal. Empty state when
- * the user hasn't typed enough yet for adaptation to kick in.
- */
 export default function StyleProfileScreen() {
   const { t, i18n } = useTranslation();
   const theme = useTheme();

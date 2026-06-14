@@ -18,21 +18,9 @@ import {
   type ToastVariant,
 } from "./toastStore";
 
-// Re-export the imperative API + types so consumers can import everything
-// from this module (the visual host) when convenient.
 export { toast, useToastStore };
 export type { ToastVariant };
 
-/**
- * Visual toast layer. Mounted ONCE at the very top of the tree (root
- * layout) so the pills render above tabs, screens and any keyboard.
- *
- * Toasts stack from bottom up (newest at the bottom, closest to where
- * the user's thumb just tapped). Each toast auto-dismisses after
- * `DURATION_MS`; tapping the pill dismisses early. When a toast is
- * removed, Reanimated's `LinearTransition` re-flows the remaining
- * pills smoothly so the stack never "jumps".
- */
 const DURATION_MS = 3200;
 
 const ICON_FOR: Record<ToastVariant, keyof typeof Ionicons.glyphMap> = {

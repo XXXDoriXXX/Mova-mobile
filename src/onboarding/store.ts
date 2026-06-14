@@ -8,12 +8,6 @@ type OnboardingState = {
   complete: () => Promise<void>;
 };
 
-/**
- * Tracks whether the user has finished the welcome wizard on this device.
- * Lives in a tiny standalone store so AuthGate and OnboardingScreen agree
- * on a single source of truth — re-reading SecureStore on every navigation
- * tick is unnecessary I/O.
- */
 export const useOnboardingStore = create<OnboardingState>((set) => ({
   status: "unknown",
   async hydrate() {

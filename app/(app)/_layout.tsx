@@ -5,16 +5,6 @@ import { useTranslation } from "react-i18next";
 import { TabBar } from "@/components/TabBar";
 import { CallProgressBanner, useCallSignaling } from "@/features/calls";
 
-/**
- * Hosts the three primary destinations (home / history / settings) plus
- * every route that is reachable by navigation but should not appear in
- * the tab bar (`href: null`). The bar itself is the floating dark pill
- * defined in `src/components/TabBar.tsx`.
- *
- * Above the tab bar we also render `CallProgressBanner` — a floating
- * lime pill that surfaces when the user wandered off /call/live mid
- * call so the active session is one tap away.
- */
 export default function AppTabsLayout() {
   const { t } = useTranslation();
   useCallSignaling();
@@ -29,7 +19,6 @@ export default function AppTabsLayout() {
         <Tabs.Screen name="history" options={{ title: t("tabs.history") }} />
         <Tabs.Screen name="settings" options={{ title: t("tabs.settings") }} />
 
-        {/* Routes accessible via navigation but hidden from the tab bar */}
         <Tabs.Screen name="billing" options={{ href: null }} />
         <Tabs.Screen name="templates" options={{ href: null }} />
         <Tabs.Screen name="template/[id]" options={{ href: null }} />

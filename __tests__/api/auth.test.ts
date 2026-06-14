@@ -33,7 +33,6 @@ describe("auth API", () => {
     await logout();
     expect(captured).not.toBeNull();
     expect(captured!.body).toEqual({ refreshToken: "refresh-1" });
-    // skipAuth was set — the Bearer header must not be present.
     expect(captured!.headers?.Authorization).toBeUndefined();
   });
 

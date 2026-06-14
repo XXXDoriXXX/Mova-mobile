@@ -1,11 +1,3 @@
-/**
- * Jest config for the Expo / React Native app.
- *
- * Tests live in __tests__ at the repo root and consume the `@/` alias via
- * `moduleNameMapper`. The preset handles the bulk of RN/Expo transformations;
- * `transformIgnorePatterns` is widened so packages shipped as ESM are
- * transformed instead of being executed verbatim.
- */
 module.exports = {
   preset: "jest-expo",
   setupFilesAfterEnv: [

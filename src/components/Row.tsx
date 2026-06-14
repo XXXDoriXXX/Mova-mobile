@@ -12,16 +12,9 @@ type Props = {
   onLongPress?: () => void;
   trailing?: React.ReactNode;
   iconName?: keyof typeof Ionicons.glyphMap;
-  /** Tint applied to the icon badge. Defaults to the muted beige chip. */
   tone?: "neutral" | "danger";
 };
 
-/**
- * Settings-style list row. White card with a soft icon badge on the left,
- * title + optional subtitle in the middle, chevron (or custom trailing
- * node) on the right. Tap target spans the whole row and scales
- * subtly on press; long-press fires a heavier `selection` haptic.
- */
 export function Row({
   title,
   subtitle,

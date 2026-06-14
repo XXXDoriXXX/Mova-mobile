@@ -1,11 +1,3 @@
-/**
- * Typed deep-link builders. Expo Router auto-derives the linking config from
- * the file-based routes; the helpers here exist so push notification payloads
- * and external integrations have a single canonical name per route and break
- * the build when a route is removed.
- *
- * Scheme: `mova://` (set in `app.config.ts`).
- */
 
 const SCHEME = "mova://";
 

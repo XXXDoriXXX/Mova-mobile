@@ -60,10 +60,7 @@ export type CallEnd = {
     | "admin";
   durationSeconds: number;
   endedBy: "user" | "system" | "interlocutor" | "admin";
-  /** Specific cause (CallErrorCode string) when present — drives the precise
-   *  end-screen message. */
   errorCode?: string;
-  /** Whether the call was ever answered — words the screen + gates redial. */
   wasAnswered?: boolean;
 };
 

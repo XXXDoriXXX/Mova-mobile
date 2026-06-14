@@ -3,12 +3,6 @@ import { recordBreadcrumb, reportError } from "./telemetry";
 
 type Fields = Record<string, unknown>;
 
-/**
- * Structured, easy-to-read call logging for the mobile client. Every line is
- * tagged with the call event name and (when provided) the conversationId, so a
- * single call's whole lifecycle can be followed in the dev console and in the
- * Sentry breadcrumb trail attached to any later crash report.
- */
 export function callLog(evt: string, fields?: Fields): void {
   if (__DEV__) {
     console.log(`[mova/call] ${evt}`, fields ?? "");

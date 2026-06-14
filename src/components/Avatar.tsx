@@ -4,14 +4,9 @@ import { Text } from "./Text";
 import { useTheme } from "@/theme/ThemeProvider";
 
 type Props = {
-  /** User's full name. Initials are derived from the first two non-empty words. */
   name: string | null | undefined;
   size?: number;
-  /** Optional background colour override. Defaults to a stable pastel
-   *  derived from the name hash so a single user always gets the same
-   *  tone across screens. */
   background?: string;
-  /** Optional ring around the avatar (used for stacked rows). */
   ringColor?: string;
 };
 
@@ -23,11 +18,6 @@ function initialsOf(name: string | null | undefined): string {
   return (parts[0]![0]! + parts[1]![0]!).toUpperCase();
 }
 
-/**
- * Initials-in-a-circle avatar. The background colour is selected
- * deterministically from a tiny pastel palette so contacts have a
- * recognisable identity without us having uploaded images.
- */
 export function Avatar({ name, size = 40, background, ringColor }: Props) {
   const theme = useTheme();
   const initials = initialsOf(name);
