@@ -40,7 +40,7 @@ export function AiReplyCandidate({ candidate, onAccept, onCancel }: Props) {
     return () => clearInterval(id);
   }, [isAuto]);
   const remainingMs = isAuto
-    ? Math.max(0, totalMs - (now - candidate.receivedAt))
+    ? Math.max(0, totalMs - Math.max(0, now - candidate.receivedAt))
     : 0;
   const remainingS = Math.ceil(remainingMs / 1000);
 
