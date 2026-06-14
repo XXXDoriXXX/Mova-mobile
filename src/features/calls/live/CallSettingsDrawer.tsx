@@ -32,6 +32,7 @@ export function CallSettingsDrawer({ visible, onClose, controls }: Props) {
   const activeTtsProvider = useCallStore((s) => s.activeTtsProvider);
   const autoMode = useCallStore((s) => s.autoMode);
   const setAutoModeStore = useCallStore((s) => s.setAutoMode);
+  const setActiveStyleIdStore = useCallStore((s) => s.setActiveStyleId);
   const userPreferredTtsProvider = useAuthStore(
     (s) => s.user?.preferredTtsProvider ?? null,
   );
@@ -94,6 +95,11 @@ export function CallSettingsDrawer({ visible, onClose, controls }: Props) {
   }, [visible, initialProvider]);
 
   function handleStyle(styleId: string) {
+    // Optimistically highlight the picked chip so the selection moves on tap,
+    // matching the auto-mode toggle above. The backend `call.config.changed`
+    // echo remains the source of truth and confirms/overrides this value
+    // (and reconnect replay recovers it), so we never diverge permanently.
+    setActiveStyleIdStore(styleId);
     controls.changeStyle(styleId);
   }
 
