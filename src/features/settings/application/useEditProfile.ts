@@ -9,8 +9,6 @@ import type { Language } from "@/types/api";
 
 export type EditProfileInput = {
   name: string;
-  // phone is no longer edited here — it is set via the verification flow
-  // (/settings/verify-phone). The server rejects it in a profile patch.
   language: Language;
   isDeafMute: boolean;
 };

@@ -5,10 +5,11 @@ export type UserRole = "user" | "admin";
 export type User = {
   id: string;
   email: string;
+  emailVerified: boolean;
   name: string;
+  username: string | null;
   role: UserRole;
   language: Language;
-  phoneNumber: string | null;
   preferredVoice: string | null;
   preferredLlmProvider: string | null;
   preferredLlmModel: string | null;
@@ -229,12 +230,22 @@ export type IncomingCall = {
   caller: { id: string; name: string };
 };
 
-export type PeerLookupResult = {
+// A user as seen through the contacts surface (search result, accepted
+// contact, or the sender of an incoming request).
+export type ContactUser = {
   id: string;
+  username: string | null;
   name: string;
   isDeafMute: boolean;
-  online: boolean;
 };
+
+export type IncomingContactRequest = {
+  requestId: string;
+  from: ContactUser;
+  createdAt: string;
+};
+
+export type ContactRequestStatus = "pending" | "accepted" | "declined";
 
 export type TopupResponse = {
   paymentEventId: string;
@@ -269,6 +280,10 @@ export type ApiErrorPayload = {
   statusCode: number;
   message: string | string[];
   error?: string;
+  // Domain error discriminator set by some endpoints (e.g. EMAIL_NOT_VERIFIED,
+  // NOT_A_CONTACT). Present alongside `message` when the server throws a
+  // structured error object.
+  code?: string;
   secondsNeeded?: number;
   balanceCents?: number;
   secondsRemaining?: number;

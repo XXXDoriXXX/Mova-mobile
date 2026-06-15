@@ -2,17 +2,33 @@ import { apiClient } from "./client";
 import { useAuthStore } from "@/auth/store";
 import type { AuthResponse, Language, User } from "@/types/api";
 
+// Registration is gated on email verification: the server creates the
+// account, mails a confirmation link and issues NO session. The user must
+// confirm via the emailed link before they can log in.
+export type RegisterResult = { verificationRequired: true; email: string };
+
 export async function register(input: {
   email: string;
   password: string;
   name: string;
-}): Promise<AuthResponse> {
-  const { data } = await apiClient.post<AuthResponse>(
+  username: string;
+}): Promise<RegisterResult> {
+  const { data } = await apiClient.post<RegisterResult>(
     "/auth/register",
     input,
     { meta: { skipAuth: true } },
   );
   return data;
+}
+
+// Re-send the verification link for an unconfirmed account (used from the
+// post-register gate and the EMAIL_NOT_VERIFIED login path). Public route.
+export async function resendVerification(email: string): Promise<void> {
+  await apiClient.post(
+    "/auth/email/resend",
+    { email },
+    { meta: { skipAuth: true } },
+  );
 }
 
 export async function login(input: {
@@ -53,8 +69,6 @@ export async function patchMe(
   patch: Partial<
     Pick<
       User,
-      // phoneNumber is NOT patchable — it is owned by the verification flow
-      // (confirmPhone). The server rejects it in a profile patch.
       | "name"
       | "language"
       | "preferredVoice"
@@ -69,19 +83,8 @@ export async function patchMe(
   return data;
 }
 
-// Hand the Firebase phone-auth ID token (obtained after the SMS OTP) to the
-// server, which verifies it and claims the proven number for this account.
-export async function confirmPhone(
-  firebaseIdToken: string,
-): Promise<{ phoneNumber: string }> {
-  const { data } = await apiClient.post<{ phoneNumber: string }>(
-    "/auth/phone/confirm",
-    { firebaseIdToken },
-  );
-  return data;
-}
-
-// Ask the server to email a verification link to the current account.
+// Ask the server to email a verification link to the current (authenticated)
+// account.
 export async function sendEmailVerification(): Promise<void> {
   await apiClient.post("/auth/email/send-verification");
 }

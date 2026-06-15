@@ -65,43 +65,27 @@ describe("auth API", () => {
     expect(captured!.body).toEqual({ password: "secret123" });
   });
 
-  it("register does NOT send `language` (backend rejects extra fields)", async () => {
+  it("register posts email/password/name/username and returns the verification gate (no session)", async () => {
     let captured: any = null;
     mock.onPost("/auth/register").reply((config) => {
       captured = JSON.parse(config.data ?? "{}");
-      return [
-        201,
-        {
-          user: {
-            id: "u",
-            email: "a@b.c",
-            name: "T",
-            role: "user",
-            language: "uk",
-            phoneNumber: null,
-            preferredVoice: null,
-            preferredLlmProvider: null,
-            preferredLlmModel: null,
-            preferredTtsProvider: null,
-            preferredStyleId: null,
-            createdAt: new Date().toISOString(),
-          },
-          tokens: {
-            accessToken: "at",
-            refreshToken: "rt",
-            refreshExpiresAt: new Date().toISOString(),
-          },
-        },
-      ];
+      return [201, { verificationRequired: true, email: "a@b.c" }];
     });
     const { register } = require("@/api/auth");
-    await register({ email: "a@b.c", password: "Pass1234", name: "T" });
+    const resp = await register({
+      email: "a@b.c",
+      password: "Pass1234",
+      name: "T",
+      username: "tester",
+    });
     expect(captured).toEqual({
       email: "a@b.c",
       password: "Pass1234",
       name: "T",
+      username: "tester",
     });
     expect(captured.language).toBeUndefined();
+    expect(resp).toEqual({ verificationRequired: true, email: "a@b.c" });
   });
 
   it("login returns nested {user, tokens} shape verbatim", async () => {

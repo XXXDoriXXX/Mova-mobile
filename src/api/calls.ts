@@ -1,9 +1,5 @@
 import { apiClient } from "./client";
-import type {
-  CallStartResponse,
-  PeerCallStartResponse,
-  PeerLookupResult,
-} from "@/types/api";
+import type { CallStartResponse, PeerCallStartResponse } from "@/types/api";
 
 export type StartCallInput = {
   targetPhone: string;
@@ -18,20 +14,6 @@ export async function startCall(
     input,
   );
   return data;
-}
-
-export async function lookupPeerUser(
-  phone: string,
-): Promise<PeerLookupResult | null> {
-  try {
-    const { data } = await apiClient.get<PeerLookupResult>(
-      "/calls/peer/lookup",
-      { params: { phone } },
-    );
-    return data;
-  } catch {
-    return null;
-  }
 }
 
 export type StartPeerCallInput = {

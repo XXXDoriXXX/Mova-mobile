@@ -42,6 +42,10 @@
     "forgotPassword": "Forgot password?",
     "nameLabel": "Name",
     "namePlaceholder": "How should we address you",
+    "usernameLabel": "Nickname",
+    "usernamePlaceholder": "e.g. oksana_k",
+    "usernameHelper": "People find and add you by this",
+    "usernameInvalid": "3–30 chars: letters, digits, _ or .",
     "languageLabel": "Language",
     "languageUk": "Ukrainian",
     "languageEn": "English",
@@ -95,6 +99,7 @@
   "tabs": {
     "home": "Home",
     "history": "History",
+    "contacts": "Contacts",
     "settings": "Profile"
   },
   "settings": {
@@ -111,7 +116,8 @@
     "language": "App language",
     "profileSaved": "Profile saved",
     "editProfile": "Edit profile",
-    "editProfilePhone": "Phone number",
+    "editProfileUsername": "Nickname",
+    "usernameNone": "Not set",
     "editProfileNameRequired": "Name is required",
     "changePassword": "Change password",
     "changePasswordCurrent": "Current password",
@@ -547,5 +553,42 @@
     "send": "Send verification email",
     "sent": "Email sent — check your inbox and open the link",
     "error": "Could not send the email"
+  },
+  "verifyEmailGate": {
+    "title": "One last step 👋",
+    "body": "We sent a confirmation link to:",
+    "hint": "Open the email and tap the button — then you can sign in. Don't see it? Check your spam folder.",
+    "goToLogin": "I've confirmed — sign in",
+    "resend": "Resend the email",
+    "resent": "Done — a fresh email is on its way",
+    "resendError": "Couldn't send it. Check your connection and try again"
+  },
+  "contacts": {
+    "title": "Contacts",
+    "addLabel": "Add by nickname or email",
+    "addPlaceholder": "e.g. oksana_k or oksana@mail.com",
+    "addCta": "Send request",
+    "addSent": "Request sent — once accepted, you can call them",
+    "addAccepted": "Done! You're now in each other's contacts",
+    "addNotFound": "No one found with that nickname or email",
+    "addFailed": "Couldn't send the request. Try again",
+    "requestsTitle": "Requests to you",
+    "listTitle": "Your contacts",
+    "emptyTitle": "Nothing here yet",
+    "emptyBody": "Add someone by nickname or email — they'll show up here",
+    "accept": "Accept",
+    "decline": "Decline",
+    "call": "Call",
+    "remove": "Remove",
+    "removeConfirmTitle": "Remove contact?",
+    "removeConfirmBody": "{{name}} will be removed from your contacts. You can add them again anytime.",
+    "removeConfirmCta": "Remove",
+    "callErrMedia": "Voice calls are only available in the full app",
+    "callErrNotContact": "Add this person to your contacts first",
+    "callErrOffline": "This user is offline right now",
+    "callErrBusy": "This user is on another call",
+    "callErrUnavailable": "This user can't receive calls",
+    "callErrInProgress": "You're already on a call",
+    "callErrGeneric": "Couldn't start the call. Try again"
   }
 }

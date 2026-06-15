@@ -1,41 +1,26 @@
 import { act, renderHook } from "@testing-library/react-native";
 
-import { persistLanguage, register as registerApi } from "@/api/auth";
+import { register as registerApi } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
 import { useRegisterUseCase } from "@/features/auth/application/useRegisterUseCase";
 
 jest.mock("@/api/auth", () => ({
   login: jest.fn(),
-  persistLanguage: jest.fn(),
   register: jest.fn(),
+  resendVerification: jest.fn(),
   signInWithGoogle: jest.fn(),
 }));
 jest.mock("@/utils/haptics", () => ({ triggerHaptic: jest.fn() }));
 
 const mockRegister = registerApi as jest.MockedFunction<typeof registerApi>;
-const mockPersistLanguage = persistLanguage as jest.MockedFunction<typeof persistLanguage>;
 
-function makeSession(overrides: Partial<{ email: string; language: "uk" | "en" }> = {}) {
-  return {
-    user: {
-      id: "u-1",
-      email: overrides.email ?? "u@example.com",
-      name: "Test",
-      language: overrides.language ?? ("uk" as const),
-      preferredVoice: null,
-      preferredLlmProvider: null,
-      preferredLlmModel: null,
-      preferredTtsProvider: null,
-      preferredStyleId: null,
-      createdAt: new Date().toISOString(),
-    },
-    tokens: {
-      accessToken: "at",
-      refreshToken: "rt",
-      refreshExpiresAt: new Date(Date.now() + 60_000).toISOString(),
-    },
-  };
-}
+const VALUES = {
+  email: "u@example.com",
+  password: "Strong-Pass-1",
+  name: "Test",
+  username: "tester",
+  language: "uk" as const,
+};
 
 function axiosError(payload: unknown, status: number) {
   return {
@@ -48,7 +33,6 @@ function axiosError(payload: unknown, status: number) {
 describe("useRegisterUseCase", () => {
   beforeEach(() => {
     mockRegister.mockReset();
-    mockPersistLanguage.mockReset();
     useAuthStore.setState({
       status: "guest",
       user: null,
@@ -58,55 +42,38 @@ describe("useRegisterUseCase", () => {
     });
   });
 
-  it("on success: writes session and reports ok=true", async () => {
-    mockRegister.mockResolvedValue(makeSession());
+  it("on success: issues NO session, returns the email for the verify gate", async () => {
+    mockRegister.mockResolvedValue({
+      verificationRequired: true,
+      email: "u@example.com",
+    });
 
     const { result } = renderHook(() => useRegisterUseCase());
     let outcome: Awaited<ReturnType<typeof result.current.execute>> | null = null;
     await act(async () => {
-      outcome = await result.current.execute({
-        email: "u@example.com",
-        password: "Strong-Pass-1",
-        name: "Test",
-        language: "uk",
-      });
+      outcome = await result.current.execute(VALUES);
     });
 
     expect(outcome!.ok).toBe(true);
-    expect(useAuthStore.getState().status).toBe("authed");
-    expect(mockPersistLanguage).not.toHaveBeenCalled();
+    if (outcome!.ok) expect(outcome!.email).toBe("u@example.com");
+    // Hard gate: the store must stay a guest until the user verifies + logs in.
+    expect(useAuthStore.getState().status).toBe("guest");
   });
 
-  it("persists language when user picked a non-default and server returned the default", async () => {
-    mockRegister.mockResolvedValue(makeSession({ language: "uk" }));
+  it("forwards the username to the API", async () => {
+    mockRegister.mockResolvedValue({
+      verificationRequired: true,
+      email: "u@example.com",
+    });
 
     const { result } = renderHook(() => useRegisterUseCase());
     await act(async () => {
-      await result.current.execute({
-        email: "u@example.com",
-        password: "Strong-Pass-1",
-        name: "Test",
-        language: "en",
-      });
+      await result.current.execute(VALUES);
     });
 
-    expect(mockPersistLanguage).toHaveBeenCalledWith("en");
-  });
-
-  it("does NOT persist language when it matches what the server returned", async () => {
-    mockRegister.mockResolvedValue(makeSession({ language: "en" }));
-
-    const { result } = renderHook(() => useRegisterUseCase());
-    await act(async () => {
-      await result.current.execute({
-        email: "u@example.com",
-        password: "Strong-Pass-1",
-        name: "Test",
-        language: "en",
-      });
-    });
-
-    expect(mockPersistLanguage).not.toHaveBeenCalled();
+    expect(mockRegister).toHaveBeenCalledWith(
+      expect.objectContaining({ username: "tester" }),
+    );
   });
 
   it("on 409: returns inline emailError, no banner, session untouched", async () => {
@@ -117,12 +84,7 @@ describe("useRegisterUseCase", () => {
     const { result } = renderHook(() => useRegisterUseCase());
     let outcome: Awaited<ReturnType<typeof result.current.execute>> | null = null;
     await act(async () => {
-      outcome = await result.current.execute({
-        email: "u@example.com",
-        password: "Strong-Pass-1",
-        name: "Test",
-        language: "uk",
-      });
+      outcome = await result.current.execute(VALUES);
     });
 
     expect(outcome!.ok).toBe(false);
@@ -141,12 +103,7 @@ describe("useRegisterUseCase", () => {
     const { result } = renderHook(() => useRegisterUseCase());
     let outcome: Awaited<ReturnType<typeof result.current.execute>> | null = null;
     await act(async () => {
-      outcome = await result.current.execute({
-        email: "u@example.com",
-        password: "weak",
-        name: "Test",
-        language: "uk",
-      });
+      outcome = await result.current.execute({ ...VALUES, password: "weak" });
     });
 
     expect(outcome!.ok).toBe(false);
