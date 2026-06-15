@@ -45,3 +45,8 @@ app-example
 # generated native folders (from `expo prebuild`)
 /ios
 /android
+
+# Firebase / FCM credentials — secrets, never commit
+/google-services.json
+/GoogleService-Info.plist
+*firebase-adminsdk*.json
