@@ -8,6 +8,8 @@ import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import { answerPeerCall, declinePeerCall } from "@/api/calls";
+import { extractErrorPayload } from "@/api/client";
+import { toast } from "@/feedback/toast";
 import { useCallSignalStore, dismissNativeCall } from "@/features/calls";
 import { useIncomingCallAlert } from "@/features/calls/incoming/application/useIncomingCallAlert";
 import { callLog, callError } from "@/observability/callLog";
@@ -50,6 +52,16 @@ export default function IncomingCallScreen() {
       });
     } catch (err) {
       callError("call.incoming.acceptFailed", err, { conversationId });
+      const status = extractErrorPayload(err)?.statusCode;
+      if (status === 409 || status === 404) {
+        // The call was cancelled / ended before we could answer — don't strand
+        // the user on the incoming screen with a silently re-enabled button.
+        dismissNativeCall(conversationId);
+        clearForConversation(conversationId);
+        toast.info("Дзвінок завершено");
+        router.back();
+        return;
+      }
       handledRef.current = false;
       setBusy(false);
     }
