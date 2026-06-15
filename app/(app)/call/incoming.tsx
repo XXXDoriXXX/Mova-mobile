@@ -9,6 +9,7 @@ import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import { answerPeerCall, declinePeerCall } from "@/api/calls";
 import { useCallSignalStore, dismissNativeCall } from "@/features/calls";
+import { useIncomingCallAlert } from "@/features/calls/incoming/application/useIncomingCallAlert";
 import { callLog, callError } from "@/observability/callLog";
 
 export default function IncomingCallScreen() {
@@ -28,6 +29,11 @@ export default function IncomingCallScreen() {
   const handledRef = useRef(false);
 
   const callerName = incoming?.caller.name ?? "Невідомий";
+
+  // Vibrate continuously while ringing — the deaf user can't hear the ringtone.
+  useIncomingCallAlert(
+    Boolean(incoming) && params.autoAnswer !== "1" && !busy,
+  );
 
   const accept = useCallback(async () => {
     if (!conversationId || handledRef.current) return;
