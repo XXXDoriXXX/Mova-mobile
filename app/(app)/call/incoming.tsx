@@ -10,8 +10,8 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { answerPeerCall, declinePeerCall } from "@/api/calls";
 import { extractErrorPayload } from "@/api/client";
 import { toast } from "@/feedback/toast";
-import { useCallSignalStore, dismissNativeCall } from "@/features/calls";
-import { useIncomingCallAlert } from "@/features/calls/incoming/application/useIncomingCallAlert";
+import { useCallSignalStore, useIncomingCallAlert } from "@/features/calls";
+import { dismissNativeCall } from "@/notifications/nativeCallUi";
 import { callLog, callError } from "@/observability/callLog";
 
 export default function IncomingCallScreen() {

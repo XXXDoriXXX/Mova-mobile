@@ -12,12 +12,13 @@ import { registerPushToken } from "@/api/push";
 import { declinePeerCall } from "@/api/calls";
 import { callLog, callWarn } from "@/observability/callLog";
 
-import { useCallSignalStore } from "../callSignalStore";
 import {
   dismissNativeCall,
   presentIncomingCall,
   setupNativeCallUi,
-} from "./nativeCallUi";
+} from "@/notifications/nativeCallUi";
+
+import { useCallSignalStore } from "../callSignalStore";
 
 async function syncPushToken(): Promise<void> {
   try {

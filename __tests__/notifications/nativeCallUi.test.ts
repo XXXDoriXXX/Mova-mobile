@@ -21,7 +21,7 @@ import callKeepMock from "react-native-callkeep";
 import {
   presentIncomingCall,
   setupNativeCallUi,
-} from "@/features/calls/incoming/application/nativeCallUi";
+} from "@/notifications/nativeCallUi";
 
 const mock = callKeepMock as unknown as {
   __listeners: Map<string, (payload: unknown) => void>;

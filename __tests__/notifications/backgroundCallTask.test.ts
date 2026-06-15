@@ -3,11 +3,11 @@ jest.mock("expo-task-manager", () => ({
   defineTask: jest.fn(),
 }));
 
-jest.mock("@/features/calls/incoming/application/nativeCallUi", () => ({
+jest.mock("@/notifications/nativeCallUi", () => ({
   presentIncomingCall: jest.fn(async () => undefined),
 }));
 
-import { presentIncomingCall } from "@/features/calls/incoming/application/nativeCallUi";
+import { presentIncomingCall } from "@/notifications/nativeCallUi";
 import { handleBackgroundCall } from "@/notifications/backgroundCallTask";
 
 const present = presentIncomingCall as jest.Mock;
