@@ -9,6 +9,7 @@ import { useTheme } from "@/theme/ThemeProvider";
 const ICONS: Record<string, [keyof typeof Ionicons.glyphMap, keyof typeof Ionicons.glyphMap]> = {
   home: ["home", "home-outline"],
   history: ["time", "time-outline"],
+  contacts: ["people", "people-outline"],
   settings: ["person", "person-outline"],
 };
 
