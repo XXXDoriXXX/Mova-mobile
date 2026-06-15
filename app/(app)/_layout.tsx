@@ -17,6 +17,7 @@ export default function AppTabsLayout() {
       >
         <Tabs.Screen name="home" options={{ title: t("tabs.home") }} />
         <Tabs.Screen name="history" options={{ title: t("tabs.history") }} />
+        <Tabs.Screen name="contacts" options={{ title: t("tabs.contacts") }} />
         <Tabs.Screen name="settings" options={{ title: t("tabs.settings") }} />
 
         <Tabs.Screen name="billing" options={{ href: null }} />
