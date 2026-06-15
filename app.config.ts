@@ -27,6 +27,22 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
+    // Native incoming-call (react-native-callkeep, self-managed) plus a
+    // full-screen heads-up call notification that wakes the device from a
+    // locked/killed state. The ConnectionService and its signature permission
+    // ship in callkeep's own manifest and merge at prebuild; these are the
+    // runtime permissions the app itself must declare.
+    permissions: [
+      "android.permission.FOREGROUND_SERVICE",
+      "android.permission.FOREGROUND_SERVICE_PHONE_CALL",
+      "android.permission.USE_FULL_SCREEN_INTENT",
+      "android.permission.POST_NOTIFICATIONS",
+      "android.permission.WAKE_LOCK",
+      "android.permission.MANAGE_OWN_CALLS",
+      "android.permission.READ_PHONE_STATE",
+      "android.permission.READ_PHONE_NUMBERS",
+      "android.permission.RECORD_AUDIO",
+    ],
   },
   web: {
     output: "static",
@@ -36,7 +52,26 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-router",
     "expo-secure-store",
     "expo-localization",
-    "expo-notifications",
+    [
+      "expo-notifications",
+      {
+        icon: "./assets/images/icon.png",
+        color: "#0E1116",
+        // Background data-only call pushes (type:"incoming_call") must wake the
+        // JS background task on Android even when the app is killed, so callkeep
+        // can present the native incoming-call UI.
+        enableBackgroundRemoteNotifications: true,
+      },
+    ],
+    [
+      "expo-build-properties",
+      {
+        android: {
+          // callkeep's ConnectionService + foreground service need API 24+.
+          minSdkVersion: 24,
+        },
+      },
+    ],
     [
       "expo-splash-screen",
       {
