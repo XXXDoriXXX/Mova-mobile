@@ -10,6 +10,8 @@ import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
 import { useTheme } from "@/theme/ThemeProvider";
 import { useAuthStore } from "@/auth/store";
+import { sendEmailVerification } from "@/api/auth";
+import { toast } from "@/feedback/toast";
 import type { Language } from "@/types/api";
 
 import { useEditProfile } from "./application/useEditProfile";
@@ -26,6 +28,19 @@ export function EditProfileModal({ visible, onClose }: Props) {
   const [language, setLanguage] = useState<Language>(user?.language ?? "uk");
   const [isDeafMute, setIsDeafMute] = useState(user?.isDeafMute ?? true);
   const [error, setError] = useState<string | null>(null);
+  const [emailBusy, setEmailBusy] = useState(false);
+
+  async function handleSendEmail() {
+    setEmailBusy(true);
+    try {
+      await sendEmailVerification();
+      toast.success(t("verifyEmail.sent"));
+    } catch {
+      toast.error(t("verifyEmail.error"));
+    } finally {
+      setEmailBusy(false);
+    }
+  }
 
   const { submitting, execute } = useEditProfile();
 
@@ -84,6 +99,17 @@ export function EditProfileModal({ visible, onClose }: Props) {
               onClose();
               router.push("/settings/verify-phone");
             }}
+          />
+        </View>
+        <View style={{ gap: theme.spacing.xs }}>
+          <Text variant="label">{t("verifyEmail.label")}</Text>
+          <Text variant="body">{user?.email ?? ""}</Text>
+          <Button
+            label={t("verifyEmail.send")}
+            variant="secondary"
+            size="md"
+            loading={emailBusy}
+            onPress={handleSendEmail}
           />
         </View>
         <View style={{ gap: theme.spacing.xs }}>

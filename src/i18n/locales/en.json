@@ -541,5 +541,11 @@
     "errAlreadyTaken": "This number is already verified on another account",
     "errTokenRejected": "The server rejected the verification",
     "errGeneric": "Could not verify the number"
+  },
+  "verifyEmail": {
+    "label": "Email",
+    "send": "Send verification email",
+    "sent": "Email sent — check your inbox and open the link",
+    "error": "Could not send the email"
   }
 }
