@@ -7,6 +7,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "Mova",
   slug: "mova",
+  owner: "vadymk",
   scheme: "mova",
   version: "0.1.0",
   orientation: "portrait",
@@ -94,7 +95,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // getExpoPushTokenAsync({ projectId }) can resolve it in any build profile.
     // Without it, push-token registration throws in standalone/EAS builds.
     eas: {
-      projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID,
+      // Public EAS project identifier (@vadymk/mova). Hard-coded as the default
+      // because the dynamic config can't be auto-written by `eas init`; env can
+      // still override it per build profile.
+      projectId:
+        process.env.EXPO_PUBLIC_EAS_PROJECT_ID ??
+        "43dcdb6d-67d6-43c0-95fe-985578f3e27e",
     },
     apiUrl: process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_API_URL,
     wsUrl: process.env.EXPO_PUBLIC_WS_URL ?? DEFAULT_WS_URL,
