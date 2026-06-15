@@ -81,6 +81,11 @@ export async function confirmPhone(
   return data;
 }
 
+// Ask the server to email a verification link to the current account.
+export async function sendEmailVerification(): Promise<void> {
+  await apiClient.post("/auth/email/send-verification");
+}
+
 export async function changePassword(input: {
   currentPassword: string;
   newPassword: string;
