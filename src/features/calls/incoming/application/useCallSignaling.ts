@@ -8,6 +8,7 @@ import { createSignalSocket, onSignalEvent } from "@/realtime/signal";
 import { registerForPush } from "@/notifications/registration";
 import { addIncomingCallListener } from "@/notifications/incomingCallListener";
 import { registerPushToken } from "@/api/push";
+import { declinePeerCall } from "@/api/calls";
 import { callLog, callWarn } from "@/observability/callLog";
 
 import { useCallSignalStore } from "../callSignalStore";
@@ -52,6 +53,15 @@ export function useCallSignaling(): void {
         });
       },
       onEnd: (conversationId) => {
+        // The native (CallKit/CallKeep) decline is the most common reject path
+        // on a locked phone. Notify the backend (teardown + signal the caller)
+        // — not just clear local state — or the caller stays stuck "ringing"
+        // and the callee's PENDING row blocks them for ~5 min. Fire-and-forget.
+        void declinePeerCall(conversationId).catch((err) =>
+          callWarn("signal.nativeDecline.failed", {
+            message: err instanceof Error ? err.message : String(err),
+          }),
+        );
         useCallSignalStore.getState().clearForConversation(conversationId);
       },
     });
