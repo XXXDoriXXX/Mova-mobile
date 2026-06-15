@@ -36,6 +36,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-router",
     "expo-secure-store",
     "expo-localization",
+    "expo-notifications",
     [
       "expo-splash-screen",
       {
@@ -51,6 +52,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     reactCompiler: true,
   },
   extra: {
+    // EAS injects this during a build; we also surface it from env so
+    // getExpoPushTokenAsync({ projectId }) can resolve it in any build profile.
+    // Without it, push-token registration throws in standalone/EAS builds.
+    eas: {
+      projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID,
+    },
     apiUrl: process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_API_URL,
     wsUrl: process.env.EXPO_PUBLIC_WS_URL ?? DEFAULT_WS_URL,
     sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
