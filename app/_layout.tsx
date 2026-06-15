@@ -21,6 +21,7 @@ import { initTelemetry, setCurrentScreen } from "@/observability/telemetry";
 import { installGlobalErrorHandlers } from "@/observability/errorHandlers";
 import { ensureIncomingCallChannel } from "@/notifications/callChannel";
 import { installNotificationHandler } from "@/notifications/notificationHandler";
+import { registerBackgroundCallTask } from "@/notifications/backgroundCallTask";
 import i18n, { initI18n } from "@/i18n";
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
@@ -36,6 +37,7 @@ export default function RootLayout() {
     installGlobalErrorHandlers();
     installNotificationHandler();
     void ensureIncomingCallChannel();
+    void registerBackgroundCallTask();
   }, []);
 
   useEffect(() => {
