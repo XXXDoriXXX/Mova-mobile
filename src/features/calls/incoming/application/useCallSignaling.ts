@@ -83,7 +83,7 @@ export function useCallSignaling(): void {
       switch (event.type) {
         case "call.incoming":
           store.setIncoming(event.data);
-          presentIncomingCall(event.data);
+          void presentIncomingCall(event.data);
           router.push({
             pathname: "/call/incoming",
             params: { conversationId: event.data.conversationId },
