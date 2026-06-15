@@ -20,6 +20,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: "app.mova.client",
+    // FCM client config (gitignored secret) — lets the app obtain a push token
+    // from the mova-c4f51 Firebase project. Falls back gracefully when absent
+    // (e.g. CI) so config evaluation never throws.
+    googleServicesFile:
+      process.env.GOOGLE_SERVICES_JSON ?? "./google-services.json",
     adaptiveIcon: {
       backgroundColor: "#0E1116",
       foregroundImage: "./assets/images/android-icon-foreground.png",
