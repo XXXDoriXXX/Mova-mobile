@@ -3,29 +3,7 @@ import Constants from "expo-constants";
 
 import type { IncomingCall } from "@/types/api";
 
-type IncomingCallData = {
-  type?: string;
-  conversationId?: string;
-  roomName?: string;
-  callerId?: string;
-  callerName?: string;
-};
-
-function toIncomingCall(data: IncomingCallData): IncomingCall | null {
-  if (
-    data.type !== "incoming_call" ||
-    !data.conversationId ||
-    !data.roomName ||
-    !data.callerId
-  ) {
-    return null;
-  }
-  return {
-    conversationId: data.conversationId,
-    roomName: data.roomName,
-    caller: { id: data.callerId, name: data.callerName ?? "Невідомий" },
-  };
-}
+import { toIncomingCall, type IncomingCallData } from "./incomingCallPayload";
 
 // Identifier of the launch notification already handled via the cold-start
 // path, so the live listener and effect re-runs don't re-open the same call.
