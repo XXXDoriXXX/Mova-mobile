@@ -72,6 +72,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
       },
     ],
+    // Injects callkeep's Telecom VoiceConnectionService into the manifest
+    // (the library ships no config plugin and omits it from its own manifest).
+    "./plugins/withCallkeepAndroid",
     [
       "expo-splash-screen",
       {
