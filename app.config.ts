@@ -81,6 +81,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // Injects callkeep's Telecom VoiceConnectionService into the manifest
     // (the library ships no config plugin and omits it from its own manifest).
     "./plugins/withCallkeepAndroid",
+    // Firebase Phone Auth (SMS OTP) — wires the Google Services gradle plugin
+    // and reads android.googleServicesFile above. Auth is autolinked.
+    "@react-native-firebase/app",
     [
       "expo-splash-screen",
       {

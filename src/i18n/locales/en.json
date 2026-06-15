@@ -520,5 +520,26 @@
     "slide3Title": "Your style",
     "slide3Body": "Pick how the AI should sound. You can change it anytime later.",
     "stylePickerTitle": "Pick your default style"
+  },
+  "verifyPhone": {
+    "title": "Verify your number",
+    "subtitle": "So people can call you, confirm your phone number with an SMS code.",
+    "notVerified": "Number not verified",
+    "verifyCta": "Verify number",
+    "changeVerify": "Change / verify number",
+    "phoneLabel": "Phone number",
+    "sendCode": "Send code",
+    "codeLabel": "SMS code",
+    "verify": "Verify",
+    "changeNumber": "Change number",
+    "done": "Number {{phone}} verified ✅",
+    "errInvalidNumber": "Invalid phone number format",
+    "errInvalidCode": "Wrong code",
+    "errCodeExpired": "Code expired — request a new one",
+    "errTooMany": "Too many attempts, try again later",
+    "errAppConfig": "App configuration error",
+    "errAlreadyTaken": "This number is already verified on another account",
+    "errTokenRejected": "The server rejected the verification",
+    "errGeneric": "Could not verify the number"
   }
 }

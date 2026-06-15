@@ -53,8 +53,9 @@ export async function patchMe(
   patch: Partial<
     Pick<
       User,
+      // phoneNumber is NOT patchable — it is owned by the verification flow
+      // (confirmPhone). The server rejects it in a profile patch.
       | "name"
-      | "phoneNumber"
       | "language"
       | "preferredVoice"
       | "preferredLlmProvider"
@@ -65,6 +66,18 @@ export async function patchMe(
   >,
 ): Promise<User> {
   const { data } = await apiClient.patch<User>("/auth/me", patch);
+  return data;
+}
+
+// Hand the Firebase phone-auth ID token (obtained after the SMS OTP) to the
+// server, which verifies it and claims the proven number for this account.
+export async function confirmPhone(
+  firebaseIdToken: string,
+): Promise<{ phoneNumber: string }> {
+  const { data } = await apiClient.post<{ phoneNumber: string }>(
+    "/auth/phone/confirm",
+    { firebaseIdToken },
+  );
   return data;
 }
 

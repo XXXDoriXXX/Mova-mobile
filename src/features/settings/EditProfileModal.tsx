@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { View } from "react-native";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
@@ -12,17 +13,16 @@ import { useAuthStore } from "@/auth/store";
 import type { Language } from "@/types/api";
 
 import { useEditProfile } from "./application/useEditProfile";
-import { validateProfile } from "./application/validateProfile";
 
 type Props = { visible: boolean; onClose: () => void };
 
 export function EditProfileModal({ visible, onClose }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
 
   const [name, setName] = useState(user?.name ?? "");
-  const [phone, setPhone] = useState(user?.phoneNumber ?? "");
   const [language, setLanguage] = useState<Language>(user?.language ?? "uk");
   const [isDeafMute, setIsDeafMute] = useState(user?.isDeafMute ?? true);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +32,6 @@ export function EditProfileModal({ visible, onClose }: Props) {
   useEffect(() => {
     if (!visible || !user) return;
     setName(user.name);
-    setPhone(user.phoneNumber ?? "");
     setLanguage(user.language);
     setIsDeafMute(user.isDeafMute);
     setError(null);
@@ -40,18 +39,12 @@ export function EditProfileModal({ visible, onClose }: Props) {
 
   async function handleSubmit() {
     setError(null);
-    const validation = validateProfile(name, phone);
-    if (!validation.ok) {
-      setError(
-        validation.reason === "nameRequired"
-          ? t("settings.editProfileNameRequired")
-          : t("preCall.phoneError"),
-      );
+    if (name.trim().length === 0) {
+      setError(t("settings.editProfileNameRequired"));
       return;
     }
     const result = await execute({
-      name: validation.name,
-      phone: validation.phone,
+      name: name.trim(),
       language,
       isDeafMute,
     });
@@ -71,14 +64,28 @@ export function EditProfileModal({ visible, onClose }: Props) {
           onChangeText={setName}
           autoCapitalize="words"
         />
-        <TextField
-          label={t("settings.editProfilePhone")}
-          value={phone}
-          onChangeText={setPhone}
-          keyboardType="phone-pad"
-          autoCapitalize="none"
-          placeholder="+380..."
-        />
+        <View style={{ gap: theme.spacing.xs }}>
+          <Text variant="label">{t("settings.editProfilePhone")}</Text>
+          <Text
+            variant="body"
+            color={user?.phoneNumber ? "text" : "textMuted"}
+          >
+            {user?.phoneNumber ?? t("verifyPhone.notVerified")}
+          </Text>
+          <Button
+            label={
+              user?.phoneNumber
+                ? t("verifyPhone.changeVerify")
+                : t("verifyPhone.verifyCta")
+            }
+            variant="secondary"
+            size="md"
+            onPress={() => {
+              onClose();
+              router.push("/settings/verify-phone");
+            }}
+          />
+        </View>
         <View style={{ gap: theme.spacing.xs }}>
           <Text variant="label">{t("auth.languageLabel")}</Text>
           <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
