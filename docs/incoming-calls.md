@@ -16,21 +16,22 @@
   під'єднання аудіо (`callMediaTransport`) → екран `app/(app)/call/outgoing.tsx`.
 - Профіль: онбординг та `EditProfileModal` записують `isDeafMute` через `PATCH /auth/me`.
 
-## Нативні залежності (потрібен dev build, не Expo Go)
+## Нативний вхідний дзвінок (потрібен dev build, не Expo Go)
 
-Аудіо-нога чуючого та системний екран дзвінка реалізовані за чистими портами з
-опціональним `require`, тож код збирається і працює без модулів (з graceful
-degradation до in-app екрана). Щоб увімкнути реальне аудіо та CallKit/ConnectionService:
+Повноекранний вхідний, що сам дзвонить навіть на заблокованому/вбитому Android
+(callkeep + фоновий push-таск + канал високого пріоритету). Рішення —
+[ADR-0005](adr/0005-android-native-incoming-call.md); покрокова збірка й тест —
+[native-incoming-call.md](native-incoming-call.md). Інфраструктура дзвінка живе
+у `src/notifications/` (`nativeCallUi.ts`, `backgroundCallTask.ts`,
+`callChannel.ts`, `missedCall.ts`). iOS поки на звичайних сповіщеннях.
+
+Аудіо-нога чуючого реалізована окремим портом з опціональним `require`
+(`src/features/calls/outgoing/application/callMediaTransport.ts` — LiveKit), тож
+збирається і без модуля. Для реального аудіо доставити:
 
 ```
-npx expo install @livekit/react-native @livekit/react-native-webrtc react-native-callkeep
+npx expo install @livekit/react-native @livekit/react-native-webrtc
 ```
-
-Далі зібрати dev/standalone build (`npx expo run:ios` / `run:android` або EAS).
-Порти автоматично активують реальні адаптери, щойно модулі присутні:
-
-- `src/features/calls/outgoing/application/callMediaTransport.ts` — LiveKit аудіо.
-- `src/features/calls/incoming/application/nativeCallUi.ts` — CallKeep / CallKit.
 
 ## VoIP push (бекенд)
 
