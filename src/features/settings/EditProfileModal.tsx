@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { View } from "react-native";
-import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
@@ -10,8 +9,6 @@ import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
 import { useTheme } from "@/theme/ThemeProvider";
 import { useAuthStore } from "@/auth/store";
-import { sendEmailVerification } from "@/api/auth";
-import { toast } from "@/feedback/toast";
 import type { Language } from "@/types/api";
 
 import { useEditProfile } from "./application/useEditProfile";
@@ -21,26 +18,12 @@ type Props = { visible: boolean; onClose: () => void };
 export function EditProfileModal({ visible, onClose }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const router = useRouter();
   const user = useAuthStore((s) => s.user);
 
   const [name, setName] = useState(user?.name ?? "");
   const [language, setLanguage] = useState<Language>(user?.language ?? "uk");
   const [isDeafMute, setIsDeafMute] = useState(user?.isDeafMute ?? true);
   const [error, setError] = useState<string | null>(null);
-  const [emailBusy, setEmailBusy] = useState(false);
-
-  async function handleSendEmail() {
-    setEmailBusy(true);
-    try {
-      await sendEmailVerification();
-      toast.success(t("verifyEmail.sent"));
-    } catch {
-      toast.error(t("verifyEmail.error"));
-    } finally {
-      setEmailBusy(false);
-    }
-  }
 
   const { submitting, execute } = useEditProfile();
 
@@ -80,37 +63,14 @@ export function EditProfileModal({ visible, onClose }: Props) {
           autoCapitalize="words"
         />
         <View style={{ gap: theme.spacing.xs }}>
-          <Text variant="label">{t("settings.editProfilePhone")}</Text>
-          <Text
-            variant="body"
-            color={user?.phoneNumber ? "text" : "textMuted"}
-          >
-            {user?.phoneNumber ?? t("verifyPhone.notVerified")}
+          <Text variant="label">{t("settings.editProfileUsername")}</Text>
+          <Text variant="body" color={user?.username ? "text" : "textMuted"}>
+            {user?.username ? `@${user.username}` : t("settings.usernameNone")}
           </Text>
-          <Button
-            label={
-              user?.phoneNumber
-                ? t("verifyPhone.changeVerify")
-                : t("verifyPhone.verifyCta")
-            }
-            variant="secondary"
-            size="md"
-            onPress={() => {
-              onClose();
-              router.push("/settings/verify-phone");
-            }}
-          />
         </View>
         <View style={{ gap: theme.spacing.xs }}>
           <Text variant="label">{t("verifyEmail.label")}</Text>
           <Text variant="body">{user?.email ?? ""}</Text>
-          <Button
-            label={t("verifyEmail.send")}
-            variant="secondary"
-            size="md"
-            loading={emailBusy}
-            onPress={handleSendEmail}
-          />
         </View>
         <View style={{ gap: theme.spacing.xs }}>
           <Text variant="label">{t("auth.languageLabel")}</Text>

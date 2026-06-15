@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pressable, TextInput, View } from "react-native";
+import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
@@ -20,6 +21,7 @@ type Props = {
 export function LoginForm({ onError }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const passwordRef = useRef<TextInput>(null);
 
@@ -39,6 +41,14 @@ export function LoginForm({ onError }: Props) {
     onError?.(null);
     const result = await execute(values);
     if (result.ok) return;
+    if ("needsVerification" in result) {
+      // Account exists but unconfirmed — send them to the gate to resend.
+      router.push({
+        pathname: "/verify-email",
+        params: { email: result.email },
+      });
+      return;
+    }
     if (result.error.emailError)
       setError("email", { message: result.error.emailError });
     if (result.error.passwordError)

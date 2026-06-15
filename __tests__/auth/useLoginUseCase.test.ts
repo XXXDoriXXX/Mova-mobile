@@ -96,6 +96,34 @@ describe("useLoginUseCase", () => {
     expect(useAuthStore.getState().status).toBe("guest");
   });
 
+  it("on 403 EMAIL_NOT_VERIFIED: routes to the verify gate, not a blocked banner", async () => {
+    mockLogin.mockRejectedValue(
+      makeAxiosError(
+        { code: "EMAIL_NOT_VERIFIED", message: "Confirm your email" },
+        403,
+      ),
+    );
+
+    const { result } = renderHook(() => useLoginUseCase());
+
+    let outcome: Awaited<ReturnType<typeof result.current.execute>> | null = null;
+    await act(async () => {
+      outcome = await result.current.execute({
+        email: "u@example.com",
+        password: "secret123",
+      });
+    });
+
+    expect(outcome!.ok).toBe(false);
+    if (!outcome!.ok && "needsVerification" in outcome!) {
+      expect(outcome!.needsVerification).toBe(true);
+      expect(outcome!.email).toBe("u@example.com");
+    } else {
+      throw new Error("expected needsVerification result");
+    }
+    expect(useAuthStore.getState().status).toBe("guest");
+  });
+
   it("on 409: returns emailError (inline) and no banner", async () => {
     mockLogin.mockRejectedValue(
       makeAxiosError({ statusCode: 409, message: "Taken" }, 409),

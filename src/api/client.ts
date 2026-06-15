@@ -122,3 +122,12 @@ export function extractErrorPayload(
   }
   return undefined;
 }
+
+// The HTTP status of a failed request. Structured error bodies (an object
+// passed to a Nest exception) omit `statusCode`, so read it off the response.
+export function extractErrorStatus(err: unknown): number | undefined {
+  if (axios.isAxiosError(err)) {
+    return err.response?.status;
+  }
+  return undefined;
+}

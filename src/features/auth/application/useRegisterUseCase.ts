@@ -1,18 +1,19 @@
 import { useState } from "react";
 
-import { persistLanguage, register as registerRequest } from "@/api/auth";
-import { useAuthStore } from "@/auth/store";
+import { register as registerRequest } from "@/api/auth";
 import { triggerHaptic } from "@/utils/haptics";
 
 import { useAuthErrorMapper, type AuthErrorMapping } from "../useAuthErrorMessage";
 import type { RegisterValues } from "../schemas";
 
+// Registration no longer issues a session — it mails a verification link and
+// the user must confirm before logging in. Success carries the email so the
+// gate screen can show "we sent a link to <email>" and offer a resend.
 export type RegisterResult =
-  | { ok: true }
+  | { ok: true; email: string }
   | { ok: false; error: AuthErrorMapping };
 
 export function useRegisterUseCase() {
-  const setSession = useAuthStore((s) => s.setSession);
   const mapError = useAuthErrorMapper();
   const [submitting, setSubmitting] = useState(false);
 
@@ -23,13 +24,10 @@ export function useRegisterUseCase() {
         email: values.email,
         password: values.password,
         name: values.name,
+        username: values.username,
       });
-      await setSession({ user: resp.user, tokens: resp.tokens });
       triggerHaptic("success");
-      if (values.language && values.language !== resp.user.language) {
-        void persistLanguage(values.language);
-      }
-      return { ok: true };
+      return { ok: true, email: resp.email };
     } catch (err) {
       triggerHaptic("error");
       return { ok: false, error: mapError(err) };

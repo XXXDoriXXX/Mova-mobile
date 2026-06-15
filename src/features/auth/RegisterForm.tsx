@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pressable, TextInput, View } from "react-native";
+import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
@@ -21,7 +22,9 @@ type Props = {
 export function RegisterForm({ onError }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const usernameRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const nameRef = useRef<TextInput>(null);
 
@@ -34,18 +37,32 @@ export function RegisterForm({ onError }: Props) {
     formState: { errors },
   } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { email: "", password: "", name: "", language: "uk" },
+    defaultValues: {
+      email: "",
+      password: "",
+      name: "",
+      username: "",
+      language: "uk",
+    },
   });
 
   async function onSubmit(values: RegisterValues) {
     onError?.(null);
     const result = await execute(values);
-    if (result.ok) return;
-    if (result.error.emailError)
-      setError("email", { message: result.error.emailError });
-    if (result.error.passwordError)
-      setError("password", { message: result.error.passwordError });
-    onError?.(result.error.banner ?? null);
+    if (!result.ok) {
+      if (result.error.emailError)
+        setError("email", { message: result.error.emailError });
+      if (result.error.passwordError)
+        setError("password", { message: result.error.passwordError });
+      onError?.(result.error.banner ?? null);
+      return;
+    }
+    // No session yet — the account is created but unverified. Send the user to
+    // the gate that explains "check your email" and offers a resend.
+    router.replace({
+      pathname: "/verify-email",
+      params: { email: result.email },
+    });
   }
 
   return (
@@ -65,8 +82,32 @@ export function RegisterForm({ onError }: Props) {
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
-            onSubmitEditing={() => passwordRef.current?.focus()}
+            onSubmitEditing={() => usernameRef.current?.focus()}
             error={errors.name?.message}
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="username"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <TextField
+            ref={usernameRef}
+            variant="card"
+            label={t("auth.usernameLabel")}
+            placeholder={t("auth.usernamePlaceholder")}
+            helperText={t("auth.usernameHelper")}
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="username-new"
+            returnKeyType="next"
+            value={value}
+            onChangeText={(text) => onChange(text.toLowerCase())}
+            onBlur={onBlur}
+            error={
+              errors.username?.message ? t("auth.usernameInvalid") : undefined
+            }
           />
         )}
       />
