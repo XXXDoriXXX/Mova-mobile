@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Row } from "@/components/Row";
 import { Spinner } from "@/components/Spinner";
 import { toast } from "@/feedback/toast";
-import { registerForPush } from "@/notifications/registration";
+import { enablePushNotifications } from "./application/enablePush";
 
 export function PushNotificationsRow() {
   const { t } = useTranslation();
@@ -16,12 +16,14 @@ export function PushNotificationsRow() {
   async function handlePress() {
     setBusy(true);
     try {
-      const result = await registerForPush();
-      setState(result.status);
-      if (result.status === "granted") {
+      const outcome = await enablePushNotifications();
+      setState(outcome === "error" ? "idle" : outcome);
+      if (outcome === "granted") {
         toast.success(t("settings.pushSuccessBody"), t("settings.pushSuccessTitle"));
-      } else if (result.status === "denied") {
+      } else if (outcome === "denied") {
         toast.warning(t("settings.pushDeniedBody"), t("settings.pushDeniedTitle"));
+      } else if (outcome === "error") {
+        toast.error(t("common.errorGeneric"), t("common.error"));
       } else {
         toast.info(t("settings.pushUnsupportedBody"), t("settings.pushUnsupportedTitle"));
       }
