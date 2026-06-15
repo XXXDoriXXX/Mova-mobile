@@ -24,7 +24,7 @@ export type { ErrorBannerCopy } from "./live/application/errorCopy";
 
 export { useCallSignalStore } from "./incoming/callSignalStore";
 export { useCallSignaling } from "./incoming/application/useCallSignaling";
-export { dismissNativeCall } from "./incoming/application/nativeCallUi";
+export { useIncomingCallAlert } from "./incoming/application/useIncomingCallAlert";
 export { useStartPeerCall } from "./outgoing/application/useStartPeerCall";
 export { getCallMediaTransport } from "./outgoing/application/callMediaTransport";
 

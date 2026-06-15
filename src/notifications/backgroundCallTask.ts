@@ -1,10 +1,10 @@
 import { Platform } from "react-native";
 import * as TaskManager from "expo-task-manager";
 
-import { presentIncomingCall } from "@/features/calls/incoming/application/nativeCallUi";
 import { callLog, callWarn } from "@/observability/callLog";
 
 import { loadNotifications } from "./expoNotifications";
+import { presentIncomingCall } from "./nativeCallUi";
 import { extractTaskCallData, toIncomingCall } from "./incomingCallPayload";
 
 export const BACKGROUND_NOTIFICATION_TASK = "mova-incoming-call";
