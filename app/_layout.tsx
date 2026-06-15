@@ -19,6 +19,8 @@ import { useAppFonts } from "@/theme/fonts";
 import { initSentry, setUserContext } from "@/observability/sentry";
 import { initTelemetry, setCurrentScreen } from "@/observability/telemetry";
 import { installGlobalErrorHandlers } from "@/observability/errorHandlers";
+import { ensureIncomingCallChannel } from "@/notifications/callChannel";
+import { installNotificationHandler } from "@/notifications/notificationHandler";
 import i18n, { initI18n } from "@/i18n";
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
@@ -32,6 +34,8 @@ export default function RootLayout() {
     initSentry();
     initTelemetry();
     installGlobalErrorHandlers();
+    installNotificationHandler();
+    void ensureIncomingCallChannel();
   }, []);
 
   useEffect(() => {
