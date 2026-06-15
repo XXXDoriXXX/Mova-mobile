@@ -10,7 +10,11 @@ import {
   withSystem,
   withUserTyped,
 } from "@/features/calls/live/application/callStoreReducers";
-import type { Bubble, PendingAiReply } from "@/features/calls/live/callStore";
+import {
+  useCallStore,
+  type Bubble,
+  type PendingAiReply,
+} from "@/features/calls/live/callStore";
 
 const at = 1_700_000_000_000;
 
@@ -192,5 +196,22 @@ describe("pendingAiReplyChange", () => {
 
   it("null reply does NOT touch aiThinking (preserves whatever it was)", () => {
     expect(pendingAiReplyChange(null)).toEqual({ pendingAiReply: null });
+  });
+});
+
+describe("pushUserTyped clears the pending AI candidate", () => {
+  it("drops pendingAiReply when the user speaks their own reply (no double-speak card)", () => {
+    useCallStore.getState().setPendingAiReply({
+      candidateId: "c-1",
+      text: "AI suggested line",
+      autoAcceptInMs: 5000,
+      receivedAt: at,
+      streaming: false,
+    });
+    expect(useCallStore.getState().pendingAiReply).not.toBeNull();
+
+    useCallStore.getState().pushUserTyped("my own reply");
+
+    expect(useCallStore.getState().pendingAiReply).toBeNull();
   });
 });

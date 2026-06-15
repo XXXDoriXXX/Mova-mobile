@@ -213,6 +213,11 @@ export const useCallStore = create<CallState>((set) => ({
     set((s) => ({
       bubbles: withUserTyped(s.bubbles, nextLocalId(), content, Date.now()),
       suggestions: [],
+      // The user took over the turn (manual text or a chosen suggestion) — drop
+      // the pending AI candidate card so it isn't left on screen after they
+      // spoke their own reply. The backend cancels it too; this is the
+      // optimistic mirror so the UI and the agent agree.
+      pendingAiReply: null,
     })),
   pushSystem: (content) =>
     set((s) => ({
