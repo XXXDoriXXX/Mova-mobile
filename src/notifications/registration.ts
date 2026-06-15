@@ -1,6 +1,15 @@
 import { Platform } from "react-native";
 import Constants from "expo-constants";
 
+import { callWarn } from "@/observability/callLog";
+
+function resolveProjectId(): string | undefined {
+  const extra = Constants.expoConfig?.extra as
+    | { eas?: { projectId?: string } }
+    | undefined;
+  return extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+}
+
 export type PushRegistrationResult =
   | { status: "granted"; token: string }
   | { status: "denied" }
@@ -29,9 +38,20 @@ export async function registerForPush(): Promise<PushRegistrationResult> {
 
     if (!granted) return { status: "denied" };
 
-    const token = await Notifications.getExpoPushTokenAsync();
+    // Standalone/EAS builds require an explicit projectId; without it
+    // getExpoPushTokenAsync throws. Pass the resolved id when we have one.
+    const projectId = resolveProjectId();
+    const token = await Notifications.getExpoPushTokenAsync(
+      projectId ? { projectId } : undefined,
+    );
     return { status: "granted", token: token.data };
-  } catch {
+  } catch (err) {
+    // Do NOT swallow silently: a missing projectId / misconfig used to
+    // masquerade as a benign "unsupported", so push never worked in prod and
+    // nothing was logged. Surface the real cause.
+    callWarn("push.register.failed", {
+      message: err instanceof Error ? err.message : String(err),
+    });
     return { status: "unsupported" };
   }
 }
