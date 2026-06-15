@@ -7,6 +7,7 @@ import { useAuthStore } from "@/auth/store";
 import { createSignalSocket, onSignalEvent } from "@/realtime/signal";
 import { registerForPush } from "@/notifications/registration";
 import { addIncomingCallListener } from "@/notifications/incomingCallListener";
+import { postMissedCallNotification } from "@/notifications/missedCall";
 import { registerPushToken } from "@/api/push";
 import { declinePeerCall } from "@/api/calls";
 import { callLog, callWarn } from "@/observability/callLog";
@@ -89,10 +90,20 @@ export function useCallSignaling(): void {
             params: { conversationId: event.data.conversationId },
           });
           return;
-        case "call.cancelled":
+        case "call.cancelled": {
+          // Read fresh state: a still-present `incoming` means the caller hung
+          // up while it was ringing (a genuine missed call). A user-initiated
+          // decline clears the store synchronously first, so this is null then.
+          const ringing = useCallSignalStore.getState().incoming;
+          const missed =
+            ringing?.conversationId === event.data.conversationId
+              ? ringing.caller.name
+              : null;
           dismissNativeCall(event.data.conversationId);
           store.clearForConversation(event.data.conversationId);
+          if (missed) void postMissedCallNotification(missed);
           return;
+        }
         case "call.accepted":
           store.setOutgoingStatus("accepted");
           return;
