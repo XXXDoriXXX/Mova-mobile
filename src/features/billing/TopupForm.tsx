@@ -21,7 +21,7 @@ import {
 import { useTopup } from "./application/useTopup";
 
 type Props = {
-  onSuccess: (info: { balanceCents: number; reused: boolean }) => void;
+  onSuccess: (info: { reused: boolean }) => void;
   initialAmountUah?: number;
   onConsumePrefill?: () => void;
 };
@@ -68,7 +68,7 @@ export function TopupForm({ onSuccess, initialAmountUah, onConsumePrefill }: Pro
     setError(null);
     const result = await execute(validation.amountCents);
     if (result.ok) {
-      onSuccess({ balanceCents: result.balanceCents, reused: result.reused });
+      onSuccess({ reused: result.reused });
       return;
     }
     switch (result.error.kind) {
