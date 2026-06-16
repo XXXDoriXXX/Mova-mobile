@@ -61,13 +61,11 @@ export default function BillingScreen() {
     },
   });
 
-  function handleTopupSuccess(info: { balanceCents: number; reused: boolean }) {
+  function handleTopupSuccess(info: { reused: boolean }) {
+    // The wallet credits server-side after the checkout the hook just opened;
+    // it already refetched the summary on return.
     queryClient.invalidateQueries({ queryKey: ["billing", "me"] });
-    if (info.reused) {
-      toast.info(t("billing.topupReused"));
-    } else {
-      toast.success(t("billing.topupSuccess"));
-    }
+    toast.info(info.reused ? t("billing.topupReused") : t("billing.topupOpened"));
   }
 
   return (
@@ -133,6 +131,7 @@ export default function BillingScreen() {
               <BillingOverview
                 summary={summaryQuery.data}
                 onOpenPlan={() => setTab("plan")}
+                onOpenSubscription={() => router.push("/subscription")}
                 onPickQuickTopup={(amount) => {
                   setTopupPrefill(amount);
                   setTab("topup");
@@ -146,7 +145,9 @@ export default function BillingScreen() {
               <Spinner />
             ) : (
               <PlanPicker
-                plans={plansQuery.data}
+                // PLUS is a paid subscription entered through its own paywall,
+                // not this free FREE/PAID toggle.
+                plans={plansQuery.data.filter((p) => p.code !== "plus")}
                 currentCode={summaryQuery.data.plan.code}
                 picking={pickingPlan}
                 onPick={(p) => subscribeMut.mutate(p.code)}

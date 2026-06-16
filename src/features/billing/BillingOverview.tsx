@@ -15,6 +15,7 @@ type Props = {
   summary: BillingSummary;
   onPickQuickTopup?: (amountUah: number) => void;
   onOpenPlan?: () => void;
+  onOpenSubscription?: () => void;
 };
 
 const QUICK_TOPUPS = [50, 100, 200];
@@ -23,6 +24,7 @@ export function BillingOverview({
   summary,
   onPickQuickTopup,
   onOpenPlan,
+  onOpenSubscription,
 }: Props) {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
@@ -50,9 +52,56 @@ export function BillingOverview({
     { day: "numeric", month: "short", year: "numeric" },
   );
 
+  const isPlus = summary.plan.code === "plus";
+
   return (
     <View style={{ gap: theme.spacing.md }}>
       <BalanceWidget summary={summary} />
+
+      {onOpenSubscription ? (
+        <PressableScale
+          onPress={onOpenSubscription}
+          haptic="light"
+          scaleTo={0.99}
+          style={{
+            backgroundColor: isPlus
+              ? theme.colors.surface
+              : theme.colors.surfaceInverse,
+            borderRadius: theme.radii.xxl,
+            padding: theme.spacing.lg,
+            borderWidth: 1,
+            borderColor: isPlus ? theme.colors.border : theme.colors.surfaceInverse,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 10,
+          }}
+        >
+          <View style={{ flex: 1, gap: 3 }}>
+            <Text
+              variant="subtitle"
+              color={isPlus ? "text" : "textInverse"}
+            >
+              MOVA Plus
+            </Text>
+            <Text
+              variant="caption"
+              color={isPlus ? "textMuted" : "textInverse"}
+            >
+              {isPlus
+                ? summary.cancelAtPeriodEnd
+                  ? t("billing.plus.endsAt", { date: renewsDate })
+                  : t("billing.plus.renewsAt", { date: renewsDate })
+                : t("billing.plus.ctaSubtitle")}
+            </Text>
+          </View>
+          <Ionicons
+            name={isPlus ? "chevron-forward" : "sparkles"}
+            size={20}
+            color={isPlus ? theme.colors.textMuted : theme.colors.accent}
+          />
+        </PressableScale>
+      ) : null}
 
       <PressableScale
         onPress={onOpenPlan}

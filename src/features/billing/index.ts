@@ -6,6 +6,10 @@ export { UsageList } from "./UsageList";
 
 export { useTopup } from "./application/useTopup";
 export {
+  useStartSubscription,
+  useCancelSubscription,
+} from "./application/useSubscription";
+export {
   validateTopupAmount,
   estimateMinutesFromTopup,
   TOPUP_QUICK_AMOUNTS,

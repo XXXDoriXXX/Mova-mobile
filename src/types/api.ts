@@ -51,13 +51,17 @@ export type Template = {
   deletedAt?: string | null;
 };
 
-export type PlanCode = "free" | "paid";
+export type PlanCode = "free" | "paid" | "plus";
 
 export type Plan = {
   id: string;
   code: PlanCode;
   name: string;
   pricePerSecondCents: number;
+  monthlyPriceCents: number;
+  premiumVoices: boolean;
+  unlimitedPeerCalls: boolean;
+  premiumModel: boolean;
   currency: "UAH";
   freeSecondsPerMonth: number;
   maxCallDurationSeconds: number;
@@ -74,6 +78,8 @@ export type BillingSummary = {
   freeSecondsUsed: number;
   freeSecondsRemaining: number;
   balanceCents: number;
+  // True on a PLUS tier the user cancelled but still has until period end.
+  cancelAtPeriodEnd: boolean;
 };
 
 export type ConversationStatus = "pending" | "active" | "ended" | "failed";
@@ -250,7 +256,9 @@ export type ContactRequestStatus = "pending" | "accepted" | "declined";
 export type TopupResponse = {
   paymentEventId: string;
   balanceCents: number;
-  paymentUrl: string | null;
+  // Provider checkout URL the client opens; the balance is credited only after
+  // the provider confirms (webhook / mock-pay page).
+  paymentUrl: string;
   reused: boolean;
 };
 

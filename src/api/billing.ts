@@ -51,3 +51,22 @@ export async function subscribe(input: {
   );
   return data;
 }
+
+// Start a MOVA Plus subscription checkout — returns a provider URL the client
+// opens; the subscription activates once the provider confirms.
+export async function startSubscriptionCheckout(): Promise<{
+  checkoutUrl: string;
+}> {
+  const { data } = await apiClient.post<{ checkoutUrl: string }>(
+    "/billing/subscription/checkout",
+  );
+  return data;
+}
+
+// Cancel auto-renewal — MOVA Plus stays active until the period ends.
+export async function cancelSubscription(): Promise<BillingSummary> {
+  const { data } = await apiClient.post<BillingSummary>(
+    "/billing/subscription/cancel",
+  );
+  return data;
+}

@@ -21,6 +21,10 @@ export default function AppTabsLayout() {
         <Tabs.Screen name="settings" options={{ title: t("tabs.settings") }} />
 
         <Tabs.Screen name="billing" options={{ href: null }} />
+        <Tabs.Screen
+          name="subscription"
+          options={{ href: null, tabBarStyle: { display: "none" } }}
+        />
         <Tabs.Screen name="templates" options={{ href: null }} />
         <Tabs.Screen name="template/[id]" options={{ href: null }} />
         <Tabs.Screen name="styles" options={{ href: null }} />
