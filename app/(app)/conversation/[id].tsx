@@ -6,7 +6,11 @@ import {
   ScrollView,
   View,
 } from "react-native";
-import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
+import Animated, {
+  Easing,
+  FadeInDown,
+  FadeOutDown,
+} from "react-native-reanimated";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   useInfiniteQuery,
@@ -250,7 +254,7 @@ export default function ConversationDetailScreen() {
       </ScrollView>
       {showJumpToBottom ? (
         <Animated.View
-          entering={FadeInDown.duration(200).springify().damping(14)}
+          entering={FadeInDown.duration(240).easing(Easing.out(Easing.cubic))}
           exiting={FadeOutDown.duration(140)}
           style={{
             position: "absolute",

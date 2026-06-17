@@ -1,5 +1,9 @@
 import { Pressable, View } from "react-native";
-import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
+import Animated, {
+  Easing,
+  FadeInDown,
+  FadeOutDown,
+} from "react-native-reanimated";
 import { useRouter, usePathname } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -38,7 +42,7 @@ export function CallProgressBanner() {
       }}
     >
       <Animated.View
-        entering={FadeInDown.duration(220).springify().damping(14)}
+        entering={FadeInDown.duration(260).easing(Easing.out(Easing.cubic))}
         exiting={FadeOutDown.duration(160)}
       >
         <Pressable
