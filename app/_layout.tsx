@@ -1,3 +1,7 @@
+// Must run before any LiveKit/call code imports livekit-client — registers the
+// WebRTC globals at startup so in-app call media works.
+import "@/realtime/livekitSetup";
+
 import { useEffect, useMemo } from "react";
 import { View } from "react-native";
 import { Stack, usePathname } from "expo-router";
