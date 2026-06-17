@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { RefreshControl, ScrollView, View } from "react-native";
+import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
@@ -142,18 +143,23 @@ export default function ContactsScreen() {
         {requests.length > 0 ? (
           <View style={{ gap: theme.spacing.sm }}>
             <Text variant="subtitle">{t("contacts.requestsTitle")}</Text>
-            {requests.map((req) => (
-              <RequestRow
+            {requests.map((req, i) => (
+              <Animated.View
                 key={req.requestId}
-                request={req}
-                busy={respond.isPending}
-                onAccept={() =>
-                  respond.mutate({ requestId: req.requestId, accept: true })
-                }
-                onDecline={() =>
-                  respond.mutate({ requestId: req.requestId, accept: false })
-                }
-              />
+                entering={FadeInDown.delay(i * 50).springify().damping(20)}
+                layout={LinearTransition.springify().damping(20)}
+              >
+                <RequestRow
+                  request={req}
+                  busy={respond.isPending}
+                  onAccept={() =>
+                    respond.mutate({ requestId: req.requestId, accept: true })
+                  }
+                  onDecline={() =>
+                    respond.mutate({ requestId: req.requestId, accept: false })
+                  }
+                />
+              </Animated.View>
             ))}
           </View>
         ) : null}
@@ -170,20 +176,25 @@ export default function ContactsScreen() {
               body={t("contacts.emptyBody")}
             />
           ) : (
-            contacts.map((contact) => (
-              <ContactRow
+            contacts.map((contact, i) => (
+              <Animated.View
                 key={contact.id}
-                contact={contact}
-                callable={canCall(contact)}
-                calling={peerCall.submitting}
-                onCall={() =>
-                  void peerCall.call({
-                    calleeUserId: contact.id,
-                    calleeName: contact.name,
-                  })
-                }
-                onRemove={() => void onRemove(contact)}
-              />
+                entering={FadeInDown.delay(i * 50).springify().damping(20)}
+                layout={LinearTransition.springify().damping(20)}
+              >
+                <ContactRow
+                  contact={contact}
+                  callable={canCall(contact)}
+                  calling={peerCall.submitting}
+                  onCall={() =>
+                    void peerCall.call({
+                      calleeUserId: contact.id,
+                      calleeName: contact.name,
+                    })
+                  }
+                  onRemove={() => void onRemove(contact)}
+                />
+              </Animated.View>
             ))
           )}
         </View>

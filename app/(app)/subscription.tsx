@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
 import { IconButton } from "@/components/IconButton";
+import { Reveal } from "@/components/Reveal";
 import { Screen } from "@/components/Screen";
 import { Spinner } from "@/components/Spinner";
 import { Text } from "@/components/Text";
@@ -19,7 +20,7 @@ import {
 } from "@/features/billing";
 import { formatCentsAsUah } from "@/utils/format";
 
-const FEATURES: Array<{ icon: keyof typeof Ionicons.glyphMap; key: string }> = [
+const FEATURES: { icon: keyof typeof Ionicons.glyphMap; key: string }[] = [
   { icon: "call", key: "minutes" },
   { icon: "people", key: "peer" },
   { icon: "color-wand", key: "voices" },
@@ -115,16 +116,17 @@ export default function SubscriptionScreen() {
                   {t("billing.plus.perMonth")}
                 </Text>
               </View>
-              {FEATURES.map((f) => (
-                <View
-                  key={f.key}
-                  style={{ flexDirection: "row", gap: 10, alignItems: "flex-start" }}
-                >
-                  <Ionicons name={f.icon} size={18} color={theme.colors.link} />
-                  <Text variant="body" style={{ flex: 1, lineHeight: 20 }}>
-                    {t(`billing.plus.features.${f.key}`)}
-                  </Text>
-                </View>
+              {FEATURES.map((f, i) => (
+                <Reveal key={f.key} delay={120 + i * 70}>
+                  <View
+                    style={{ flexDirection: "row", gap: 10, alignItems: "flex-start" }}
+                  >
+                    <Ionicons name={f.icon} size={18} color={theme.colors.link} />
+                    <Text variant="body" style={{ flex: 1, lineHeight: 20 }}>
+                      {t(`billing.plus.features.${f.key}`)}
+                    </Text>
+                  </View>
+                </Reveal>
               ))}
             </View>
 
