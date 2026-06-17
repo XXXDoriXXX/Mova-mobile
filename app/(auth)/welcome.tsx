@@ -11,6 +11,7 @@ import * as WebBrowser from "expo-web-browser";
 import { useTranslation } from "react-i18next";
 
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Reveal } from "@/components/Reveal";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -54,46 +55,54 @@ export default function WelcomeScreen() {
                 </Text>
               ) : null}
 
-              <LoginForm onError={setBanner} />
+              <Reveal delay={220}>
+                <LoginForm onError={setBanner} />
+              </Reveal>
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 12,
-                  marginVertical: 4,
-                }}
-              >
+              <Reveal delay={300}>
                 <View
-                  style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }}
-                />
-                <Text
-                  variant="caption"
-                  color="textMuted"
-                  style={{ textTransform: "uppercase", letterSpacing: 0.6 }}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                    marginVertical: 4,
+                  }}
                 >
-                  {t("auth.orDivider")}
-                </Text>
-                <View
-                  style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }}
-                />
-              </View>
-
-              <GoogleSignInButton onError={setBanner} />
-
-              <Pressable
-                onPress={() => router.push("/register")}
-                accessibilityRole="link"
-                hitSlop={8}
-                style={{ alignItems: "center", paddingVertical: 8 }}
-              >
-                <Text variant="body" color="textMuted">
-                  {t("auth.noAccountPrefix")}{" "}
-                  <Text variant="body" weight="bold" color="text">
-                    {t("auth.registerLink")}
+                  <View
+                    style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }}
+                  />
+                  <Text
+                    variant="caption"
+                    color="textMuted"
+                    style={{ textTransform: "uppercase", letterSpacing: 0.6 }}
+                  >
+                    {t("auth.orDivider")}
                   </Text>
-                </Text>
-              </Pressable>
+                  <View
+                    style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }}
+                  />
+                </View>
+              </Reveal>
+
+              <Reveal delay={360}>
+                <GoogleSignInButton onError={setBanner} />
+              </Reveal>
+
+              <Reveal delay={420}>
+                <Pressable
+                  onPress={() => router.push("/register")}
+                  accessibilityRole="link"
+                  hitSlop={8}
+                  style={{ alignItems: "center", paddingVertical: 8 }}
+                >
+                  <Text variant="body" color="textMuted">
+                    {t("auth.noAccountPrefix")}{" "}
+                    <Text variant="body" weight="bold" color="text">
+                      {t("auth.registerLink")}
+                    </Text>
+                  </Text>
+                </Pressable>
+              </Reveal>
 
               <Text
                 variant="caption"
