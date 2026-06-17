@@ -93,7 +93,15 @@ export default function RootLayout() {
                 <View style={{ flex: 1 }}>
                   <OfflineBanner />
                   <AuthGate>
-                    <Stack screenOptions={{ headerShown: false }} />
+                    {/* Root group transition (auth ↔ app). Native-driven fade
+                        via react-native-screens — runs off the JS thread. */}
+                    <Stack
+                      screenOptions={{
+                        headerShown: false,
+                        animation: "fade",
+                        animationDuration: 220,
+                      }}
+                    />
                   </AuthGate>
                   <DialogHost />
                   <ToastHost />

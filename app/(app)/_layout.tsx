@@ -12,7 +12,15 @@ export default function AppTabsLayout() {
   return (
     <View style={{ flex: 1 }}>
       <Tabs
-        screenOptions={{ headerShown: false }}
+        screenOptions={{
+          headerShown: false,
+          // Native-driven cross-shift between tabs + the full-screen pushes
+          // (billing, subscription, call). Animated by react-native-screens.
+          animation: "shift",
+          // Optimization: freeze inactive tab screens so they don't re-render
+          // or run effects while off-screen.
+          freezeOnBlur: true,
+        }}
         tabBar={(props) => <TabBar {...props} />}
       >
         <Tabs.Screen name="home" options={{ title: t("tabs.home") }} />
