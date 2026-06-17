@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import * as Notifications from "expo-notifications";
 import { useTranslation } from "react-i18next";
 
 import { Row } from "@/components/Row";
@@ -12,6 +13,25 @@ export function PushNotificationsRow() {
   const [state, setState] = useState<"idle" | "granted" | "denied" | "unsupported">(
     "idle",
   );
+
+  // Reflect the ACTUAL OS permission on mount so the row isn't stuck on "idle"
+  // when notifications are already enabled.
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const { status } = await Notifications.getPermissionsAsync();
+        if (!active) return;
+        if (status === "granted") setState("granted");
+        else if (status === "denied") setState("denied");
+      } catch {
+        // leave as idle
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function handlePress() {
     setBusy(true);

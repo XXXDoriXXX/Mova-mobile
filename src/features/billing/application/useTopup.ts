@@ -4,8 +4,10 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { topup } from "@/api/billing";
 import { newIdempotencyKey } from "@/utils/idempotency-key";
+import type { BillingSummary } from "@/types/api";
 
 import { mapTopupError, type TopupErrorMapping } from "./mapTopupError";
+import { BILLING_ME_KEY, refreshBillingUntil } from "./refreshBilling";
 
 export type TopupOk = {
   ok: true;
@@ -35,13 +37,17 @@ export function useTopup() {
       keyAmountRef.current = amountCents;
     }
     try {
+      const balanceBefore =
+        queryClient.getQueryData<BillingSummary>(BILLING_ME_KEY)?.balanceCents ?? 0;
       const resp = await topup({
         amountCents,
         idempotencyKey: keyRef.current,
       });
       keyRef.current = null;
       await WebBrowser.openBrowserAsync(resp.paymentUrl);
-      await queryClient.invalidateQueries({ queryKey: ["billing", "me"] });
+      // Settlement is async — poll until the wallet actually grows (covers the
+      // subscriber bonus too) so the balance the user sees is the real one.
+      await refreshBillingUntil(queryClient, (s) => s.balanceCents > balanceBefore);
       return { ok: true, reused: resp.reused };
     } catch (err) {
       return { ok: false, error: mapTopupError(err) };
