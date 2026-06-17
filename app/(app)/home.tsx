@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { enUS, uk as ukLocale } from "date-fns/locale";
 
 import { BalanceWidget } from "@/components/BalanceWidget";
+import { PlusUpsellCard } from "@/components/PlusUpsellCard";
 import { FaceAvatar } from "@/components/FaceAvatar";
 import { IconButton } from "@/components/IconButton";
 import { Pill } from "@/components/Pill";
@@ -127,6 +128,8 @@ export default function HomeScreen() {
             onPress={() => router.push("/billing")}
           />
         ) : null}
+
+        <PlusUpsellCard summary={billingQuery.data} />
 
         <CallShortcuts
           onStart={() => router.push("/call/pre")}

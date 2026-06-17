@@ -283,6 +283,10 @@
     "topupOpened": "Finish the payment — your balance updates automatically",
     "topupReused": "This payment was already processed",
     "plus": {
+      "priceTag": "199 UAH/mo",
+      "upsellSubtitle": "125 min of AI calls, unlimited in-app calls and premium voices",
+      "upsellCta": "Get MOVA Plus",
+      "activeStrip": "MOVA Plus active",
       "heroTitle": "Call as much as you need",
       "heroSubtitle": "No counting seconds — a pool of minutes plus every perk in one subscription.",
       "perMonth": "/ month",
