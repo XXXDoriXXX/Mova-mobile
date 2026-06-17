@@ -1,5 +1,13 @@
 import type { ExpoConfig, ConfigContext } from "expo/config";
 
+// Single source of truth for the user-facing version (semver) is package.json.
+// The Android versionCode (must increase every release so updates install over
+// each other) is supplied by the release script via VERSION_CODE; falls back to
+// 1 for local dev where it doesn't matter.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pkg = require("./package.json") as { version: string };
+const ANDROID_VERSION_CODE = Number(process.env.VERSION_CODE ?? "1");
+
 const DEFAULT_API_URL = "http://localhost:3000/v1";
 const DEFAULT_WS_URL = "ws://localhost:3002";
 
@@ -9,7 +17,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: "mova",
   owner: "vadymk",
   scheme: "mova",
-  version: "0.1.0",
+  version: pkg.version,
   orientation: "portrait",
   userInterfaceStyle: "automatic",
   // Required by reanimated/worklets — and a clean prebuild regenerates the
@@ -24,6 +32,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: "app.mova.client",
+    versionCode: ANDROID_VERSION_CODE,
     // FCM client config (gitignored secret) — lets the app obtain a push token
     // from the mova-c4f51 Firebase project. Falls back gracefully when absent
     // (e.g. CI) so config evaluation never throws.
