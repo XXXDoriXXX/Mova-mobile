@@ -12,6 +12,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: "0.1.0",
   orientation: "portrait",
   userInterfaceStyle: "automatic",
+  // Required by reanimated/worklets — and a clean prebuild regenerates the
+  // New-Architecture codegen so @livekit/react-native-webrtc's TurboModule
+  // registers (the earlier "WebRTC native module not found" was a stale
+  // incremental build that skipped codegen for the freshly-added module).
   newArchEnabled: true,
   icon: "./assets/images/icon.png",
   ios: {
