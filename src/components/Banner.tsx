@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { View } from "react-native";
+import Animated, { Easing, FadeInDown } from "react-native-reanimated";
 
 import { Text } from "./Text";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -30,7 +30,8 @@ const TONE_TEXT: Record<BannerTone, keyof import("@/theme/colors").Palette> = {
 export function Banner({ tone = "info", title, message, action }: Props) {
   const theme = useTheme();
   return (
-    <View
+    <Animated.View
+      entering={FadeInDown.duration(260).easing(Easing.out(Easing.cubic))}
       style={{
         padding: theme.spacing.lg,
         borderRadius: theme.radii.lg,
@@ -47,6 +48,6 @@ export function Banner({ tone = "info", title, message, action }: Props) {
         {message}
       </Text>
       {action}
-    </View>
+    </Animated.View>
   );
 }
