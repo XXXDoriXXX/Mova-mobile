@@ -5,8 +5,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cancelSubscription, startSubscriptionCheckout } from "@/api/billing";
 import { triggerHaptic } from "@/utils/haptics";
 
+import { refreshBillingUntil } from "./refreshBilling";
+
 // Opens the MOVA Plus checkout in an in-app browser; the subscription activates
-// server-side once the provider confirms, so we refetch the summary on return.
+// server-side once the provider confirms (async), so on return we poll the
+// summary until it flips to PLUS — the screen reads that query, so it updates
+// itself the moment the activation lands.
 export function useStartSubscription() {
   const [submitting, setSubmitting] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -18,9 +22,12 @@ export function useStartSubscription() {
     try {
       const { checkoutUrl } = await startSubscriptionCheckout();
       await WebBrowser.openBrowserAsync(checkoutUrl);
-      await queryClient.invalidateQueries({ queryKey: ["billing", "me"] });
-      triggerHaptic("success");
-      return { ok: true };
+      const activated = await refreshBillingUntil(
+        queryClient,
+        (s) => s.plan.code === "plus" && s.status === "active",
+      );
+      triggerHaptic(activated ? "success" : "light");
+      return { ok: activated };
     } catch {
       triggerHaptic("error");
       setFailed(true);

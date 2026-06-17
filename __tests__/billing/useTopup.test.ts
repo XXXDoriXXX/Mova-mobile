@@ -18,6 +18,13 @@ jest.mock("expo-web-browser", () => ({
   openBrowserAsync: jest.fn().mockResolvedValue({ type: "dismiss" }),
 }));
 
+// Settlement-polling is exercised separately; here it resolves instantly so the
+// hook's checkout flow can be asserted without real timers.
+jest.mock("@/features/billing/application/refreshBilling", () => ({
+  BILLING_ME_KEY: ["billing", "me"],
+  refreshBillingUntil: jest.fn().mockResolvedValue(true),
+}));
+
 jest.mock("@/utils/idempotency-key", () => {
   let counter = 0;
   return {
