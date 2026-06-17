@@ -19,6 +19,7 @@ import {
   PlanPicker,
   TopupForm,
   UsageList,
+  useTopup,
 } from "@/features/billing";
 import type { Plan } from "@/types/api";
 
@@ -60,6 +61,15 @@ export default function BillingScreen() {
       toast.error(t("billing.planSwitchError"));
     },
   });
+
+  // One-tap quick top-up: a preset amount opens the provider checkout straight
+  // away (the checkout itself is the confirmation), instead of pre-filling the
+  // form and making the user tap again.
+  const quickTopup = useTopup();
+  async function onQuickTopup(amountUah: number) {
+    const result = await quickTopup.execute(amountUah * 100);
+    if (result.ok) handleTopupSuccess({ reused: result.reused });
+  }
 
   function handleTopupSuccess(info: { reused: boolean }) {
     // The wallet credits server-side after the checkout the hook just opened;
@@ -132,10 +142,7 @@ export default function BillingScreen() {
                 summary={summaryQuery.data}
                 onOpenPlan={() => setTab("plan")}
                 onOpenSubscription={() => router.push("/subscription")}
-                onPickQuickTopup={(amount) => {
-                  setTopupPrefill(amount);
-                  setTab("topup");
-                }}
+                onPickQuickTopup={(amount) => void onQuickTopup(amount)}
               />
             )
           ) : null}
