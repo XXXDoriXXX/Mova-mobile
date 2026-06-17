@@ -81,6 +81,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // Injects callkeep's Telecom VoiceConnectionService into the manifest
     // (the library ships no config plugin and omits it from its own manifest).
     "./plugins/withCallkeepAndroid",
+    // LiveKit WebRTC media engine for in-app (peer) voice calls — wires the
+    // native webrtc build config (Java/Kotlin opts, packaging) so the client
+    // media transport is actually available instead of falling back to
+    // "MEDIA_UNAVAILABLE".
+    "@livekit/react-native-expo-plugin",
     // Firebase Phone Auth (SMS OTP) — wires the Google Services gradle plugin
     // and reads android.googleServicesFile above. Auth is autolinked.
     "@react-native-firebase/app",
