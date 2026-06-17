@@ -10,6 +10,7 @@ import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useTranslation } from "react-i18next";
 
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -41,7 +42,10 @@ export default function WelcomeScreen() {
           bounces={false}
         >
           <View style={{ flex: 1, justifyContent: "space-between", gap: 32 }}>
-            <AuthHeroHeader />
+            <View style={{ gap: 16 }}>
+              <LanguageSwitcher />
+              <AuthHeroHeader />
+            </View>
 
             <View style={{ gap: 16 }}>
               {banner ? (

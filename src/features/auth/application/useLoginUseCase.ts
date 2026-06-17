@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { login as loginRequest } from "@/api/auth";
 import { useAuthStore } from "@/auth/store";
+import { usePendingVerificationStore } from "@/auth/pendingVerificationStore";
 import { extractErrorPayload, extractErrorStatus } from "@/api/client";
 import { triggerHaptic } from "@/utils/haptics";
 
@@ -37,6 +38,11 @@ export function useLoginUseCase() {
     } catch (err) {
       triggerHaptic("error");
       if (isEmailNotVerified(err)) {
+        // Persist so the gate can finish the login automatically once verified.
+        await usePendingVerificationStore.getState().set({
+          email: values.email,
+          password: values.password,
+        });
         return { ok: false, needsVerification: true, email: values.email };
       }
       return { ok: false, error: mapError(err) };
