@@ -6,9 +6,9 @@ import {
   type ViewStyle,
 } from "react-native";
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
 
@@ -40,16 +40,21 @@ export const PressableScale = forwardRef<View, Props>(function PressableScale(
     <AnimatedPressable
       ref={ref}
       onPressIn={(e) => {
-        // Crisp press-in; settle back with NO overshoot (high damping) so the
-        // button feels tactile, not springy/cheap.
-        scale.value = withSpring(scaleTo, { damping: 20, stiffness: 380 });
+        // Pure timed ease — no spring physics, so it can never overshoot/bounce.
+        scale.value = withTiming(scaleTo, {
+          duration: 90,
+          easing: Easing.out(Easing.quad),
+        });
         if (pressedOpacity !== undefined) {
           opacity.value = withTiming(pressedOpacity, { duration: 80 });
         }
         onPressIn?.(e);
       }}
       onPressOut={(e) => {
-        scale.value = withSpring(1, { damping: 22, stiffness: 300 });
+        scale.value = withTiming(1, {
+          duration: 130,
+          easing: Easing.out(Easing.quad),
+        });
         if (pressedOpacity !== undefined) {
           opacity.value = withTiming(1, { duration: 120 });
         }
