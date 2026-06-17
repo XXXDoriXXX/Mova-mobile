@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Reveal } from "@/components/Reveal";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -42,21 +43,23 @@ export default function VerifyEmailScreen() {
           <LanguageSwitcher />
         </View>
 
-        <View
-          style={{
-            alignSelf: "flex-start",
-            width: 64,
-            height: 64,
-            borderRadius: theme.radii.xxl,
-            backgroundColor: theme.colors.surfaceAccent,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Ionicons name="mail-unread-outline" size={30} color={theme.colors.text} />
-        </View>
+        <Reveal>
+          <View
+            style={{
+              alignSelf: "flex-start",
+              width: 64,
+              height: 64,
+              borderRadius: theme.radii.xxl,
+              backgroundColor: theme.colors.surfaceAccent,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name="mail-unread-outline" size={30} color={theme.colors.text} />
+          </View>
+        </Reveal>
 
-        <View style={{ gap: 12 }}>
+        <Reveal delay={90} style={{ gap: 12 }}>
           <Text variant="title">{t("verifyEmailGate.title")}</Text>
           <Text variant="body" color="textMuted" style={{ lineHeight: 22 }}>
             {t("verifyEmailGate.body")}
@@ -81,7 +84,7 @@ export default function VerifyEmailScreen() {
           <Text variant="body" color="textMuted" style={{ lineHeight: 22 }}>
             {t("verifyEmailGate.hintAuto")}
           </Text>
-        </View>
+        </Reveal>
 
         {stillUnverified ? (
           <Text variant="body" color="textMuted">
