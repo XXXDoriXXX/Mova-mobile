@@ -7,6 +7,7 @@ describe("decideAuthRedirect", () => {
         decideAuthRedirect({
           status: "unknown",
           onboarding: "done",
+          verification: "none",
           segment: undefined,
           subSegment: undefined,
         }),
@@ -18,7 +19,20 @@ describe("decideAuthRedirect", () => {
         decideAuthRedirect({
           status: "authed",
           onboarding: "unknown",
+          verification: "none",
           segment: "(app)",
+          subSegment: undefined,
+        }),
+      ).toBeNull();
+    });
+
+    it("returns null while verification status is unknown", () => {
+      expect(
+        decideAuthRedirect({
+          status: "guest",
+          onboarding: "done",
+          verification: "unknown",
+          segment: undefined,
           subSegment: undefined,
         }),
       ).toBeNull();
@@ -31,6 +45,7 @@ describe("decideAuthRedirect", () => {
         decideAuthRedirect({
           status: "guest",
           onboarding: "needed",
+          verification: "none",
           segment: undefined,
           subSegment: undefined,
         }),
@@ -42,6 +57,7 @@ describe("decideAuthRedirect", () => {
         decideAuthRedirect({
           status: "guest",
           onboarding: "done",
+          verification: "none",
           segment: "(app)",
           subSegment: "home",
         }),
@@ -53,8 +69,47 @@ describe("decideAuthRedirect", () => {
         decideAuthRedirect({
           status: "guest",
           onboarding: "needed",
+          verification: "none",
           segment: "(auth)",
           subSegment: "login",
+        }),
+      ).toBeNull();
+    });
+  });
+
+  describe("pending email verification (guest)", () => {
+    it("parks the user on /verify-email from anywhere", () => {
+      expect(
+        decideAuthRedirect({
+          status: "guest",
+          onboarding: "needed",
+          verification: "pending",
+          segment: undefined,
+          subSegment: undefined,
+        }),
+      ).toBe("/verify-email");
+    });
+
+    it("redirects even from the welcome screen", () => {
+      expect(
+        decideAuthRedirect({
+          status: "guest",
+          onboarding: "needed",
+          verification: "pending",
+          segment: "(auth)",
+          subSegment: "welcome",
+        }),
+      ).toBe("/verify-email");
+    });
+
+    it("stays put once on the verify-email screen — no loop", () => {
+      expect(
+        decideAuthRedirect({
+          status: "guest",
+          onboarding: "needed",
+          verification: "pending",
+          segment: "(auth)",
+          subSegment: "verify-email",
         }),
       ).toBeNull();
     });
@@ -66,6 +121,7 @@ describe("decideAuthRedirect", () => {
         decideAuthRedirect({
           status: "authed",
           onboarding: "done",
+          verification: "none",
           segment: undefined,
           subSegment: undefined,
         }),
@@ -77,6 +133,7 @@ describe("decideAuthRedirect", () => {
         decideAuthRedirect({
           status: "authed",
           onboarding: "needed",
+          verification: "none",
           segment: undefined,
           subSegment: undefined,
         }),
@@ -88,6 +145,7 @@ describe("decideAuthRedirect", () => {
         decideAuthRedirect({
           status: "authed",
           onboarding: "done",
+          verification: "none",
           segment: "(auth)",
           subSegment: "login",
         }),
@@ -99,6 +157,7 @@ describe("decideAuthRedirect", () => {
         decideAuthRedirect({
           status: "authed",
           onboarding: "needed",
+          verification: "none",
           segment: "(auth)",
           subSegment: "welcome",
         }),
@@ -110,6 +169,7 @@ describe("decideAuthRedirect", () => {
         decideAuthRedirect({
           status: "authed",
           onboarding: "done",
+          verification: "none",
           segment: "(app)",
           subSegment: "home",
         }),
@@ -121,6 +181,7 @@ describe("decideAuthRedirect", () => {
         decideAuthRedirect({
           status: "authed",
           onboarding: "needed",
+          verification: "none",
           segment: "(app)",
           subSegment: "home",
         }),
@@ -132,6 +193,7 @@ describe("decideAuthRedirect", () => {
         decideAuthRedirect({
           status: "authed",
           onboarding: "needed",
+          verification: "none",
           segment: "(app)",
           subSegment: "onboarding",
         }),

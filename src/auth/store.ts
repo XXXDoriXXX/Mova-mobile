@@ -3,6 +3,7 @@ import { create } from "zustand";
 import type { AuthTokens, User } from "@/types/api";
 
 import { clearTokens, loadTokens, saveTokens } from "./tokens";
+import { usePendingVerificationStore } from "./pendingVerificationStore";
 
 export type AuthStatus = "unknown" | "authed" | "guest";
 
@@ -61,6 +62,9 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   async setSession({ user, tokens }) {
     await saveTokens(tokens);
+    // A real session means verification is done — drop the pending record (and
+    // the stored password with it).
+    await usePendingVerificationStore.getState().clear().catch(() => undefined);
     set({
       status: "authed",
       user,

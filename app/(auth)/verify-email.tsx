@@ -4,23 +4,43 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/Button";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
-import { AuthHeroHeader, useResendVerification } from "@/features/auth";
+import { usePendingVerificationStore } from "@/auth/pendingVerificationStore";
+import {
+  AuthHeroHeader,
+  useResendVerification,
+  useVerificationAutoLogin,
+} from "@/features/auth";
 
 export default function VerifyEmailScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams<{ email?: string }>();
-  const email = typeof params.email === "string" ? params.email : "";
+  const pending = usePendingVerificationStore((s) => s.pending);
+  const clearPending = usePendingVerificationStore((s) => s.clear);
+  // Prefer the persisted email (survives restarts) over the nav param.
+  const email = pending?.email ?? (typeof params.email === "string" ? params.email : "");
   const { state, resend } = useResendVerification(email);
+  const { checking, stillUnverified, checkNow } = useVerificationAutoLogin();
+
+  async function changeEmail() {
+    // Drop the pending record so the gate won't bounce us back, then return to
+    // registration to re-enter the address.
+    await clearPending();
+    router.replace("/register");
+  }
 
   return (
     <Screen>
-      <View style={{ flex: 1, gap: 28, paddingTop: 8 }}>
-        <AuthHeroHeader compact />
+      <View style={{ flex: 1, gap: 24, paddingTop: 8 }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <AuthHeroHeader compact />
+          <LanguageSwitcher />
+        </View>
 
         <View
           style={{
@@ -42,15 +62,32 @@ export default function VerifyEmailScreen() {
             {t("verifyEmailGate.body")}
           </Text>
           {email ? (
-            <Text variant="body" weight="bold">
-              {email}
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <Text variant="body" weight="bold">
+                {email}
+              </Text>
+              <Text
+                variant="body"
+                color="primary"
+                weight="bold"
+                onPress={changeEmail}
+                accessibilityRole="button"
+                style={{ textDecorationLine: "underline" }}
+              >
+                {t("verifyEmailGate.changeEmail")}
+              </Text>
+            </View>
           ) : null}
           <Text variant="body" color="textMuted" style={{ lineHeight: 22 }}>
-            {t("verifyEmailGate.hint")}
+            {t("verifyEmailGate.hintAuto")}
           </Text>
         </View>
 
+        {stillUnverified ? (
+          <Text variant="body" color="textMuted">
+            {t("verifyEmailGate.notYet")}
+          </Text>
+        ) : null}
         {state === "sent" ? (
           <Text variant="body" color="success">
             {t("verifyEmailGate.resent")}
@@ -64,11 +101,12 @@ export default function VerifyEmailScreen() {
 
         <View style={{ gap: 12, marginTop: "auto", paddingBottom: 8 }}>
           <Button
-            label={t("verifyEmailGate.goToLogin")}
-            onPress={() => router.replace("/welcome")}
+            label={t("verifyEmailGate.checkNow")}
+            loading={checking}
+            onPress={() => void checkNow()}
             trailing={
               <Ionicons
-                name="arrow-forward"
+                name="refresh"
                 size={16}
                 color={theme.colors.primaryText}
               />

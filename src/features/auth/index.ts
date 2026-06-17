@@ -7,6 +7,7 @@ export { useLoginUseCase } from "./application/useLoginUseCase";
 export { useRegisterUseCase } from "./application/useRegisterUseCase";
 export { useGoogleSignInUseCase } from "./application/useGoogleSignInUseCase";
 export { useResendVerification } from "./application/useResendVerification";
+export { useVerificationAutoLogin } from "./application/useVerificationAutoLogin";
 export { decideAuthRedirect } from "./application/decideAuthRedirect";
 
 export type { LoginResult } from "./application/useLoginUseCase";
