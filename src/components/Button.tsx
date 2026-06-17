@@ -5,6 +5,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 import { PressableScale } from "./PressableScale";
 import { Text } from "./Text";
@@ -94,7 +95,9 @@ export function Button({
     >
       <View style={styles.content}>
         {loading ? (
-          <ActivityIndicator color={fg} />
+          <Animated.View entering={FadeIn.duration(150)}>
+            <ActivityIndicator color={fg} />
+          </Animated.View>
         ) : (
           <>
             {leading}

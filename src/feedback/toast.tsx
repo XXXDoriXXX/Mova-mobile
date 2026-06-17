@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Pressable, View } from "react-native";
 import Animated, {
+  Easing,
   FadeInDown,
   FadeOutDown,
   LinearTransition,
@@ -96,9 +97,11 @@ function ToastPill({ model }: { model: ToastModel }) {
 
   return (
     <Animated.View
-      entering={FadeInDown.duration(220).springify().damping(14)}
-      exiting={FadeOutDown.duration(160)}
-      layout={LinearTransition.springify().damping(16)}
+      // Notifications: decelerate in (calm, attention-getting without bounce),
+      // accelerate out (quick, gets out of the way); stack reflow is smooth.
+      entering={FadeInDown.duration(260).easing(Easing.out(Easing.cubic))}
+      exiting={FadeOutDown.duration(180).easing(Easing.in(Easing.cubic))}
+      layout={LinearTransition.duration(220).easing(Easing.out(Easing.cubic))}
     >
       <Pressable
         onPress={() => dismiss(model.id)}

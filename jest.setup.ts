@@ -54,10 +54,15 @@ jest.mock("react-native-reanimated", () => {
     const fn = () => obj;
     obj.duration = fn;
     obj.delay = fn;
+    obj.easing = fn;
     obj.springify = fn;
+    obj.damping = fn;
+    obj.mass = fn;
+    obj.stiffness = fn;
     obj.build = fn;
     return obj;
   };
+  const noop = () => ({});
   return {
     __esModule: true,
     default: {
@@ -72,18 +77,28 @@ jest.mock("react-native-reanimated", () => {
     withTiming: (v: unknown) => v,
     withSpring: (v: unknown) => v,
     withRepeat: (v: unknown) => v,
+    withSequence: (...vs: unknown[]) => vs[vs.length - 1],
     runOnJS: (fn: (...args: unknown[]) => unknown) => fn,
     Easing: {
-      inOut: () => ({}),
-      quad: () => ({}),
-      linear: () => ({}),
-      ease: () => ({}),
+      inOut: noop,
+      in: noop,
+      out: noop,
+      quad: noop,
+      cubic: noop,
+      linear: noop,
+      ease: noop,
     },
     FadeIn: chainable(),
     FadeOut: chainable(),
+    FadeInDown: chainable(),
+    FadeOutDown: chainable(),
     SlideInDown: chainable(),
     SlideOutDown: chainable(),
+    SlideInRight: chainable(),
+    SlideOutLeft: chainable(),
+    ZoomIn: chainable(),
     Layout: chainable(),
+    LinearTransition: chainable(),
   };
 });
 

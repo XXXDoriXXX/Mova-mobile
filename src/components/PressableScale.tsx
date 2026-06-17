@@ -40,14 +40,16 @@ export const PressableScale = forwardRef<View, Props>(function PressableScale(
     <AnimatedPressable
       ref={ref}
       onPressIn={(e) => {
-        scale.value = withSpring(scaleTo, { damping: 18, stiffness: 320 });
+        // Crisp press-in; settle back with NO overshoot (high damping) so the
+        // button feels tactile, not springy/cheap.
+        scale.value = withSpring(scaleTo, { damping: 20, stiffness: 380 });
         if (pressedOpacity !== undefined) {
           opacity.value = withTiming(pressedOpacity, { duration: 80 });
         }
         onPressIn?.(e);
       }}
       onPressOut={(e) => {
-        scale.value = withSpring(1, { damping: 14, stiffness: 240 });
+        scale.value = withSpring(1, { damping: 22, stiffness: 300 });
         if (pressedOpacity !== undefined) {
           opacity.value = withTiming(1, { duration: 120 });
         }
