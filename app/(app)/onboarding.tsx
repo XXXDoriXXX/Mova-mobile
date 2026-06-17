@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 import Animated, {
+  Easing,
   FadeIn,
   LinearTransition,
   SlideInRight,
@@ -93,7 +94,7 @@ export default function OnboardingScreen() {
             {Array.from({ length: TOTAL_STEPS }).map((_, idx) => (
               <Animated.View
                 key={idx}
-                layout={LinearTransition.springify().damping(18)}
+                layout={LinearTransition.duration(240).easing(Easing.out(Easing.cubic))}
                 style={{
                   width: idx === step ? 28 : 8,
                   height: 8,
@@ -119,7 +120,7 @@ export default function OnboardingScreen() {
             style={{ alignItems: "center", gap: theme.spacing.lg }}
           >
             <Animated.View
-              entering={ZoomIn.springify().damping(12).delay(120)}
+              entering={ZoomIn.duration(300).easing(Easing.out(Easing.cubic)).delay(100)}
               style={{
                 width: 110,
                 height: 110,
