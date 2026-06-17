@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { Pressable, View } from "react-native";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  LinearTransition,
+  SlideInRight,
+  SlideOutLeft,
+  ZoomIn,
+} from "react-native-reanimated";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -85,8 +91,9 @@ export default function OnboardingScreen() {
         >
           <View style={{ flexDirection: "row", gap: 6 }}>
             {Array.from({ length: TOTAL_STEPS }).map((_, idx) => (
-              <View
+              <Animated.View
                 key={idx}
+                layout={LinearTransition.springify().damping(18)}
                 style={{
                   width: idx === step ? 28 : 8,
                   height: 8,
@@ -107,11 +114,12 @@ export default function OnboardingScreen() {
         {step < 3 ? (
           <Animated.View
             key={`slide-${step}`}
-            entering={FadeIn.duration(220)}
-            exiting={FadeOut.duration(120)}
+            entering={SlideInRight.duration(340)}
+            exiting={SlideOutLeft.duration(200)}
             style={{ alignItems: "center", gap: theme.spacing.lg }}
           >
-            <View
+            <Animated.View
+              entering={ZoomIn.springify().damping(12).delay(120)}
               style={{
                 width: 110,
                 height: 110,
@@ -126,24 +134,28 @@ export default function OnboardingScreen() {
                 size={48}
                 color={theme.colors.accentText}
               />
-            </View>
-            <Text variant="display" align="center" style={{ fontSize: 38, lineHeight: 38 }}>
-              {slides[step]!.title}
-            </Text>
-            <Text
-              variant="bodyLarge"
-              color="textMuted"
-              align="center"
-              style={{ maxWidth: 320 }}
-            >
-              {slides[step]!.body}
-            </Text>
+            </Animated.View>
+            <Animated.View entering={FadeIn.delay(160)}>
+              <Text variant="display" align="center" style={{ fontSize: 38, lineHeight: 38 }}>
+                {slides[step]!.title}
+              </Text>
+            </Animated.View>
+            <Animated.View entering={FadeIn.delay(240)}>
+              <Text
+                variant="bodyLarge"
+                color="textMuted"
+                align="center"
+                style={{ maxWidth: 320 }}
+              >
+                {slides[step]!.body}
+              </Text>
+            </Animated.View>
           </Animated.View>
         ) : step === CAPABILITY_STEP ? (
           <Animated.View
             key="capability"
-            entering={FadeIn.duration(220)}
-            exiting={FadeOut.duration(120)}
+            entering={SlideInRight.duration(340)}
+            exiting={SlideOutLeft.duration(200)}
             style={{ gap: theme.spacing.lg, alignItems: "stretch" }}
           >
             <Text variant="title" align="center">
@@ -172,7 +184,7 @@ export default function OnboardingScreen() {
         ) : (
           <Animated.View
             key="picker"
-            entering={FadeIn.duration(220)}
+            entering={SlideInRight.duration(340)}
             style={{ gap: theme.spacing.lg, alignItems: "stretch" }}
           >
             <Text variant="title" align="center">

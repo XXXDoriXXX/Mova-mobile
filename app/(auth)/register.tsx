@@ -11,6 +11,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 import { IconButton } from "@/components/IconButton";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Reveal } from "@/components/Reveal";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -54,7 +56,10 @@ export default function RegisterScreen() {
           </View>
 
           <View style={{ gap: 24 }}>
-            <AuthHeroHeader compact />
+            <View style={{ gap: 16 }}>
+              <LanguageSwitcher />
+              <AuthHeroHeader compact />
+            </View>
 
             <View style={{ gap: 16 }}>
               {banner ? (
@@ -63,32 +68,38 @@ export default function RegisterScreen() {
                 </Text>
               ) : null}
 
-              <RegisterForm onError={setBanner} />
+              <Reveal delay={220}>
+                <RegisterForm onError={setBanner} />
+              </Reveal>
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 12,
-                  marginVertical: 4,
-                }}
-              >
+              <Reveal delay={300}>
                 <View
-                  style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }}
-                />
-                <Text
-                  variant="caption"
-                  color="textMuted"
-                  style={{ textTransform: "uppercase", letterSpacing: 0.6 }}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                    marginVertical: 4,
+                  }}
                 >
-                  {t("auth.orDivider")}
-                </Text>
-                <View
-                  style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }}
-                />
-              </View>
+                  <View
+                    style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }}
+                  />
+                  <Text
+                    variant="caption"
+                    color="textMuted"
+                    style={{ textTransform: "uppercase", letterSpacing: 0.6 }}
+                  >
+                    {t("auth.orDivider")}
+                  </Text>
+                  <View
+                    style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }}
+                  />
+                </View>
+              </Reveal>
 
-              <GoogleSignInButton onError={setBanner} />
+              <Reveal delay={360}>
+                <GoogleSignInButton onError={setBanner} />
+              </Reveal>
 
               <Pressable
                 onPress={() => router.replace("/welcome")}
