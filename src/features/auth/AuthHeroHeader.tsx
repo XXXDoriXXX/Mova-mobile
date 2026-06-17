@@ -5,7 +5,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
-  withSequence,
   withTiming,
 } from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
@@ -23,22 +22,17 @@ export function AuthHeroHeader({ compact = false }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
 
-  // Gentle "breathing" pulse on the live-indicator dot so the header feels
-  // alive without being noisy.
-  const pulse = useSharedValue(1);
+  // Calm "breathing" on the live-indicator dot via OPACITY (not scale, which
+  // reads as jitter) — a slow ease-in-out glow that feels alive but quiet.
+  const glow = useSharedValue(1);
   useEffect(() => {
-    pulse.value = withRepeat(
-      withSequence(
-        withTiming(1.7, { duration: 900, easing: Easing.inOut(Easing.quad) }),
-        withTiming(1, { duration: 900, easing: Easing.inOut(Easing.quad) }),
-      ),
+    glow.value = withRepeat(
+      withTiming(0.35, { duration: 1400, easing: Easing.inOut(Easing.ease) }),
       -1,
-      false,
+      true,
     );
-  }, [pulse]);
-  const dotStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulse.value }],
-  }));
+  }, [glow]);
+  const dotStyle = useAnimatedStyle(() => ({ opacity: glow.value }));
 
   return (
     <View style={{ gap: compact ? 12 : 16 }}>

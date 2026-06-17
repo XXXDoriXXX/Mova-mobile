@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { RefreshControl, ScrollView, View } from "react-native";
-import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
+import Animated, {
+  Easing,
+  FadeInDown,
+  LinearTransition,
+} from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
@@ -146,8 +150,8 @@ export default function ContactsScreen() {
             {requests.map((req, i) => (
               <Animated.View
                 key={req.requestId}
-                entering={FadeInDown.delay(i * 50).springify().damping(20)}
-                layout={LinearTransition.springify().damping(20)}
+                entering={FadeInDown.duration(260).easing(Easing.out(Easing.cubic)).delay(i * 45)}
+                layout={LinearTransition.duration(240).easing(Easing.out(Easing.cubic))}
               >
                 <RequestRow
                   request={req}
@@ -179,8 +183,8 @@ export default function ContactsScreen() {
             contacts.map((contact, i) => (
               <Animated.View
                 key={contact.id}
-                entering={FadeInDown.delay(i * 50).springify().damping(20)}
-                layout={LinearTransition.springify().damping(20)}
+                entering={FadeInDown.duration(260).easing(Easing.out(Easing.cubic)).delay(i * 45)}
+                layout={LinearTransition.duration(240).easing(Easing.out(Easing.cubic))}
               >
                 <ContactRow
                   contact={contact}
