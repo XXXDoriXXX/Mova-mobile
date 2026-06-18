@@ -4,6 +4,7 @@ import Animated, {
   Easing,
   FadeIn,
   FadeOut,
+  LinearTransition,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -120,6 +121,9 @@ export function Transcript({ bubbles, aiThinking }: Props) {
           <Animated.View
             key={b.id}
             entering={FadeIn.duration(160)}
+            // Smoothly grow the bubble as a turn's micro-pause segments append,
+            // instead of snapping to the new height.
+            layout={LinearTransition.duration(220).easing(Easing.out(Easing.quad))}
             style={{ width: "100%" }}
           >
             <BubbleView

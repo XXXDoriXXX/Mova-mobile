@@ -1,39 +1,79 @@
-import type { Bubble, CallStatus, PendingAiReply } from "../callStore";
+import type {
+  Bubble,
+  CallStatus,
+  InterlocutorTurn,
+  PendingAiReply,
+} from "../callStore";
 
-export const PARTIAL_INTERLOCUTOR_ID = "__partial_interlocutor__";
 export const PARTIAL_AI_ID = "__partial_ai__";
 
-export function withInterlocutorPartial(bubbles: Bubble[], text: string, ts: number): Bubble[] {
-  const others = bubbles.filter((b) => b.id !== PARTIAL_INTERLOCUTOR_ID);
-  return [
-    ...others,
-    {
-      id: PARTIAL_INTERLOCUTOR_ID,
-      role: "interlocutor",
-      content: text,
-      partial: true,
-      ts,
-    },
-  ];
+// A speaker's micro-pauses make the backend STT emit several `transcript.final`
+// segments for one sentence. Merge them into a single growing bubble while the
+// gap between segments stays short; only a real silence (or the other party
+// starting to speak) ends the turn and starts a fresh bubble.
+export const INTERLOCUTOR_MERGE_GAP_MS = 2000;
+
+function joinText(a: string, b: string): string {
+  if (!a) return b;
+  if (!b) return a;
+  return `${a} ${b}`;
 }
 
-export function withInterlocutorFinal(
+export type InterlocutorUpdate = { bubbles: Bubble[]; turn: InterlocutorTurn };
+
+function isTurnLive(turn: InterlocutorTurn, ts: number): turn is NonNullable<InterlocutorTurn> {
+  return turn !== null && ts - turn.lastTs <= INTERLOCUTOR_MERGE_GAP_MS;
+}
+
+// Live (interim) STT — shows committed text of the turn so far plus the
+// in-progress words, in one bubble that keeps the same id as it grows.
+export function withInterlocutorPartial(
   bubbles: Bubble[],
-  messageId: string,
+  turn: InterlocutorTurn,
   text: string,
   ts: number,
-): Bubble[] {
-  const others = bubbles.filter((b) => b.id !== PARTIAL_INTERLOCUTOR_ID);
-  return [
-    ...others,
-    {
-      id: messageId,
-      role: "interlocutor",
-      content: text,
-      partial: false,
-      ts,
-    },
-  ];
+  newId: () => string,
+): InterlocutorUpdate {
+  const live = isTurnLive(turn, ts);
+  const id = live ? turn.id : newId();
+  const committed = live ? turn.committed : "";
+  const others = bubbles.filter((b) => b.id !== id);
+  return {
+    bubbles: [
+      ...others,
+      { id, role: "interlocutor", content: joinText(committed, text), partial: true, ts },
+    ],
+    turn: { id, committed, lastTs: ts },
+  };
+}
+
+// Finalised STT segment — appends to the turn's committed text. The bubble stays
+// `partial: true` (the turn may still grow); `sealInterlocutorTurn` flips it to
+// final on a real silence or when the other party starts speaking.
+export function withInterlocutorFinal(
+  bubbles: Bubble[],
+  turn: InterlocutorTurn,
+  text: string,
+  ts: number,
+  newId: () => string,
+): InterlocutorUpdate {
+  const live = isTurnLive(turn, ts);
+  const id = live ? turn.id : newId();
+  const committed = joinText(live ? turn.committed : "", text);
+  const others = bubbles.filter((b) => b.id !== id);
+  return {
+    bubbles: [
+      ...others,
+      { id, role: "interlocutor", content: committed, partial: true, ts },
+    ],
+    turn: { id, committed, lastTs: ts },
+  };
+}
+
+// End the active interlocutor turn: stop the "speaking" state on its bubble.
+export function sealInterlocutorTurn(bubbles: Bubble[], turn: InterlocutorTurn): Bubble[] {
+  if (!turn) return bubbles;
+  return bubbles.map((b) => (b.id === turn.id ? { ...b, partial: false } : b));
 }
 
 export function withAiPartial(bubbles: Bubble[], text: string, ts: number): Bubble[] {

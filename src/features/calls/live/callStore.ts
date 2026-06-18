@@ -3,8 +3,10 @@ import { create } from "zustand";
 import type { CallErrorCode } from "@/realtime/error-codes";
 
 import {
+  INTERLOCUTOR_MERGE_GAP_MS,
   nextStatusState,
   pendingAiReplyChange,
+  sealInterlocutorTurn,
   withAiFinal,
   withAiPartial,
   withInterlocutorFinal,
@@ -29,6 +31,11 @@ export type Bubble = {
   ts: number;
   kind?: "normal" | "fallback" | "idle_probe";
 };
+
+// Accumulator for the interlocutor's current speaking turn — the bubble id its
+// segments merge into, the text committed so far, and when we last heard a
+// segment (used to decide micro-pause-merge vs new turn). Null = no live turn.
+export type InterlocutorTurn = { id: string; committed: string; lastTs: number } | null;
 
 export type CallSuggestion = {
   id: string;
@@ -75,6 +82,7 @@ type CallState = {
   wsConnected: boolean;
   connectStartedAt: number | null;
   bubbles: Bubble[];
+  interlocutorTurn: InterlocutorTurn;
   suggestions: CallSuggestion[];
   aiThinking: boolean;
   usageTick: UsageTick | null;
@@ -127,12 +135,45 @@ type CallState = {
 
 let bubbleCounter = 0;
 const nextLocalId = () => `local-${++bubbleCounter}`;
+let turnCounter = 0;
+const nextTurnId = () => `turn-${++turnCounter}`;
 
-export const useCallStore = create<CallState>((set) => ({
+export const useCallStore = create<CallState>((set) => {
+  // Fires after a silence longer than the merge gap: the interlocutor stopped,
+  // so seal the turn (drop the "speaking" state, allow the next segment to open
+  // a fresh bubble). Module-scoped so re-arming clears the previous one.
+  let sealTimer: ReturnType<typeof setTimeout> | null = null;
+  const clearSeal = () => {
+    if (sealTimer) {
+      clearTimeout(sealTimer);
+      sealTimer = null;
+    }
+  };
+  const armSeal = () => {
+    clearSeal();
+    sealTimer = setTimeout(() => {
+      sealTimer = null;
+      set((s) => ({
+        bubbles: sealInterlocutorTurn(s.bubbles, s.interlocutorTurn),
+        interlocutorTurn: null,
+      }));
+    }, INTERLOCUTOR_MERGE_GAP_MS);
+  };
+  // The other party started speaking → end any live interlocutor turn at once.
+  const sealedFor = (s: CallState) => {
+    clearSeal();
+    return {
+      bubbles: sealInterlocutorTurn(s.bubbles, s.interlocutorTurn),
+      interlocutorTurn: null as InterlocutorTurn,
+    };
+  };
+
+  return {
   status: "idle",
   wsConnected: false,
   connectStartedAt: null,
   bubbles: [],
+  interlocutorTurn: null,
   suggestions: [],
   aiThinking: false,
   usageTick: null,
@@ -150,12 +191,14 @@ export const useCallStore = create<CallState>((set) => ({
   fatalError: null,
   endInfo: null,
 
-  reset: () =>
+  reset: () => {
+    clearSeal();
     set({
       status: "idle",
       wsConnected: false,
       connectStartedAt: null,
       bubbles: [],
+      interlocutorTurn: null,
       suggestions: [],
       aiThinking: false,
       usageTick: null,
@@ -171,7 +214,8 @@ export const useCallStore = create<CallState>((set) => ({
       toastError: null,
       fatalError: null,
       endInfo: null,
-    }),
+    });
+  },
 
   setStatus: (status) =>
     set((prev) =>
@@ -191,34 +235,64 @@ export const useCallStore = create<CallState>((set) => ({
   setLastStreamId: (id) => set({ lastStreamId: id }),
 
   setInterlocutorPartial: (text) =>
-    set((s) => ({ bubbles: withInterlocutorPartial(s.bubbles, text, Date.now()) })),
+    set((s) => {
+      const { bubbles, turn } = withInterlocutorPartial(
+        s.bubbles,
+        s.interlocutorTurn,
+        text,
+        Date.now(),
+        nextTurnId,
+      );
+      armSeal();
+      return { bubbles, interlocutorTurn: turn };
+    }),
   commitInterlocutorFinal: (messageId, text) =>
-    set((s) => ({
-      bubbles: withInterlocutorFinal(s.bubbles, messageId, text, Date.now()),
-    })),
+    set((s) => {
+      const { bubbles, turn } = withInterlocutorFinal(
+        s.bubbles,
+        s.interlocutorTurn,
+        text,
+        Date.now(),
+        () => messageId,
+      );
+      armSeal();
+      return { bubbles, interlocutorTurn: turn };
+    }),
 
   setAiPartial: (text) =>
-    set((s) => ({
-      bubbles: withAiPartial(s.bubbles, text, Date.now()),
-      aiThinking: false,
-    })),
+    set((s) => {
+      const sealed = sealedFor(s);
+      return {
+        ...sealed,
+        bubbles: withAiPartial(sealed.bubbles, text, Date.now()),
+        aiThinking: false,
+      };
+    }),
   commitAiFinal: (messageId, text, kind) =>
-    set((s) => ({
-      bubbles: withAiFinal(s.bubbles, messageId, text, Date.now(), kind),
-      aiThinking: false,
-    })),
+    set((s) => {
+      const sealed = sealedFor(s);
+      return {
+        ...sealed,
+        bubbles: withAiFinal(sealed.bubbles, messageId, text, Date.now(), kind),
+        aiThinking: false,
+      };
+    }),
   setAiThinking: (active) => set({ aiThinking: active }),
 
   pushUserTyped: (content) =>
-    set((s) => ({
-      bubbles: withUserTyped(s.bubbles, nextLocalId(), content, Date.now()),
-      suggestions: [],
-      // The user took over the turn (manual text or a chosen suggestion) — drop
-      // the pending AI candidate card so it isn't left on screen after they
-      // spoke their own reply. The backend cancels it too; this is the
-      // optimistic mirror so the UI and the agent agree.
-      pendingAiReply: null,
-    })),
+    set((s) => {
+      const sealed = sealedFor(s);
+      return {
+        ...sealed,
+        bubbles: withUserTyped(sealed.bubbles, nextLocalId(), content, Date.now()),
+        suggestions: [],
+        // The user took over the turn (manual text or a chosen suggestion) — drop
+        // the pending AI candidate card so it isn't left on screen after they
+        // spoke their own reply. The backend cancels it too; this is the
+        // optimistic mirror so the UI and the agent agree.
+        pendingAiReply: null,
+      };
+    }),
   pushSystem: (content) =>
     set((s) => ({
       bubbles: withSystem(s.bubbles, nextLocalId(), content, Date.now()),
@@ -234,4 +308,5 @@ export const useCallStore = create<CallState>((set) => ({
   setFatalError: (err) => set({ fatalError: err }),
 
   setEndInfo: (info) => set({ endInfo: info, status: "ended" }),
-}));
+  };
+});

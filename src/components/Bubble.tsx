@@ -3,6 +3,7 @@ import { Animated, View, type ViewStyle } from "react-native";
 
 import { Text } from "./Text";
 import { AudioWave } from "./AudioWave";
+import { WordReveal } from "./WordReveal";
 import { useTheme } from "@/theme/ThemeProvider";
 
 export type BubbleSide = "left" | "right";
@@ -55,7 +56,7 @@ export function Bubble({ side, who, text, partial, live, style }: Props) {
           </Text>
         ) : null}
         <Text variant="body" style={{ color: fg, lineHeight: 22 }}>
-          {text}
+          <WordReveal text={text} color={fg} />
           {partial ? <TypingDots color={fg} /> : null}
         </Text>
         {live ? (

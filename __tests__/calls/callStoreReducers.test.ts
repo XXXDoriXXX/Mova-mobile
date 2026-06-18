@@ -1,8 +1,9 @@
 import {
+  INTERLOCUTOR_MERGE_GAP_MS,
   nextStatusState,
   PARTIAL_AI_ID,
-  PARTIAL_INTERLOCUTOR_ID,
   pendingAiReplyChange,
+  sealInterlocutorTurn,
   withAiFinal,
   withAiPartial,
   withInterlocutorFinal,
@@ -17,6 +18,10 @@ import {
 } from "@/features/calls/live/callStore";
 
 const at = 1_700_000_000_000;
+const idGen = (label: string) => {
+  let n = 0;
+  return () => `${label}-${++n}`;
+};
 
 const realBubble: Bubble = {
   id: "real-1",
@@ -26,50 +31,57 @@ const realBubble: Bubble = {
   ts: at - 1,
 };
 
-describe("interlocutor bubble reducers", () => {
-  it("withInterlocutorPartial replaces any prior partial, keeps real bubbles", () => {
-    const old: Bubble[] = [
-      realBubble,
-      {
-        id: PARTIAL_INTERLOCUTOR_ID,
-        role: "interlocutor",
-        content: "old partial",
-        partial: true,
-        ts: at - 2,
-      },
-    ];
-    const out = withInterlocutorPartial(old, "новий партіал", at);
-    expect(out).toHaveLength(2);
-    expect(out[0]).toEqual(realBubble);
-    expect(out[1]).toEqual({
-      id: PARTIAL_INTERLOCUTOR_ID,
-      role: "interlocutor",
-      content: "новий партіал",
-      partial: true,
-      ts: at,
-    });
+describe("interlocutor turn aggregation", () => {
+  it("first partial opens a new live bubble + turn", () => {
+    const { bubbles, turn } = withInterlocutorPartial([], null, "привіт", at, idGen("t"));
+    expect(bubbles).toHaveLength(1);
+    expect(bubbles[0]).toMatchObject({ id: "t-1", content: "привіт", partial: true });
+    expect(turn).toEqual({ id: "t-1", committed: "", lastTs: at });
   });
 
-  it("withInterlocutorFinal removes the partial, appends the final with the given id", () => {
-    const old: Bubble[] = [
-      realBubble,
-      {
-        id: PARTIAL_INTERLOCUTOR_ID,
-        role: "interlocutor",
-        content: "growing",
-        partial: true,
-        ts: at - 1,
-      },
-    ];
-    const out = withInterlocutorFinal(old, "msg-1", "фінал", at);
-    expect(out.find((b) => b.id === PARTIAL_INTERLOCUTOR_ID)).toBeUndefined();
-    expect(out.at(-1)).toEqual({
+  it("a final within the merge gap appends to the SAME bubble (micro-pause)", () => {
+    const first = withInterlocutorFinal([], null, "я хотів", at, () => "msg-1");
+    // a tiny pause, then the next finalised segment of the same sentence
+    const second = withInterlocutorFinal(
+      first.bubbles,
+      first.turn,
+      "записатися",
+      at + 500,
+      () => "msg-2",
+    );
+    expect(second.bubbles).toHaveLength(1);
+    expect(second.bubbles[0]).toMatchObject({
       id: "msg-1",
-      role: "interlocutor",
-      content: "фінал",
-      partial: false,
-      ts: at,
+      content: "я хотів записатися",
+      partial: true,
     });
+    expect(second.turn).toEqual({ id: "msg-1", committed: "я хотів записатися", lastTs: at + 500 });
+  });
+
+  it("a final after a real silence starts a NEW bubble", () => {
+    const first = withInterlocutorFinal([], null, "перше речення", at, () => "msg-1");
+    const second = withInterlocutorFinal(
+      first.bubbles,
+      first.turn,
+      "інша думка",
+      at + INTERLOCUTOR_MERGE_GAP_MS + 1,
+      () => "msg-2",
+    );
+    expect(second.bubbles).toHaveLength(2);
+    expect(second.bubbles[1]).toMatchObject({ id: "msg-2", content: "інша думка" });
+  });
+
+  it("a live partial grows on top of the committed text without losing it", () => {
+    const f = withInterlocutorFinal([], null, "я хотів", at, () => "msg-1");
+    const p = withInterlocutorPartial(f.bubbles, f.turn, "запис", at + 300, idGen("t"));
+    expect(p.bubbles[0]).toMatchObject({ id: "msg-1", content: "я хотів запис", partial: true });
+  });
+
+  it("sealInterlocutorTurn marks the active bubble final", () => {
+    const f = withInterlocutorFinal([], null, "готово", at, () => "msg-1");
+    const sealed = sealInterlocutorTurn(f.bubbles, f.turn);
+    expect(sealed[0]).toMatchObject({ id: "msg-1", partial: false });
+    expect(sealInterlocutorTurn(f.bubbles, null)).toBe(f.bubbles);
   });
 });
 
@@ -77,7 +89,7 @@ describe("ai bubble reducers", () => {
   it("withAiPartial replaces only the AI partial — interlocutor partials are preserved", () => {
     const old: Bubble[] = [
       {
-        id: PARTIAL_INTERLOCUTOR_ID,
+        id: "turn-7",
         role: "interlocutor",
         content: "співрозм",
         partial: true,
@@ -92,7 +104,7 @@ describe("ai bubble reducers", () => {
       },
     ];
     const out = withAiPartial(old, "ai нова", at);
-    expect(out.find((b) => b.id === PARTIAL_INTERLOCUTOR_ID)).toBeDefined();
+    expect(out.find((b) => b.id === "turn-7")).toBeDefined();
     const aiBubble = out.find((b) => b.id === PARTIAL_AI_ID);
     expect(aiBubble?.content).toBe("ai нова");
     expect(aiBubble?.ts).toBe(at);
