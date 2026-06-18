@@ -2,7 +2,7 @@
 // WebRTC globals at startup so in-app call media works.
 import "@/realtime/livekitSetup";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 import { Stack, usePathname } from "expo-router";
 import { I18nextProvider } from "react-i18next";
@@ -13,6 +13,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { AuthGate } from "@/auth/AuthGate";
 import { useAuthStore } from "@/auth/store";
 import "@/auth/refreshScheduler";
+import { BootSplash } from "@/components/BootSplash";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { DialogHost } from "@/feedback/DialogHost";
@@ -34,6 +35,17 @@ export default function RootLayout() {
   const i18n = useMemo(() => initI18n(), []);
   const fontsLoaded = useAppFonts();
   const pathname = usePathname();
+  const authStatus = useAuthStore((s) => s.status);
+
+  // Keep the branded boot loader up until fonts are ready AND auth has
+  // hydrated (so we don't flash the initial route before the gate redirects),
+  // with a short floor so the logo animation is actually seen on fast boots.
+  const [minSplashElapsed, setMinSplashElapsed] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setMinSplashElapsed(true), 850);
+    return () => clearTimeout(t);
+  }, []);
+  const booted = fontsLoaded && authStatus !== "unknown" && minSplashElapsed;
 
   useEffect(() => {
     initSentry();
@@ -105,6 +117,7 @@ export default function RootLayout() {
                   </AuthGate>
                   <DialogHost />
                   <ToastHost />
+                  <BootSplash visible={!booted} />
                 </View>
               </ThemeProvider>
             </I18nextProvider>
