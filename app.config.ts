@@ -94,6 +94,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // Injects callkeep's Telecom VoiceConnectionService into the manifest
     // (the library ships no config plugin and omits it from its own manifest).
     "./plugins/withCallkeepAndroid",
+    // Enables ReactNativeFeatureFlags.useTurboModuleInterop so the legacy
+    // react-native-webrtc native module is exposed under bridgeless (otherwise
+    // NativeModules.WebRTCModule is null → peer calls crash).
+    "./plugins/withTurboModuleInterop",
     // LiveKit WebRTC media engine for in-app (peer) voice calls — wires the
     // native webrtc build config (Java/Kotlin opts, packaging) so the client
     // media transport is actually available instead of falling back to
