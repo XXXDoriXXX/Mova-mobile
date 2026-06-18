@@ -1,3 +1,7 @@
+// MUST be first: bridges the WebRTC native module from the TurboModule interop
+// registry into NativeModules before livekit-client evaluates (New Arch fix).
+import "./webrtcInterop";
+
 import { registerGlobals } from "@livekit/react-native";
 
 // Register the WebRTC globals (RTCPeerConnection, MediaStream, …) ONCE at app
