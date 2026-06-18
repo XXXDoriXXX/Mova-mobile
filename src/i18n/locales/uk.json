@@ -80,6 +80,8 @@
     "greeting_night_alt": "Сов вітаємо",
     "balanceTitle": "На рахунку",
     "balanceFreeQuota": "{{used}} з {{total}} безкоштовних секунд цього місяця",
+    "balancePlusQuota": "{{used}} з {{total}} хв пакета цього місяця",
+    "minShort": "хв",
     "balanceAmount": "₴ {{amount}}",
     "balanceMinutes": "≈ {{minutes}} хв розмови",
     "balanceRingLeftLabel": "ЛИШИЛОСЬ",
