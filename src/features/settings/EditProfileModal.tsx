@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 
+import { getBillingSummary } from "@/api/billing";
 import { Button } from "@/components/Button";
 import { Chip } from "@/components/Chip";
 import { Modal } from "@/components/Modal";
@@ -23,7 +25,16 @@ export function EditProfileModal({ visible, onClose }: Props) {
   const [name, setName] = useState(user?.name ?? "");
   const [language, setLanguage] = useState<Language>(user?.language ?? "uk");
   const [isDeafMute, setIsDeafMute] = useState(user?.isDeafMute ?? true);
+  const [voiceGender, setVoiceGender] = useState<"female" | "male">(
+    user?.preferredVoiceGender ?? "female",
+  );
   const [error, setError] = useState<string | null>(null);
+
+  const summaryQuery = useQuery({
+    queryKey: ["billing", "me"],
+    queryFn: getBillingSummary,
+  });
+  const isPlus = summaryQuery.data?.plan.code === "plus";
 
   const { submitting, execute } = useEditProfile();
 
@@ -32,6 +43,7 @@ export function EditProfileModal({ visible, onClose }: Props) {
     setName(user.name);
     setLanguage(user.language);
     setIsDeafMute(user.isDeafMute);
+    setVoiceGender(user.preferredVoiceGender ?? "female");
     setError(null);
   }, [visible, user]);
 
@@ -45,6 +57,8 @@ export function EditProfileModal({ visible, onClose }: Props) {
       name: name.trim(),
       language,
       isDeafMute,
+      // Only subscribers' choice is meaningful; don't send it otherwise.
+      ...(isPlus ? { voiceGender } : {}),
     });
     if (result.ok) {
       onClose();
@@ -101,6 +115,27 @@ export function EditProfileModal({ visible, onClose }: Props) {
               onPress={() => setIsDeafMute(false)}
             />
           </View>
+        </View>
+        <View style={{ gap: theme.spacing.xs }}>
+          <Text variant="label">{t("settings.voiceGender")}</Text>
+          {isPlus ? (
+            <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
+              <Chip
+                label={t("settings.voiceGenderFemale")}
+                selected={voiceGender === "female"}
+                onPress={() => setVoiceGender("female")}
+              />
+              <Chip
+                label={t("settings.voiceGenderMale")}
+                selected={voiceGender === "male"}
+                onPress={() => setVoiceGender("male")}
+              />
+            </View>
+          ) : (
+            <Text variant="caption" color="textMuted">
+              {t("settings.voiceGenderPlusOnly")}
+            </Text>
+          )}
         </View>
         {error ? (
           <Text variant="caption" color="danger">

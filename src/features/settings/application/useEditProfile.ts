@@ -11,6 +11,9 @@ export type EditProfileInput = {
   name: string;
   language: Language;
   isDeafMute: boolean;
+  // Provider-agnostic AI-voice preference. Omitted when the user can't change it
+  // (non-subscriber); the backend maps it to a concrete premium voice.
+  voiceGender?: "female" | "male";
 };
 
 export type EditProfileResult =
@@ -28,6 +31,7 @@ export function useEditProfile() {
         name: input.name,
         language: input.language,
         isDeafMute: input.isDeafMute,
+        ...(input.voiceGender ? { preferredVoiceGender: input.voiceGender } : {}),
       }),
   });
 
