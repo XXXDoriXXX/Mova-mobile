@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,7 +9,11 @@ import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import { cancelPeerCall } from "@/api/calls";
-import { useCallSignalStore, getCallMediaTransport } from "@/features/calls";
+import {
+  useCallSignalStore,
+  getCallMediaTransport,
+  leaveCallScreen,
+} from "@/features/calls";
 import { callLog, callError } from "@/observability/callLog";
 
 const RING_TIMEOUT_MS = 60_000;
@@ -22,13 +26,24 @@ export default function OutgoingCallScreen() {
     (s) => s.clearForConversation,
   );
   const [muted, setMuted] = useState(false);
+  const leftRef = useRef(false);
 
   const conversationId = outgoing?.conversationId ?? null;
   const status = outgoing?.status ?? null;
 
+  // Leaving the call can fire from several paths (hang-up, the server's
+  // declined/cancelled echo, the media room dropping). Run it at most once so a
+  // delayed call never pops an unrelated screen, and route safely when this
+  // screen is the navigation root.
+  const leaveCall = useCallback(() => {
+    if (leftRef.current) return;
+    leftRef.current = true;
+    leaveCallScreen(router);
+  }, [router]);
+
   const hangUp = useCallback(async () => {
     if (!conversationId) {
-      router.back();
+      leaveCall();
       return;
     }
     callLog("call.outgoing.hangUp", { conversationId, status });
@@ -39,9 +54,9 @@ export default function OutgoingCallScreen() {
     } finally {
       await getCallMediaTransport().disconnect();
       clearForConversation(conversationId);
-      router.back();
+      leaveCall();
     }
-  }, [conversationId, status, clearForConversation, router]);
+  }, [conversationId, status, clearForConversation, leaveCall]);
 
   const toggleMute = useCallback(async () => {
     const next = !muted;
@@ -55,14 +70,14 @@ export default function OutgoingCallScreen() {
       const id = setTimeout(() => {
         void getCallMediaTransport().disconnect();
         if (conversationId) clearForConversation(conversationId);
-        router.back();
+        leaveCall();
       }, 1500);
       return () => clearTimeout(id);
     }
     if (status === "accepted") {
       callLog("call.outgoing.accepted", { conversationId });
     }
-  }, [status, conversationId, clearForConversation, router]);
+  }, [status, conversationId, clearForConversation, leaveCall]);
 
   useEffect(() => {
     if (status !== "ringing") return;
@@ -79,10 +94,10 @@ export default function OutgoingCallScreen() {
       const current = useCallSignalStore.getState().outgoing?.status;
       if (current === "declined" || current === "cancelled") return;
       if (conversationId) clearForConversation(conversationId);
-      router.back();
+      leaveCall();
     });
     return () => transport.setOnDisconnected(null);
-  }, [conversationId, clearForConversation, router]);
+  }, [conversationId, clearForConversation, leaveCall]);
 
   const statusLabel =
     status === "accepted"

@@ -10,7 +10,11 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { answerPeerCall, declinePeerCall } from "@/api/calls";
 import { extractErrorPayload } from "@/api/client";
 import { toast } from "@/feedback/toast";
-import { useCallSignalStore, useIncomingCallAlert } from "@/features/calls";
+import {
+  useCallSignalStore,
+  useIncomingCallAlert,
+  leaveCallScreen,
+} from "@/features/calls";
 import { dismissNativeCall } from "@/notifications/nativeCallUi";
 import { callLog, callError } from "@/observability/callLog";
 
@@ -59,7 +63,7 @@ export default function IncomingCallScreen() {
         dismissNativeCall(conversationId);
         clearForConversation(conversationId);
         toast.info("Дзвінок завершено");
-        router.back();
+        leaveCallScreen(router);
         return;
       }
       handledRef.current = false;
@@ -79,7 +83,7 @@ export default function IncomingCallScreen() {
     } finally {
       dismissNativeCall(conversationId);
       clearForConversation(conversationId);
-      router.back();
+      leaveCallScreen(router);
     }
   }, [conversationId, clearForConversation, router]);
 
@@ -94,7 +98,7 @@ export default function IncomingCallScreen() {
       !handledRef.current &&
       params.autoAnswer !== "1"
     ) {
-      router.back();
+      leaveCallScreen(router);
     }
   }, [incoming, conversationId, params.autoAnswer, router]);
 
