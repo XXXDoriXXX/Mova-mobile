@@ -57,6 +57,7 @@
     "expo-web-browser": "~15.0.10",
     "i18next": "^26.1.0",
     "libphonenumber-js": "^1.13.2",
+    "livekit-client": "^2.19.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.75.0",
