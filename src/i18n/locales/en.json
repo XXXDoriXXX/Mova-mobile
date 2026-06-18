@@ -80,6 +80,8 @@
     "greeting_night_alt": "Hello, fellow night owl",
     "balanceTitle": "Balance",
     "balanceFreeQuota": "{{used}} / {{total}} free seconds this month",
+    "balancePlusQuota": "{{used}} / {{total}} min of your plan this month",
+    "minShort": "min",
     "balanceAmount": "₴ {{amount}}",
     "balanceMinutes": "enough for ~{{minutes}} min of talk",
     "balanceRingLeftLabel": "LEFT",

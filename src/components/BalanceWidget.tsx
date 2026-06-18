@@ -31,16 +31,26 @@ function Inner({ summary }: { summary: BillingSummary }) {
   const { t } = useTranslation();
   const theme = useTheme();
 
-  const isFree = summary.plan.code === "free";
-  const numericHeadline = isFree
-    ? summary.freeSecondsRemaining
+  // Plans with a monthly included pool (FREE and PLUS) show that pool; pure
+  // pay-as-you-go (PAID) shows the wallet balance. PLUS used to fall through to
+  // the wallet path and read 0 even with 125 included minutes.
+  const usesPool = summary.plan.freeSecondsPerMonth > 0;
+  const isPlus = summary.plan.code === "plus";
+
+  const numericHeadline = usesPool
+    ? Math.round(summary.freeSecondsRemaining / 60)
     : summary.balanceCents / 100;
 
-  const sub = isFree
-    ? t("home.balanceFreeQuota", {
-        used: summary.freeSecondsUsed,
-        total: summary.plan.freeSecondsPerMonth,
-      })
+  const sub = usesPool
+    ? isPlus
+      ? t("home.balancePlusQuota", {
+          used: Math.round(summary.freeSecondsUsed / 60),
+          total: Math.round(summary.plan.freeSecondsPerMonth / 60),
+        })
+      : t("home.balanceFreeQuota", {
+          used: summary.freeSecondsUsed,
+          total: summary.plan.freeSecondsPerMonth,
+        })
     : t("home.balanceMinutes", {
         minutes: estimateMinutesFromBalance(
           summary.balanceCents,
@@ -48,7 +58,7 @@ function Inner({ summary }: { summary: BillingSummary }) {
         ),
       });
 
-  const ratio = isFree
+  const ratio = usesPool
     ? summary.plan.freeSecondsPerMonth > 0
       ? Math.max(
           0,
@@ -58,24 +68,24 @@ function Inner({ summary }: { summary: BillingSummary }) {
     : 1;
 
   const ringColor =
-    !isFree || ratio > 0.5
+    !usesPool || ratio > 0.5
       ? theme.colors.accent
       : ratio > 0.2
         ? theme.colors.warning
         : theme.colors.danger;
 
-  const minutesFromBalance = isFree
+  const minutesFromBalance = usesPool
     ? null
     : estimateMinutesFromBalance(
         summary.balanceCents,
         summary.plan.pricePerSecondCents,
       );
-  const centerPrimary = isFree
+  const centerPrimary = usesPool
     ? `${Math.round(ratio * 100)}%`
     : minutesFromBalance != null && Number.isFinite(minutesFromBalance)
       ? `${minutesFromBalance}`
       : "∞";
-  const centerLabel = isFree
+  const centerLabel = usesPool
     ? t("home.balanceRingLeftLabel")
     : t("home.balanceRingMinutesLabel");
 
@@ -99,8 +109,8 @@ function Inner({ summary }: { summary: BillingSummary }) {
         <AnimatedNumber
           value={numericHeadline}
           format={(n) =>
-            isFree
-              ? `${Math.max(0, Math.round(n))}s`
+            usesPool
+              ? `${Math.max(0, Math.round(n))} ${t("home.minShort")}`
               : t("home.balanceAmount", {
                   amount: n.toLocaleString("uk-UA", {
                     minimumFractionDigits: 2,
