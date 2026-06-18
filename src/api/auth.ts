@@ -72,6 +72,7 @@ export async function patchMe(
       | "name"
       | "language"
       | "preferredVoice"
+      | "preferredVoiceGender"
       | "preferredLlmProvider"
       | "preferredLlmModel"
       | "preferredTtsProvider"

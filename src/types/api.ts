@@ -11,6 +11,7 @@ export type User = {
   role: UserRole;
   language: Language;
   preferredVoice: string | null;
+  preferredVoiceGender: "female" | "male" | null;
   preferredLlmProvider: string | null;
   preferredLlmModel: string | null;
   preferredTtsProvider: string | null;
