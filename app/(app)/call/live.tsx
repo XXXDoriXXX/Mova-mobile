@@ -181,7 +181,10 @@ export default function LiveCallScreen() {
     <Screen padded={false}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        // iOS needs padding; on Android the window already resizes for the
+        // keyboard (adjustResize), so a behavior here double-shrinks the layout
+        // and makes the AI-reply card / input overlap the transcript.
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
       <Header
         durationSeconds={usageTick?.secondsElapsed ?? 0}
@@ -217,7 +220,11 @@ export default function LiveCallScreen() {
         <CallConnecting />
       ) : (
         <>
-          <Transcript bubbles={bubbles} aiThinking={aiThinking} />
+          <Transcript
+            bubbles={bubbles}
+            aiThinking={aiThinking}
+            bottomSignal={(pendingAiReply ? 1 : 0) + suggestions.length}
+          />
           {pendingAiReply ? (
             <AiReplyCandidate
               candidate={pendingAiReply}

@@ -21,16 +21,22 @@ import { useTheme } from "@/theme/ThemeProvider";
 
 import type { Bubble } from "./callStore";
 
-type Props = { bubbles: Bubble[]; aiThinking: boolean };
+type Props = {
+  bubbles: Bubble[];
+  aiThinking: boolean;
+  // Bumped whenever the bottom composer grows (AI-reply card / suggestions
+  // appear), so the latest message scrolls back into view above it.
+  bottomSignal?: number;
+};
 
-export function Transcript({ bubbles, aiThinking }: Props) {
+export function Transcript({ bubbles, aiThinking, bottomSignal = 0 }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollToEnd({ animated: true });
-  }, [bubbles.length, aiThinking]);
+  }, [bubbles.length, aiThinking, bottomSignal]);
 
   return (
     <ScrollView
