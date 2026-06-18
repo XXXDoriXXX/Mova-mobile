@@ -206,6 +206,9 @@ export type SearchHit = {
   durationSeconds: number;
   templateId: string | null;
   templateName: string | null;
+  callType: ConversationType;
+  targetPhone: string | null;
+  callerName: string | null;
   matches: SearchMatch[];
 };
 
