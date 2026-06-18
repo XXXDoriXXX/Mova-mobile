@@ -31,11 +31,22 @@ type LiveKitRoom = {
 
 function loadLiveKit(): LiveKitModule | null {
   try {
-
+    // `@livekit/react-native` exposes registerGlobals + AudioSession, but it does
+    // NOT re-export livekit-client's `Room` (no `export * from 'livekit-client'`
+    // in v2.11) — `Room` is the standard direct import from livekit-client. If we
+    // read `Room` off the RN package it's `undefined`, and `new undefined()` is
+    // what Hermes reports as "Cannot read property 'prototype' of undefined",
+    // crashing every peer call at `new Room()`.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require("@livekit/react-native") as LiveKitModule;
-    mod.registerGlobals();
-    return mod;
+    const rn = require("@livekit/react-native") as Omit<LiveKitModule, "Room">;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { Room } = require("livekit-client") as Pick<LiveKitModule, "Room">;
+    rn.registerGlobals();
+    return {
+      Room,
+      AudioSession: rn.AudioSession,
+      registerGlobals: rn.registerGlobals,
+    };
   } catch {
     return null;
   }
