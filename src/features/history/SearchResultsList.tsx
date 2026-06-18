@@ -7,6 +7,7 @@ import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
 import { searchConversations } from "@/api/conversations";
 import { formatDuration, formatRelativeFromNow } from "@/utils/format";
+import { callTitleFrom } from "@/utils/conversation-display";
 import type { SearchHit } from "@/types/api";
 
 import { HighlightedText } from "./HighlightedText";
@@ -125,7 +126,7 @@ function SearchResultCard({
             }}
           >
             <Text variant="bodyLarge" weight="bold" numberOfLines={1}>
-              {hit.templateName ?? t("history.search.untitled")}
+              {callTitleFrom(hit)}
             </Text>
             <Text variant="caption" color="textMuted">
               {formatRelativeFromNow(hit.startedAt)}
@@ -135,6 +136,7 @@ function SearchResultCard({
             {t("history.search.durationLabel", {
               value: formatDuration(hit.durationSeconds),
             })}
+            {hit.templateName ? ` · ${hit.templateName}` : ""}
           </Text>
           {hit.matches.map((m) => (
             <View key={m.messageId} style={{ marginTop: 4 }}>
