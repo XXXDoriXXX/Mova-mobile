@@ -52,6 +52,29 @@ describe("callStore reducer", () => {
     }
   });
 
+  it("endInterlocutorTurn seals the bubble now; a quick continuation re-merges", () => {
+    jest.useFakeTimers();
+    try {
+      get().commitInterlocutorFinal("m1", "перша частина");
+      const id = get().bubbles[0]?.id;
+      expect(get().bubbles[0]?.partial).toBe(true);
+
+      // backend's authoritative endpoint → seal immediately (no waiting for timer)
+      get().endInterlocutorTurn();
+      expect(get().bubbles).toHaveLength(1);
+      expect(get().bubbles[0]?.partial).toBe(false);
+
+      // a backend over-split (sentence continued after a long pause) merges back
+      get().commitInterlocutorFinal("m2", "друга частина");
+      expect(get().bubbles).toHaveLength(1);
+      expect(get().bubbles[0]?.id).toBe(id);
+      expect(get().bubbles[0]?.content).toBe("перша частина друга частина");
+      expect(get().bubbles[0]?.partial).toBe(true);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it("ai partial → final overwrites and clears thinking indicator", () => {
     get().setAiThinking(true);
     expect(get().aiThinking).toBe(true);

@@ -1,0 +1,8 @@
+{
+  "type": "transcript.turn_end",
+  "id": "9b2c1f44-7e0a-4d3b-9c11-2f5a6b8d0e21",
+  "timestamp": "2026-05-20T12:00:03.000Z",
+  "data": {
+    "messageId": "1cda1628-1409-4cd2-8191-1fe7ec76908e"
+  }
+}

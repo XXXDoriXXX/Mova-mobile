@@ -210,6 +210,9 @@ function routeEvent(event: ServerEvent) {
     case "transcript.final":
       store.commitInterlocutorFinal(event.data.messageId, event.data.text);
       break;
+    case "transcript.turn_end":
+      store.endInterlocutorTurn();
+      break;
     case "ai.thinking":
       store.setAiThinking(true);
       store.setPendingAiReply(null);
