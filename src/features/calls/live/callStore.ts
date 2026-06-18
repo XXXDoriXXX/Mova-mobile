@@ -114,6 +114,7 @@ type CallState = {
 
   setInterlocutorPartial: (text: string) => void;
   commitInterlocutorFinal: (messageId: string, text: string) => void;
+  endInterlocutorTurn: () => void;
 
   setAiPartial: (text: string) => void;
   commitAiFinal: (messageId: string, text: string, kind?: Bubble["kind"]) => void;
@@ -258,6 +259,12 @@ export const useCallStore = create<CallState>((set) => {
       armSeal();
       return { bubbles, interlocutorTurn: turn };
     }),
+  // Authoritative end-of-turn from the backend (real endpoint). Seal the bubble
+  // now instead of waiting for the local fallback timer. The turn + timer are
+  // kept so a quick continuation (backend split a sentence on a long pause)
+  // still merges into this bubble within the gap rather than starting a new one.
+  endInterlocutorTurn: () =>
+    set((s) => ({ bubbles: sealInterlocutorTurn(s.bubbles, s.interlocutorTurn) })),
 
   setAiPartial: (text) =>
     set((s) => {

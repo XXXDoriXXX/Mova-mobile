@@ -9,6 +9,7 @@ const FIXTURES = [
   "call.connected",
   "transcript.partial",
   "transcript.final",
+  "transcript.turn_end",
   "ai.thinking",
   "ai.text.partial",
   "ai.text.final",
