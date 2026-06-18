@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-  BackHandler,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  View,
-} from "react-native";
+import { BackHandler, Pressable, View } from "react-native";
+import Animated, {
+  useAnimatedKeyboard,
+  useAnimatedStyle,
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -65,6 +64,17 @@ export default function LiveCallScreen() {
   const endInfo = useCallStore((s) => s.endInfo);
   const setToastError = useCallStore((s) => s.setToastError);
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Keyboard avoidance that works under Android edge-to-edge (edgeToEdgeEnabled),
+  // where the legacy adjustResize no longer shrinks the layout, so the keyboard
+  // would otherwise cover the message input. Lift the whole call column by the
+  // keyboard height; the SafeAreaView already pads the bottom inset, so subtract
+  // it to avoid double spacing. iOS keyboard height resolves the same way.
+  const keyboard = useAnimatedKeyboard();
+  const insets = useSafeAreaInsets();
+  const keyboardAvoidStyle = useAnimatedStyle(() => ({
+    paddingBottom: Math.max(keyboard.height.value - insets.bottom, 0),
+  }));
 
   const { send } = useCallSocket({
     conversationId: params.conversationId ?? "",
@@ -179,13 +189,7 @@ export default function LiveCallScreen() {
 
   return (
     <Screen padded={false}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        // iOS needs padding; on Android the window already resizes for the
-        // keyboard (adjustResize), so a behavior here double-shrinks the layout
-        // and makes the AI-reply card / input overlap the transcript.
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+      <Animated.View style={[{ flex: 1 }, keyboardAvoidStyle]}>
       <Header
         durationSeconds={usageTick?.secondsElapsed ?? 0}
         secondsRemaining={
@@ -236,7 +240,7 @@ export default function LiveCallScreen() {
           <MessageInput onSend={handleSend} disabled={status === "ended"} />
         </>
       )}
-      </KeyboardAvoidingView>
+      </Animated.View>
     </Screen>
   );
 }
