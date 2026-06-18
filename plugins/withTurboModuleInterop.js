@@ -16,8 +16,13 @@ const IMPORTS =
   "\nimport com.facebook.react.internal.featureflags.ReactNativeFeatureFlags" +
   "\nimport com.facebook.react.internal.featureflags.ReactNativeFeatureFlagsDefaults";
 
-const OVERRIDE = `super.onCreate()
-    // Expose legacy native modules (react-native-webrtc) under bridgeless.
+// Inject AFTER loadReactNative(this): by then SoLoader is initialized (the
+// feature-flags accessor loads a native lib, so it must be) but the ReactHost
+// isn't built yet, so the flag is still read fresh when TurboModules spin up.
+const ANCHOR = "loadReactNative(this)";
+const OVERRIDE = `loadReactNative(this)
+    // Expose legacy native modules (react-native-webrtc) under bridgeless so
+    // react-native-webrtc's WebRTCModule resolves instead of being null.
     try {
       ReactNativeFeatureFlags.override(object : ReactNativeFeatureFlagsDefaults() {
         override fun useTurboModuleInterop(): Boolean = true
@@ -31,7 +36,7 @@ const withTurboModuleInterop = (config) =>
       src = src.replace(IMPORT_ANCHOR, IMPORTS);
     }
     if (!src.includes("useTurboModuleInterop")) {
-      src = src.replace("super.onCreate()", OVERRIDE);
+      src = src.replace(ANCHOR, OVERRIDE);
     }
     cfg.modResults.contents = src;
     return cfg;
