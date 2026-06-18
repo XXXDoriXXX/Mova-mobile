@@ -27,5 +27,6 @@ export { useCallSignaling } from "./incoming/application/useCallSignaling";
 export { useIncomingCallAlert } from "./incoming/application/useIncomingCallAlert";
 export { useStartPeerCall } from "./outgoing/application/useStartPeerCall";
 export { getCallMediaTransport } from "./outgoing/application/callMediaTransport";
+export { leaveCallScreen } from "./leaveCallScreen";
 
 export type { StartPeerCallTarget } from "./outgoing/application/useStartPeerCall";
