@@ -4,6 +4,10 @@ import type { CallStartResponse, PeerCallStartResponse } from "@/types/api";
 export type StartCallInput = {
   targetPhone: string;
   templateId?: string;
+  // Free-text purpose of the call. The agent voices it at the start of the call
+  // ("Телефоную ось чому: …") and keeps it in its system prompt. Backend caps
+  // it at 500 chars (start-call.dto.ts).
+  callReason?: string;
 };
 
 export async function startCall(

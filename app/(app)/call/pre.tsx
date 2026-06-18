@@ -30,6 +30,7 @@ export default function PreCallScreen() {
 
   const preferredStyleId = useAuthStore((s) => s.user?.preferredStyleId ?? null);
   const [phone, setPhone] = useState(params.prefillPhone || "+380");
+  const [reason, setReason] = useState("");
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [styleId, setStyleId] = useState<string | null>(preferredStyleId);
   const [submitting, setSubmitting] = useState(false);
@@ -67,9 +68,11 @@ export default function PreCallScreen() {
     setError(null);
     setInsufficient(null);
     try {
+      const trimmedReason = reason.trim();
       const resp = await startCall({
         targetPhone: phone.trim(),
         templateId: templateId ?? undefined,
+        callReason: trimmedReason.length > 0 ? trimmedReason : undefined,
       });
       router.replace({
         pathname: "/call/live",
@@ -172,6 +175,17 @@ export default function PreCallScreen() {
         visible={pickingContact}
         onClose={() => setPickingContact(false)}
         onPick={(e164) => setPhone(e164)}
+      />
+
+      <TextField
+        label={t("preCall.reasonLabel")}
+        placeholder={t("preCall.reasonPlaceholder")}
+        helperText={t("preCall.reasonHint")}
+        value={reason}
+        onChangeText={setReason}
+        multiline
+        numberOfLines={3}
+        maxLength={500}
       />
 
       {templatesQuery.isLoading ? (
