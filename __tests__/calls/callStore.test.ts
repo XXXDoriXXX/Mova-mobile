@@ -6,6 +6,11 @@ beforeEach(() => {
   useCallStore.getState().reset();
 });
 
+afterEach(() => {
+  // reset() also clears the pending interlocutor seal timer.
+  useCallStore.getState().reset();
+});
+
 describe("callStore reducer", () => {
   it("starts idle with empty bubbles + suggestions", () => {
     expect(get().status).toBe("idle");
@@ -13,24 +18,38 @@ describe("callStore reducer", () => {
     expect(get().suggestions).toEqual([]);
   });
 
-  it("interlocutor partial → final replaces the partial bubble in place", () => {
-    get().setInterlocutorPartial("Привіт, це");
-    expect(get().bubbles).toHaveLength(1);
-    expect(get().bubbles[0]?.partial).toBe(true);
-    expect(get().bubbles[0]?.content).toBe("Привіт, це");
+  it("interlocutor: partials grow one bubble, a quick final merges, silence seals it", () => {
+    jest.useFakeTimers();
+    try {
+      get().setInterlocutorPartial("Привіт, це");
+      expect(get().bubbles).toHaveLength(1);
+      expect(get().bubbles[0]?.partial).toBe(true);
+      expect(get().bubbles[0]?.content).toBe("Привіт, це");
+      const turnId = get().bubbles[0]?.id;
 
-    get().setInterlocutorPartial("Привіт, це Іван");
-    expect(get().bubbles).toHaveLength(1);
-    expect(get().bubbles[0]?.content).toBe("Привіт, це Іван");
+      get().setInterlocutorPartial("Привіт, це Іван");
+      expect(get().bubbles).toHaveLength(1);
+      expect(get().bubbles[0]?.id).toBe(turnId);
+      expect(get().bubbles[0]?.content).toBe("Привіт, це Іван");
 
-    get().commitInterlocutorFinal(
-      "33333333-3333-3333-3333-333333333333",
-      "Привіт, це Іван.",
-    );
-    expect(get().bubbles).toHaveLength(1);
-    expect(get().bubbles[0]?.partial).toBe(false);
-    expect(get().bubbles[0]?.id).toBe("33333333-3333-3333-3333-333333333333");
-    expect(get().bubbles[0]?.content).toBe("Привіт, це Іван.");
+      // A finalised segment arriving right away merges into the same bubble and
+      // the turn is still "speaking" (more segments may follow a micro-pause).
+      get().commitInterlocutorFinal(
+        "33333333-3333-3333-3333-333333333333",
+        "Привіт, це Іван.",
+      );
+      expect(get().bubbles).toHaveLength(1);
+      expect(get().bubbles[0]?.id).toBe(turnId);
+      expect(get().bubbles[0]?.content).toBe("Привіт, це Іван.");
+      expect(get().bubbles[0]?.partial).toBe(true);
+
+      // Silence longer than the merge gap → seal: speaking stops, turn cleared.
+      jest.advanceTimersByTime(2100);
+      expect(get().bubbles[0]?.partial).toBe(false);
+      expect(get().interlocutorTurn).toBeNull();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it("ai partial → final overwrites and clears thinking indicator", () => {
