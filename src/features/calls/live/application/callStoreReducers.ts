@@ -10,8 +10,10 @@ export const PARTIAL_AI_ID = "__partial_ai__";
 // A speaker's micro-pauses make the backend STT emit several `transcript.final`
 // segments for one sentence. Merge them into a single growing bubble while the
 // gap between segments stays short; only a real silence (or the other party
-// starting to speak) ends the turn and starts a fresh bubble.
-export const INTERLOCUTOR_MERGE_GAP_MS = 2000;
+// starting to speak) ends the turn and starts a fresh bubble. Kept ≥ the
+// backend's TURN_DEBOUNCE_MS so the client never splits what the agent treats
+// as one turn, and re-merges a backend over-split if speech resumes quickly.
+export const INTERLOCUTOR_MERGE_GAP_MS = 3000;
 
 function joinText(a: string, b: string): string {
   if (!a) return b;

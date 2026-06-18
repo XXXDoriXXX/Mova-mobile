@@ -44,7 +44,7 @@ describe("callStore reducer", () => {
       expect(get().bubbles[0]?.partial).toBe(true);
 
       // Silence longer than the merge gap → seal: speaking stops, turn cleared.
-      jest.advanceTimersByTime(2100);
+      jest.advanceTimersByTime(3100);
       expect(get().bubbles[0]?.partial).toBe(false);
       expect(get().interlocutorTurn).toBeNull();
     } finally {
