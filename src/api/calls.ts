@@ -8,6 +8,9 @@ export type StartCallInput = {
   // ("Телефоную ось чому: …") and keeps it in its system prompt. Backend caps
   // it at 500 chars (start-call.dto.ts).
   callReason?: string;
+  // Whether the agent voices its opening greeting (deaf+assistant disclosure).
+  // Default true; set false for people who already know the caller (family).
+  announceGreeting?: boolean;
 };
 
 export async function startCall(

@@ -343,6 +343,8 @@
     "reasonLabel": "Why are you calling?",
     "reasonPlaceholder": "e.g. pick up a delivery, book a doctor's appointment, ask about order #123",
     "reasonHint": "The assistant says this at the start of the call and keeps it in mind throughout",
+    "announceGreetingLabel": "Announce greeting",
+    "announceGreetingHint": "At the start the assistant says you're using it. Turn off for people who already know",
     "noTemplate": "No template",
     "lowBalanceWarn": "Balance is almost out",
     "lowBalanceWarnDetailed": "Only about {{seconds}}s left. Top up before the call runs out.",
