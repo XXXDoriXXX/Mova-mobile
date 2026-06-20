@@ -1,6 +1,7 @@
 export { ContactsPicker } from "./ContactsPicker";
 export { StylePicker } from "./StylePicker";
 export { TemplatePicker } from "./TemplatePicker";
+export { VoiceQualitySlider, type VoiceTier } from "./VoiceQualitySlider";
 
 export { AiReplyCandidate } from "./live/AiReplyCandidate";
 export { CallConnecting } from "./live/CallConnecting";

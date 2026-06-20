@@ -19,7 +19,13 @@ import { listStyles } from "@/api/styles";
 import { getBillingSummary } from "@/api/billing";
 import { extractErrorPayload } from "@/api/client";
 import { useAuthStore } from "@/auth/store";
-import { ContactsPicker, StylePicker, TemplatePicker } from "@/features/calls";
+import {
+  ContactsPicker,
+  StylePicker,
+  TemplatePicker,
+  VoiceQualitySlider,
+  type VoiceTier,
+} from "@/features/calls";
 import { isDialable } from "@/utils/phone";
 
 export default function PreCallScreen() {
@@ -32,7 +38,7 @@ export default function PreCallScreen() {
   const [phone, setPhone] = useState(params.prefillPhone || "+380");
   const [reason, setReason] = useState("");
   const [announceGreeting, setAnnounceGreeting] = useState(true);
-  const [realisticVoice, setRealisticVoice] = useState(false);
+  const [voiceTier, setVoiceTier] = useState<VoiceTier>("eco");
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [styleId, setStyleId] = useState<string | null>(preferredStyleId);
   const [submitting, setSubmitting] = useState(false);
@@ -79,7 +85,7 @@ export default function PreCallScreen() {
         templateId: templateId ?? undefined,
         callReason: trimmedReason.length > 0 ? trimmedReason : undefined,
         announceGreeting,
-        realisticVoice: canRealistic && realisticVoice ? true : undefined,
+        voiceTier,
       });
       router.replace({
         pathname: "/call/live",
@@ -244,51 +250,12 @@ export default function PreCallScreen() {
         />
       </View>
 
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: theme.spacing.md,
-          paddingVertical: theme.spacing.xs,
-        }}
-      >
-        <View style={{ flex: 1, gap: 2 }}>
-          <Text variant="bodyLarge" weight="bold">
-            {t("preCall.realisticVoiceLabel")}
-          </Text>
-          <Text variant="caption" color="textMuted">
-            {canRealistic
-              ? t("preCall.realisticVoiceHint")
-              : t("preCall.realisticVoiceLocked")}
-          </Text>
-        </View>
-        {canRealistic ? (
-          <Switch
-            value={realisticVoice}
-            onValueChange={setRealisticVoice}
-            trackColor={{
-              true: theme.colors.accent,
-              false: theme.colors.surfaceMuted,
-            }}
-            thumbColor={theme.colors.surface}
-            accessibilityLabel={t("preCall.realisticVoiceLabel")}
-          />
-        ) : (
-          <IconButton
-            size={40}
-            tone="muted"
-            onPress={() => router.push("/billing")}
-            accessibilityLabel={t("preCall.realisticVoiceLocked")}
-          >
-            <Ionicons name="lock-closed" size={16} color={theme.colors.textMuted} />
-          </IconButton>
-        )}
-      </View>
-
-      {canRealistic && realisticVoice ? (
-        <Banner tone="warning" message={t("preCall.realisticVoiceWarn")} />
-      ) : null}
+      <VoiceQualitySlider
+        value={voiceTier}
+        onChange={setVoiceTier}
+        unlocked={canRealistic}
+        onLockedPress={() => router.push("/billing")}
+      />
 
       <View style={{ marginTop: theme.spacing.lg, gap: theme.spacing.sm }}>
         <Button
