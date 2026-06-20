@@ -11,6 +11,10 @@ export type StartCallInput = {
   // Whether the agent voices its opening greeting (deaf+assistant disclosure).
   // Default true; set false for people who already know the caller (family).
   announceGreeting?: boolean;
+  // Opt into the premium ultra-realistic (ElevenLabs) voice for this call.
+  // Subscriber-only; default false (cheap standard voice). A realistic call is
+  // billed at a higher seconds multiplier — see the pre-call price warning.
+  realisticVoice?: boolean;
 };
 
 export async function startCall(
