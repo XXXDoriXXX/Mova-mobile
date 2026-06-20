@@ -345,10 +345,29 @@
     "reasonHint": "The assistant says this at the start of the call and keeps it in mind throughout",
     "announceGreetingLabel": "Announce greeting",
     "announceGreetingHint": "At the start the assistant says you're using it. Turn off for people who already know",
-    "realisticVoiceLabel": "Ultra-realistic voice",
-    "realisticVoiceHint": "The most natural-sounding voice. Costs more — uses your balance twice as fast",
-    "realisticVoiceLocked": "Available with a MOVA Plus subscription",
-    "realisticVoiceWarn": "Realistic voice: this call uses your balance twice as fast",
+    "vq": {
+      "title": "Voice quality",
+      "perMin": "UAH/min",
+      "lockedPrice": "MOVA Plus only",
+      "eco": {
+        "name": "Economy",
+        "desc": "Clear, natural voice. Perfect for everyday calls.",
+        "pool": "Included in plan",
+        "lat": "instant"
+      },
+      "real": {
+        "name": "Realistic",
+        "desc": "Lively intonation, almost human. Warm tone.",
+        "pool": "×1.5 plan minutes",
+        "lat": "fast"
+      },
+      "ultra": {
+        "name": "Ultra",
+        "desc": "Maximum realism — real emotion and intonation.",
+        "pool": "×2 plan minutes",
+        "lat": "slight delay"
+      }
+    },
     "noTemplate": "No template",
     "lowBalanceWarn": "Balance is almost out",
     "lowBalanceWarnDetailed": "Only about {{seconds}}s left. Top up before the call runs out.",

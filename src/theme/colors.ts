@@ -37,6 +37,11 @@ export type Palette = {
   warning: string;
   link: string;
   overlay: string;
+
+  // Voice-quality tier accents (cool → warm → vibrant = the quality metaphor).
+  voiceEco: string;
+  voiceReal: string;
+  voiceUltra: string;
 };
 
 export const palette: Palette = {
@@ -78,6 +83,10 @@ export const palette: Palette = {
   warning: "#C77700",
   link: "#0F3A2E",
   overlay: "rgba(10,10,10,0.45)",
+
+  voiceEco: "#0E9E84",
+  voiceReal: "#D98324",
+  voiceUltra: "#7C4DFF",
 };
 
 export const lightPalette = palette;
