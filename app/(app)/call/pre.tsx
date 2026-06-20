@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View } from "react-native";
+import { Switch, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -31,6 +31,7 @@ export default function PreCallScreen() {
   const preferredStyleId = useAuthStore((s) => s.user?.preferredStyleId ?? null);
   const [phone, setPhone] = useState(params.prefillPhone || "+380");
   const [reason, setReason] = useState("");
+  const [announceGreeting, setAnnounceGreeting] = useState(true);
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [styleId, setStyleId] = useState<string | null>(preferredStyleId);
   const [submitting, setSubmitting] = useState(false);
@@ -73,6 +74,7 @@ export default function PreCallScreen() {
         targetPhone: phone.trim(),
         templateId: templateId ?? undefined,
         callReason: trimmedReason.length > 0 ? trimmedReason : undefined,
+        announceGreeting,
       });
       router.replace({
         pathname: "/call/live",
@@ -207,6 +209,35 @@ export default function PreCallScreen() {
           onChange={setStyleId}
         />
       )}
+
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: theme.spacing.md,
+          paddingVertical: theme.spacing.xs,
+        }}
+      >
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text variant="bodyLarge" weight="bold">
+            {t("preCall.announceGreetingLabel")}
+          </Text>
+          <Text variant="caption" color="textMuted">
+            {t("preCall.announceGreetingHint")}
+          </Text>
+        </View>
+        <Switch
+          value={announceGreeting}
+          onValueChange={setAnnounceGreeting}
+          trackColor={{
+            true: theme.colors.accent,
+            false: theme.colors.surfaceMuted,
+          }}
+          thumbColor={theme.colors.surface}
+          accessibilityLabel={t("preCall.announceGreetingLabel")}
+        />
+      </View>
 
       <View style={{ marginTop: theme.spacing.lg, gap: theme.spacing.sm }}>
         <Button
