@@ -1,179 +1,112 @@
-# Mova — Mobile Client
+# Mova Mobile
 
-React Native (Expo) клієнт для **MOVA** — сервісу, який допомагає
-глухим / нечуючим людям робити звичайні телефонні дзвінки через AI.
+![Expo](https://img.shields.io/badge/Expo_SDK_54-000020?logo=expo&logoColor=white)
+![React Native](https://img.shields.io/badge/React_Native-0.81-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
+![TanStack Query](https://img.shields.io/badge/TanStack_Query-5-FF4154?logo=reactquery&logoColor=white)
+![Socket.IO](https://img.shields.io/badge/Socket.IO-010101?logo=socketdotio&logoColor=white)
+![LiveKit](https://img.shields.io/badge/LiveKit-000000?logo=livekit&logoColor=white)
+![Jest](https://img.shields.io/badge/tests-Jest-C21325?logo=jest&logoColor=white)
 
-Бекенд: <https://github.com/XXXDoriXXX/MOVA>. Документація — на гілці
-`docs/frontend-onboarding/docs`.
+React Native (Expo) client for **MOVA**, a service that lets deaf and mute people make ordinary phone calls. The user types, an AI voice speaks to the other person, and the replies come back as live text.
 
----
+## Related repositories
 
-## Стек
+| Repo | Role |
+|------|------|
+| **[MOVA](https://github.com/XXXDoriXXX/MOVA)** | Backend: REST API, realtime gateway, voice agent, admin panel |
+| **[Mova-mobile](https://github.com/XXXDoriXXX/Mova-mobile)** (this repo) | Mobile client |
 
-- **Expo SDK 54** + **Expo Router** (file-based routing, typed routes)
-- **TypeScript** strict (`noUncheckedIndexedAccess`)
-- **TanStack Query** v5 — серверний стан; пауза під час офлайну +
-  refetch on reconnect через `@react-native-community/netinfo`
-- **Zustand** — клієнтський стан (auth, live-call)
-- **axios** — HTTP клієнт з single-flight 401 refresh
-- **socket.io-client** — WebSocket під час дзвінка, з reconnect+replay
-- **expo-secure-store** — токени (Keychain / EncryptedSharedPrefs)
-- **react-hook-form** + **zod** — форми + валідація
-- **i18next** + **expo-localization** — i18n (uk default, en fallback)
-- **expo-haptics**, **expo-notifications** (scaffold), **expo-linking**
-  (deep links), **expo-updates** (опціонально, для Reload у ErrorBoundary)
-- Опціональний **@sentry/react-native** через env `EXPO_PUBLIC_SENTRY_DSN`
-- Власна тема (`src/theme`) — light / dark / system + 4 рівні font scale
+The app uses the backend REST API (port 3000, prefix `/v1`) and its Socket.IO gateway (port 3002, namespace `/calls`). The WebSocket protocol in `src/realtime/protocol.ts` mirrors `libs/shared-realtime` in the backend. See [ADR 0001](./docs/adr/0001-realtime-protocol-mirror.md).
 
----
+## Features
 
-## Запуск
+- Registration and login with email and password, Google sign-in (optional) and an email verification screen
+- Phone calls: number input or contacts picker (normalised to E.164), template and conversation-style selection
+- Live call screen: streamed AI replies, reply suggestions, in-call style and voice switching, automatic reconnect with event replay
+- App-to-app calls with native incoming-call UI on Android (dev build required)
+- Call history with search and status filters, transcript sharing and copying
+- Billing: balance, plans, usage, top-up with idempotency keys
+- Templates and styles management, style-adaptation profile
+- Settings: profile, password change, account deletion, push notifications, light/dark/system theme, four font sizes
+- Onboarding, Ukrainian and English UI, deep links (`mova://`), offline banner, error boundary, optional Sentry
+
+## Tech stack
+
+Expo SDK 54, Expo Router (typed routes), React Native 0.81 (new architecture), TypeScript strict, TanStack Query, Zustand, axios (single-flight token refresh), socket.io-client, LiveKit React Native, react-hook-form with Zod, i18next, expo-secure-store, Firebase Auth, react-native-callkeep, Jest.
+
+## Getting started
+
+Requirements: Node.js 20+ and npm. For iOS you need macOS and Xcode; for Android, Android Studio or a device.
+
+1. Start the backend from the [MOVA](https://github.com/XXXDoriXXX/MOVA) repo (`make up`). It serves the API on port 3000 and WebSocket on port 3002.
+2. Install and configure the app:
 
 ```sh
+git clone https://github.com/XXXDoriXXX/Mova-mobile.git
+cd Mova-mobile
 npm install
-cp .env.example .env.local           # опційно: переоприділити URL'и / DSN
+cp .env.example .env.local
 npm run start
 ```
 
-Далі: `i` (iOS симулятор, macOS only) / `a` (Android емулятор / пристрій) /
-QR з Expo Go (Android).
+3. Press `i` for the iOS simulator or `a` for Android.
 
-### Environment
+The app uses native modules (LiveKit WebRTC, CallKeep, Firebase), so Expo Go is not enough for full functionality. Use a development build: `eas build --profile development` (profiles in `eas.json`), or `npx expo prebuild` followed by a local run, then `npx expo start --dev-client`.
 
-| Змінна | За замовч. | Опис |
-|---|---|---|
-| `EXPO_PUBLIC_API_URL` | `http://localhost:3000/v1` | REST base URL (api-gateway) |
-| `EXPO_PUBLIC_WS_URL` | `ws://localhost:3001` | Socket.IO URL (realtime-service) |
-| `EXPO_PUBLIC_SENTRY_DSN` | _(пусто)_ | Якщо задано — увімкне Sentry |
+For Firebase push and phone auth on Android, place your own `google-services.json` in the project root (it is gitignored) or set `GOOGLE_SERVICES_JSON` to its path.
 
-Production: `https://api.mova.app/v1` + `wss://realtime.mova.app` + ваш DSN.
+On a real device `localhost` points to the phone. In development the app rewrites `localhost` to the Metro LAN IP automatically; set the variables below to a real hostname to override.
 
----
+## Environment variables
 
-## Команди
+Copy `.env.example` to `.env.local`. These values are bundled into the app, so never put secrets in them.
 
-```sh
-npm run start           # Metro + dev menu
-npm run android         # запуск на Android
-npm run ios             # macOS only
-npm run web             # web (для перевірок)
-npm run lint            # ESLint (expo preset)
-npm run typecheck       # tsc --noEmit
-npm test                # Jest
-npm run test:watch      # Jest watch mode
-npm run prepush         # typecheck + lint + test --ci
-```
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `EXPO_PUBLIC_API_URL` | `http://localhost:3000/v1` | REST base URL, including `/v1` |
+| `EXPO_PUBLIC_WS_URL` | `ws://localhost:3002` | Socket.IO gateway |
+| `EXPO_PUBLIC_SENTRY_DSN` | empty | Enables Sentry when set |
+| `EXPO_PUBLIC_GOOGLE_OAUTH_WEB_CLIENT_ID` | empty | Google sign-in (web); leave all three empty to hide the button |
+| `EXPO_PUBLIC_GOOGLE_OAUTH_ANDROID_CLIENT_ID` | empty | Google sign-in (Android) |
+| `EXPO_PUBLIC_GOOGLE_OAUTH_IOS_CLIENT_ID` | empty | Google sign-in (iOS) |
 
----
+## Scripts
 
-## Що вкрите
+| Command | What it does |
+|---------|--------------|
+| `npm run start` | Metro dev server (LAN) |
+| `npm run start:tunnel` | Dev server through a tunnel |
+| `npm run android`, `npm run ios`, `npm run web` | Start and open on a platform |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | Jest |
+| `npm run prepush` | Typecheck, lint and tests; must pass before a PR |
 
-### Backend API surface
-Усі ендпоінти бекенда, які потрібні юзеру:
-
-- **Auth**: register, login, refresh, logout, me (GET + PATCH),
-  change-password, delete-account (з підтвердженням пароля).
-- **Billing**: summary, plans, usage, topup (idempotent), subscribe.
-- **Calls**: start + live WebSocket.
-- **Conversations**: list (cursor pagination, filter за статусом), get,
-  messages (infinite scroll), delete, share / copy транскрипту.
-- **Templates**: list, create, edit, delete, duplicate, set-default,
-  set-default-style.
-- **Styles**: list (builtin + custom), create / edit / delete custom,
-  set preferred default.
-- **Style profile**: view + reset adaptation.
-- **WS**: всі 14 server events + 8 client commands через типовану
-  discriminated union (mirror з `libs/shared-realtime`).
-
-Admin endpoints не охоплено — мобільний застосунок призначений для
-кінцевих користувачів.
-
-### Користувацькі флоу
-- **Onboarding** wizard (3 слайди + style picker), показується раз на
-  пристрій. Прапорець у SecureStore + tiny Zustand store, який тримає
-  AuthGate і екран синхронізовано.
-- **Pre-call**: phone input → contacts picker (expo-contacts +
-  libphonenumber-js нормалізація до E.164) → template + style picker
-  (pre-selects `user.preferredStyleId`) → start.
-- **Live call**: типізовані bubbles (Reanimated FadeIn), staggered
-  suggestions chips, character counter на input, in-call settings drawer
-  (style/voice/model swap), `useAppStateReconnect` для background, ping
-  кожні 20с, refresh `lastStreamId` на кожен reconnect.
-- **History**: status filter chips (All / Ended / Active / Failed),
-  quick-recall в один тап, swipe-to-delete з alert-підтвердженням.
-- **Conversation detail**: share via OS sheet, copy via clipboard,
-  delete з alert-підтвердженням, recall.
-- **Billing**: 4 tab-и (overview / plan / topup / usage), top-up з
-  inline validation (1..1000 UAH) + idempotency-key reuse на retry.
-- **Settings**: avatar з ініціалами, edit profile (language tag), change
-  password, delete account (password modal), styles, templates, push
-  registration toggle, appearance (theme + 4 font-scale рівні), about
-  з версією + mailto + repo link.
-
----
-
-## Архітектура
+## Project structure
 
 ```
-app/                    Expo Router routes (file-based)
-  _layout.tsx           Root: ErrorBoundary, Sentry init, QueryProvider,
-                        OfflineBanner, ThemeProvider, AuthGate
-  index.tsx             Boot redirect (authed → home, guest → welcome)
-  (auth)/               Public: welcome / login / register
-  (app)/                Private: bottom tabs + hidden screens
-    home, history, settings
-    settings/style-profile
-    billing, templates, template/[id]
-    styles, style/[id]
-    conversation/[id], call/pre, call/live
-
+app/            Expo Router routes: (auth) public, (app) private tabs and screens
 src/
-  api/                  Axios client + per-resource modules + refresh
-  auth/                 Zustand store + AuthGate + SecureStore tokens
-                        + pre-emptive refresh scheduler
-  realtime/             Single-source-of-truth protocol.ts (mirrored
-                        from backend's libs/shared-realtime), Socket.IO
-                        factory, error-codes
-  theme/                Tokens (palette, typography, spacing), ThemeProvider
-                        with mode + fontScale prefs persisted to SecureStore
-  components/           Themed primitives — Screen, Button, TextField, Modal,
-                        Banner, Chip, Card, Row, Spinner, BalanceWidget,
-                        ErrorBoundary, OfflineBanner
-  features/             Screen-level composition (auth, billing, calls/live,
-                        conversations, home, settings, styles, templates)
-  net/                  QueryProvider + useOnline (NetInfo bridge)
-  observability/        Opt-in Sentry init
-  notifications/        expo-notifications registration scaffold
-  navigation/           Typed deep-link builders
-  i18n/                 i18next setup, UA / EN dictionaries
-  types/                Wire-shape domain types (mirror of backend DTOs)
-  utils/                idempotency-key, phone, format, jwt, haptics
-  constants/            env (apiUrl, wsUrl, sentryDsn)
-
-__tests__/              Jest suites — protocol parsing, call store reducer,
-                        axios refresh, auth store, error boundary,
-                        formatters, idempotency keys
-docs/adr/               Architecture decision records
+  api/          axios client, per-resource modules, token refresh
+  auth/         Zustand store, auth gate, secure token storage, refresh scheduler
+  realtime/     WebSocket protocol, Socket.IO client, call signalling
+  features/     Screen logic per area (auth, billing, calls, contacts, conversations, history, home, settings, styles, templates)
+  components/   Themed UI primitives
+  theme/        Design tokens and theme provider
+  i18n/         Ukrainian and English dictionaries
+  notifications/, navigation/, net/, observability/, utils/, types/
+__tests__/      Jest suites and WebSocket fixtures
+docs/           ADRs and call-flow documents
+landing/        Static landing page
+plugins/        Expo config plugins (CallKeep, TurboModule interop)
 ```
 
----
-
-## Архітектурні рішення
-
-- [`docs/adr/0001-realtime-protocol-mirror.md`](./docs/adr/0001-realtime-protocol-mirror.md)
-  — чому ми копіюємо `ws-events.ts` верзи бекенда у `src/realtime/protocol.ts`
-- [`docs/adr/0002-error-boundary-placement.md`](./docs/adr/0002-error-boundary-placement.md)
-  — чому один root-only boundary, а не per-route
-- [`docs/adr/0003-no-voip-background-mvp.md`](./docs/adr/0003-no-voip-background-mvp.md)
-  — чому MVP не тримає WS у фоні і покладається на reconnect-on-resume
-
----
+Screens only render; business logic lives in `src/features/*/application` and is unit-tested ([ADR 0004](./docs/adr/0004-application-layer-pattern.md)).
 
 ## Deep links
 
-Експорти зі `src/navigation/deepLinks.ts`. Схема: `mova://`. Expo Router
-автоматично мапить файлові маршрути; типізовані будівники гарантують, що
-push-payload або зовнішнє посилання зламає білд, якщо маршрут перейменують.
+Scheme `mova://`. Typed builders are in `src/navigation/deepLinks.ts`.
 
 ```
 mova://welcome
@@ -185,48 +118,36 @@ mova://call/pre
 mova://call/live?conversationId=<uuid>&initialStyleId=builtin:friendly
 ```
 
----
+## Changing the backend contract
+
+If the backend adds a WebSocket event or field:
+
+1. Update `src/realtime/protocol.ts` to match `libs/shared-realtime/src/lib/ws-events.ts`.
+2. For a new event, add a fixture in `__tests__/fixtures/ws/<name>.json`.
+3. Run `npm run prepush`.
+
+## Documentation
+
+- [`docs/adr/`](./docs/adr): architecture decisions (protocol mirror, error boundary, no background VoIP in the MVP, application-layer pattern, Android native incoming call)
+- [`docs/incoming-calls.md`](./docs/incoming-calls.md) and [`docs/native-incoming-call.md`](./docs/native-incoming-call.md): app-to-app and native incoming calls (in Ukrainian)
+- [`CLAUDE.md`](./CLAUDE.md): engineering standards
 
 ## Manual QA checklist
 
-Цей чекліст виконує людина на справжньому пристрої — sandbox без
-симулятора це не покриває.
+Run on a real device after changes to auth, calls or billing.
 
-- [ ] **Register**: створити акаунт з UA / EN → токени збереглись →
-  холодний перезапуск → юзер залишається залогінений.
-- [ ] **Login**: невалідний пароль → банер; правильний → home.
-- [ ] **Refresh**: дочекатись 15 хв (access TTL) → будь-який запит
-  мовчазно поновлюється; альтернатива — ребут із токенами що ось-ось
-  спливуть, побачити пре-emptive refresh.
-- [ ] **Live call**: pre-call → bubbles мають текст (не пусті) → tap
-  suggestion → AI стрімить відповідь → timer + free-seconds-left
-  оновлюються → end → ended screen з причиною.
-- [ ] **Background mid-call**: смикнути в background → "Перепідключаємось…"
-  банер → foreground → або відновлюється, або переходить у ended з
-  `timeout`.
-- [ ] **Topup**: Idempotency-Key reuse — два рази підряд однакова сума,
-  баланс росте один раз.
-- [ ] **Change password**: змінити, потім log in зі старим = 401, з
-  новим = OK.
-- [ ] **Delete account**: модалка з паролем → 401 = "Невірний пароль";
-  правильний → акаунт видалений, юзер на welcome.
-- [ ] **Appearance**: dark / light / system + 4 розміри тексту →
-  перезавантажити app → налаштування зберігаються.
-- [ ] **Style profile**: написати декілька повідомлень у дзвінку → у
-  Settings → Адаптація стилю з'являється summary → Reset обнуляє.
-- [ ] **Deep link**: відкрити `mova://billing` з іншого застосунку →
-  приземляється на Billing.
-- [ ] **Offline**: вимкнути мережу → банер "Немає звʼязку" → запити не
-  спамлять backoff'ами; увімкнути → автоматично рефетчиться.
+- [ ] Register, restart the app cold, and stay signed in
+- [ ] Wrong password shows a banner; correct password opens home
+- [ ] Access token refreshes silently after expiry
+- [ ] Live call: messages have text, suggestion tap is spoken, timer and free seconds update, ended screen shows the reason
+- [ ] App sent to background mid-call shows a reconnect banner and recovers or ends with a timeout
+- [ ] Repeating the same top-up amount adds the balance only once
+- [ ] Old password fails after a password change; the new one works
+- [ ] Account deletion asks for the password and returns to the welcome screen
+- [ ] Theme and font size persist after restart
+- [ ] `mova://billing` from another app opens Billing
+- [ ] Offline banner appears without request spam and data refetches on reconnect
 
----
+## License
 
-## Контракт із бекендом — обережно
-
-Realtime payloads повинні точно матчити
-`libs/shared-realtime/src/lib/ws-events.ts` (на бекенді). Якщо ви
-додаєте поле / нову подію на сервері:
-
-1. Оновити `src/realtime/protocol.ts` у дзеркальному форматі.
-2. Якщо подія нова — додати фікстуру в `__tests__/fixtures/ws/<name>.json`.
-3. `npm run prepush` має бути зеленим перед PR.
+No license file is included.
