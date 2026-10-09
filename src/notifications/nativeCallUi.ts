@@ -28,6 +28,7 @@ type CallKeepLike = {
 };
 
 function loadCallKeep(): CallKeepLike | null {
+  if (Platform.OS === "web") return null;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require("react-native-callkeep") as {
