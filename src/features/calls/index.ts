@@ -1,4 +1,5 @@
 export { ContactsPicker } from "./ContactsPicker";
+export { EnableCallAudio } from "./EnableCallAudio";
 export { StylePicker } from "./StylePicker";
 export { TemplatePicker } from "./TemplatePicker";
 export { VoiceQualitySlider, type VoiceTier } from "./VoiceQualitySlider";

@@ -1,6 +1,7 @@
 import Constants from "expo-constants";
 
 type AppExtra = {
+  betaOnly?: boolean;
   apiUrl: string;
   wsUrl: string;
   sentryDsn?: string;
@@ -37,6 +38,8 @@ function resolveDevUrl(envValue: string | undefined, fallback: string): string {
     .replace("//localhost", `//${host}`)
     .replace("//127.0.0.1", `//${host}`);
 }
+
+export const BETA_ONLY = extra.betaOnly === true;
 
 export const API_BASE_URL: string = resolveDevUrl(
   extra.apiUrl,

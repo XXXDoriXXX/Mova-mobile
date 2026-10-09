@@ -9,6 +9,9 @@ export interface CallMediaTransport {
   setMuted(muted: boolean): Promise<void>;
   setOnDisconnected(cb: (() => void) | null): void;
   isAvailable(): boolean;
+  enableAudio?(): Promise<void>;
+  getAudioBlocked?(): boolean;
+  subscribeAudioBlocked?(listener: () => void): () => void;
 }
 
 type LiveKitModule = {

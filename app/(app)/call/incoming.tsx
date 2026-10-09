@@ -12,6 +12,7 @@ import { extractErrorPayload } from "@/api/client";
 import { toast } from "@/feedback/toast";
 import {
   useCallSignalStore,
+  EnableCallAudio,
   useIncomingCallAlert,
   leaveCallScreen,
 } from "@/features/calls";
@@ -134,6 +135,7 @@ export default function IncomingCallScreen() {
         </View>
 
         <View style={{ width: "100%", gap: theme.spacing.md }}>
+          <EnableCallAudio />
           <Button
             label="Прийняти"
             variant="accent"

@@ -21,6 +21,7 @@ import { toast } from "@/feedback/toast";
 import { useAuthStore } from "@/auth/store";
 import {
   AiReplyCandidate,
+  EnableCallAudio,
   CallConnecting,
   CallEnding,
   CallFatal,
@@ -212,6 +213,7 @@ export default function LiveCallScreen() {
       />
 
       <CallStatusBanner />
+      <EnableCallAudio />
 
       {usageTick?.planCode === "free" &&
       typeof usageTick.secondsRemaining === "number" &&

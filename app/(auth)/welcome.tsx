@@ -1,3 +1,4 @@
+import { API_BASE_URL, BETA_ONLY } from "@/constants/env";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -59,7 +60,7 @@ export default function WelcomeScreen() {
                 <LoginForm onError={setBanner} />
               </Reveal>
 
-              <Reveal delay={300}>
+              {!BETA_ONLY && <Reveal delay={300}>
                 <View
                   style={{
                     flexDirection: "row",
@@ -82,13 +83,15 @@ export default function WelcomeScreen() {
                     style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }}
                   />
                 </View>
-              </Reveal>
+              </Reveal>}
 
-              <Reveal delay={360}>
+              {!BETA_ONLY && <Reveal delay={360}>
                 <GoogleSignInButton onError={setBanner} />
-              </Reveal>
+              </Reveal>}
 
-              <Reveal delay={420}>
+              {BETA_ONLY ? (
+                <Text variant="body" color="textMuted" align="center">{t("auth.betaAccess")}</Text>
+              ) : <Reveal delay={420}>
                 <Pressable
                   onPress={() => router.push("/register")}
                   accessibilityRole="link"
@@ -102,9 +105,13 @@ export default function WelcomeScreen() {
                     </Text>
                   </Text>
                 </Pressable>
-              </Reveal>
+              </Reveal>}
 
-              <Text
+              {BETA_ONLY ? (
+                <Text variant="caption" color="textMuted" align="center" onPress={() => void WebBrowser.openBrowserAsync(new URL("/beta.html", API_BASE_URL).toString())}>
+                  {t("auth.betaInfo")}
+                </Text>
+              ) : <Text
                 variant="caption"
                 color="textMuted"
                 style={{ textAlign: "center", lineHeight: 18 }}
@@ -127,7 +134,7 @@ export default function WelcomeScreen() {
                 >
                   {t("auth.legalPrivacy")}
                 </Text>
-              </Text>
+              </Text>}
             </View>
           </View>
         </ScrollView>

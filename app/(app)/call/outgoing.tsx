@@ -11,6 +11,7 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { cancelPeerCall } from "@/api/calls";
 import {
   useCallSignalStore,
+  EnableCallAudio,
   getCallMediaTransport,
   leaveCallScreen,
 } from "@/features/calls";
@@ -146,6 +147,7 @@ export default function OutgoingCallScreen() {
         </View>
 
         <View style={{ width: "100%", gap: theme.spacing.lg, alignItems: "center" }}>
+          <EnableCallAudio />
           {status === "accepted" ? (
             <IconButton
               tone={muted ? "danger" : "muted"}

@@ -6,6 +6,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
+import { BETA_ONLY } from "@/constants/env";
 import { Button } from "@/components/Button";
 import { Text } from "@/components/Text";
 import { TextField } from "@/components/TextField";
@@ -124,7 +125,7 @@ export function LoginForm({ onError }: Props) {
         )}
       />
 
-      <Pressable
+      {!BETA_ONLY && <Pressable
         onPress={() => {}}
         accessibilityRole="link"
         hitSlop={8}
@@ -133,7 +134,7 @@ export function LoginForm({ onError }: Props) {
         <Text variant="caption" color="textMuted">
           {t("auth.forgotPassword")}
         </Text>
-      </Pressable>
+      </Pressable>}
 
       <Button
         label={t("auth.loginCta")}

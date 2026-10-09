@@ -11,6 +11,7 @@ import { Row } from "@/components/Row";
 import { Screen } from "@/components/Screen";
 import { Text } from "@/components/Text";
 import { useTheme } from "@/theme/ThemeProvider";
+import { API_BASE_URL, BETA_ONLY } from "@/constants/env";
 import { triggerHaptic } from "@/utils/haptics";
 
 const SUPPORT_EMAIL = "support@mova.app";
@@ -41,6 +42,10 @@ export default function AboutScreen() {
   }
 
   function openMail() {
+    if (BETA_ONLY) {
+      void Linking.openURL(new URL("/beta.html", API_BASE_URL).toString());
+      return;
+    }
     const subject = encodeURIComponent("Mova feedback");
     const url = `mailto:${SUPPORT_EMAIL}?subject=${subject}`;
     void Linking.openURL(url);
