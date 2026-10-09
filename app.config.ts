@@ -64,10 +64,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
   },
   web: {
-    output: "static",
+    output: "single",
     favicon: "./assets/images/favicon.png",
   },
   plugins: [
+    "expo-font",
     "expo-router",
     "expo-secure-store",
     "expo-localization",
@@ -132,6 +133,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         process.env.EXPO_PUBLIC_EAS_PROJECT_ID ??
         "43dcdb6d-67d6-43c0-95fe-985578f3e27e",
     },
+    betaOnly: process.env.EXPO_PUBLIC_BETA_ONLY === "true",
     apiUrl: process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_API_URL,
     wsUrl: process.env.EXPO_PUBLIC_WS_URL ?? DEFAULT_WS_URL,
     sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN,

@@ -1,3 +1,5 @@
+import { BETA_ONLY } from "@/constants/env";
+import { Button } from "@/components/Button";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -19,6 +21,24 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { AuthHeroHeader, GoogleSignInButton, RegisterForm } from "@/features/auth";
 
 export default function RegisterScreen() {
+  return BETA_ONLY ? <BetaRegistrationScreen /> : <OpenRegistrationScreen />;
+}
+
+function BetaRegistrationScreen() {
+  const { t } = useTranslation();
+  const router = useRouter();
+  return (
+    <Screen>
+      <View style={{ flex: 1, justifyContent: "center", gap: 20 }}>
+        <Text variant="title">{t("auth.betaTitle")}</Text>
+        <Text variant="body">{t("auth.betaAccess")}</Text>
+        <Button label={t("auth.loginLink")} onPress={() => router.replace("/welcome")} />
+      </View>
+    </Screen>
+  );
+}
+
+function OpenRegistrationScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();

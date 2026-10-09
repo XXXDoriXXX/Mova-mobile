@@ -3,6 +3,15 @@ import { Text } from "react-native";
 import { render } from "@testing-library/react-native";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { reportError } from "@/observability/telemetry";
+
+jest.mock("@/observability/telemetry", () => ({
+  reportError: jest.fn(),
+}));
+
+beforeEach(() => {
+  jest.mocked(reportError).mockClear();
+});
 
 const realError = console.error;
 beforeAll(() => {
@@ -37,6 +46,13 @@ describe("ErrorBoundary", () => {
     expect(getByText("Something went wrong")).toBeTruthy();
     expect(getByText("kaboom")).toBeTruthy();
     expect(getByText("Reload")).toBeTruthy();
+    expect(reportError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "kaboom" }),
+      expect.objectContaining({
+        fatal: true,
+        context: expect.objectContaining({ source: "errorBoundary" }),
+      }),
+    );
   });
 
   it("exposes a Sign out button when onSignOut is provided", () => {

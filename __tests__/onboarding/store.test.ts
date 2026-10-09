@@ -3,6 +3,12 @@
 describe("onboarding store", () => {
   beforeEach(() => {
     jest.resetModules();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
   });
 
   it("starts in 'unknown' before hydrate", () => {
